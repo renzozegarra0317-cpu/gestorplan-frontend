@@ -1,0 +1,1062 @@
+<!-- HEADER -->
+  <div class="page-header">
+    <div class="header-top">
+      <div class="header-left">
+        <h1 class="page-title">
+          <span class="page-title__icon">👥</span>
+          <span class="page-title__text">Lista de Trabajadores</span>
+        </h1>
+        <p class="page-subtitle">
+          <span class="subtitle-dots">
+            <span class="subtitle-dot subtitle-dot--1"></span>
+            <span class="subtitle-dot subtitle-dot--2"></span>
+            <span class="subtitle-dot subtitle-dot--3"></span>
+          </span>
+          Gestión de personal municipal - {{ trabajadoresFiltrados.length }} trabajadores
+        </p>
+      </div>
+      <div class="header-right">
+        <button class="btn btn--outline" (click)="verEliminados()">
+          <span class="btn__icon">🗑️</span>
+          Trabajadores Eliminados
+        </button>
+        <button class="btn btn--primary" (click)="nuevoTrabajador()">
+          <span class="btn__icon">➕</span>
+          Nuevo Trabajador
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE ACCIONES -->
+  <div class="acciones-bar">
+    <div class="acciones-bar__left">
+      <!-- Búsqueda -->
+      <div class="search-box">
+        <span class="search-box__icon">🔍</span>
+        <input
+          type="text"
+          class="search-box__input"
+          placeholder="Buscar por DNI, nombre, código..."
+          [(ngModel)]="filtros.busqueda"
+          (input)="aplicarFiltros()"
+        />
+      </div>
+
+      <!-- Botón Filtros -->
+      <button 
+        class="btn btn--outline"
+        [class.active]="mostrarFiltros"
+        (click)="mostrarFiltros = !mostrarFiltros"
+      >
+        <span class="btn__icon">🔽</span>
+        Filtros
+        <span class="badge badge--sm" *ngIf="filtros.area || filtros.tipoContrato || filtros.estado">
+          {{ (filtros.area ? 1 : 0) + (filtros.tipoContrato ? 1 : 0) + (filtros.estado ? 1 : 0) }}
+        </span>
+      </button>
+
+      <!-- Limpiar Filtros -->
+      <button 
+        class="btn btn--ghost" 
+        (click)="limpiarFiltros()"
+        *ngIf="filtros.busqueda || filtros.area || filtros.tipoContrato || filtros.estado"
+      >
+        <span class="btn__icon">✖️</span>
+        Limpiar
+      </button>
+    </div>
+
+    <div class="acciones-bar__right">
+      <!-- Toggle Vista -->
+      <div class="vista-toggle">
+        <button 
+          class="btn-vista" 
+          [class.active]="vistaActual === 'tabla'"
+          (click)="cambiarVista('tabla')"
+          title="Vista de tabla"
+        >
+          <span>📋</span>
+        </button>
+        <button 
+          class="btn-vista" 
+          [class.active]="vistaActual === 'tarjetas'"
+          (click)="cambiarVista('tarjetas')"
+          title="Vista de tarjetas"
+        >
+          <span>🃏</span>
+        </button>
+      </div>
+
+      <!-- Exportar -->
+      <button class="btn btn--outline btn-export" (click)="exportarExcel()">
+        <span class="btn-export__icon">
+          <img src="assets/excel.png" alt="Excel" class="export-icon-img">
+        </span>
+        <span class="btn-export__text">Excel</span>
+      </button>
+      <button class="btn btn--outline btn-export" (click)="exportarPDF()">
+        <span class="btn-export__icon">
+          <img src="assets/pdf.png" alt="PDF" class="export-icon-img">
+        </span>
+        <span class="btn-export__text">PDF</span>
+      </button>
+
+      <!-- Items por página -->
+      <select class="select select--sm" [(ngModel)]="itemsPorPagina" (change)="aplicarFiltros()">
+        <option [value]="10">10</option>
+        <option [value]="20">20</option>
+        <option [value]="50">50</option>
+        <option [value]="100">100</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- PANEL DE FILTROS -->
+  <div class="filtros-panel" *ngIf="mostrarFiltros">
+    <div class="filtros-grid">
+      <div class="form-group">
+        <label class="form-label">Gerencia</label>
+        <select class="select" [(ngModel)]="filtros.gerencia" (change)="aplicarFiltros()">
+          <option value="">Todas</option>
+          <option *ngFor="let gerencia of gerencias" [value]="gerencia">{{ gerencia }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Área</label>
+        <select class="select" [(ngModel)]="filtros.area" (change)="aplicarFiltros()">
+          <option value="">Todas</option>
+          <option *ngFor="let area of areas" [value]="area">{{ area }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo de Contrato</label>
+        <select class="select" [(ngModel)]="filtros.tipoContrato" (change)="aplicarFiltros()">
+          <option value="">Todos</option>
+          <option *ngFor="let tipo of tiposContrato" [value]="tipo">{{ tipo }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select class="select" [(ngModel)]="filtros.estado" (change)="aplicarFiltros()">
+          <option value="">Todos</option>
+          <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR UNIFICADO: TABLA CON BÚSQUEDA INTEGRADA -->
+  <div class="contenedor-filtros-tabla" *ngIf="vistaActual === 'tabla'">
+    <!-- VISTA DE TABLA PREMIUM CON PRIMENG -->
+    <div class="tabla-container-premium">
+    <p-table
+      [value]="trabajadoresPaginados"
+      [loading]="cargando"
+      [paginator]="false"
+      [rows]="itemsPorPagina"
+      [sortField]="sortField"
+      [sortOrder]="sortOrder"
+      (onSort)="onSort($event)"
+      [selection]="trabajadoresSeleccionadosPrime"
+      (selectionChange)="onSelectionChange($event)"
+      dataKey="id"
+      styleClass="p-datatable-premium"
+      [tableStyle]="{'min-width': '1400px'}"
+      [rowHover]="true"
+      [removableSort]="true"
+      [globalFilterFields]="['dni', 'nombreCompleto', 'codigoTrabajador', 'cargo', 'regimenLaboral', 'estado']"
+      [scrollable]="true"
+      scrollHeight="600px"
+    >
+      <!-- HEADER CON FILTRO GLOBAL -->
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 50px; text-align: center;">
+            <p-checkbox
+              [binary]="true"
+              [checked]="todosSeleccionados"
+              (onChange)="toggleTodos($event)"
+            ></p-checkbox>
+          </th>
+          <th pSortableColumn="dni" style="width: 120px;">
+            DNI
+            <p-sortIcon field="dni"></p-sortIcon>
+          </th>
+          <th pSortableColumn="nombreCompleto" style="width: 350px; min-width: 350px;">
+            Apellidos y Nombres
+            <p-sortIcon field="nombreCompleto"></p-sortIcon>
+          </th>
+          <th style="width: 130px;">Código</th>
+          <th pSortableColumn="cargo" style="width: 220px;">
+            Cargo
+            <p-sortIcon field="cargo"></p-sortIcon>
+          </th>
+          <th style="width: 200px;">Régimen Laboral</th>
+          <th style="width: 130px;">Estado</th>
+          <th pSortableColumn="remuneracionBasica" style="width: 160px; text-align: right;">
+            Remuneración
+            <p-sortIcon field="remuneracionBasica"></p-sortIcon>
+          </th>
+          <th style="width: 160px; text-align: center;">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <!-- FILAS DE DATOS -->
+      <ng-template pTemplate="body" let-trabajador let-rowIndex="rowIndex">
+        <tr 
+          [class.selected-row]="estaSeleccionado(trabajador.id)"
+          (dblclick)="verDetalle(trabajador)"
+          style="cursor: pointer;"
+        >
+          <td style="text-align: center;">
+            <p-checkbox
+              [value]="trabajador"
+              [(ngModel)]="trabajadoresSeleccionadosPrime"
+              [inputId]="'checkbox-' + trabajador.id"
+            ></p-checkbox>
+          </td>
+          <td>
+            <div class="trabajador-dni">{{ trabajador.dni }}</div>
+          </td>
+          <td style="white-space: nowrap;">
+            <div class="trabajador-nombre">
+              <span class="trabajador-nombre__principal">{{ trabajador.nombreCompleto }}</span>
+              <span class="trabajador-nombre__meta" *ngIf="trabajador.celular">
+                📱 {{ trabajador.celular }}
+              </span>
+            </div>
+          </td>
+          <td>
+            <span class="codigo-badge">{{ trabajador.codigoTrabajador }}</span>
+          </td>
+          <td>
+            <div class="cargo-texto">{{ formatearCargoParaLista(trabajador.cargo) }}</div>
+          </td>
+          <td>
+            <span class="regimen-texto">{{ trabajador.regimenLaboral || 'N/A' }}</span>
+          </td>
+          <td>
+            <span class="estado-badge" [ngClass]="'estado-badge--' + (trabajador.estado?.toLowerCase() || 'activo')">
+              {{ trabajador.estado }}
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <span class="monto">{{ formatearMoneda(trabajador.remuneracionBasica) }}</span>
+          </td>
+          <td style="text-align: center;">
+            <div class="actions-menu">
+              <button 
+                class="btn-icon btn-icon--info" 
+                title="Ver detalles"
+                (click)="verDetalle(trabajador); $event.stopPropagation()"
+              >
+                👁️
+              </button>
+              <button 
+                class="btn-icon btn-icon--warning" 
+                title="Editar"
+                (click)="editarTrabajador(trabajador); $event.stopPropagation()"
+              >
+                ✏️
+              </button>
+              <button 
+                class="btn-icon btn-icon--danger" 
+                title="Eliminar"
+                (click)="eliminarTrabajador(trabajador); $event.stopPropagation()"
+              >
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <!-- ESTADO VACÍO -->
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" class="td-empty">
+            <div class="empty-state">
+              <span class="empty-state__icon">🔍</span>
+              <p class="empty-state__text">No se encontraron trabajadores</p>
+              <button class="btn btn--sm btn--outline" (click)="limpiarFiltros()">
+                Limpiar filtros
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <!-- LOADING -->
+      <ng-template pTemplate="loadingbody">
+        <tr>
+          <td colspan="9" class="td-loading">
+            <div class="loading-spinner">Cargando...</div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+    </div>
+    
+    <!-- PAGINACIÓN DE TABLA -->
+    <div class="paginacion" *ngIf="!cargando && trabajadoresFiltrados.length > 0">
+      <div class="paginacion__info">
+        Mostrando 
+        <strong>{{ (paginaActual - 1) * itemsPorPagina + 1 }}</strong> 
+        a 
+        <strong>{{ Math.min(paginaActual * itemsPorPagina, trabajadoresFiltrados.length) }}</strong> 
+        de 
+        <strong>{{ trabajadoresFiltrados.length }}</strong> 
+        trabajadores
+      </div>
+      
+      <div class="paginacion__controles">
+        <button 
+          class="btn-pag" 
+          [disabled]="paginaActual === 1"
+          (click)="cambiarPagina(1)"
+          title="Primera página"
+        >
+          ⏮️
+        </button>
+        <button 
+          class="btn-pag" 
+          [disabled]="paginaActual === 1"
+          (click)="cambiarPagina(paginaActual - 1)"
+          title="Página anterior"
+        >
+          ◀️
+        </button>
+        
+        <span class="paginacion__paginas">
+          <input 
+            type="number" 
+            class="paginacion__input"
+            [value]="paginaActual"
+            (change)="cambiarPagina(+$any($event.target).value)"
+            min="1"
+            [max]="totalPaginas"
+          />
+          <span class="paginacion__total">de {{ totalPaginas }}</span>
+        </span>
+        
+        <button 
+          class="btn-pag" 
+          [disabled]="paginaActual === totalPaginas"
+          (click)="cambiarPagina(paginaActual + 1)"
+          title="Página siguiente"
+        >
+          ▶️
+        </button>
+        <button 
+          class="btn-pag" 
+          [disabled]="paginaActual === totalPaginas"
+          (click)="cambiarPagina(totalPaginas)"
+          title="Última página"
+        >
+          ⏭️
+        </button>
+      </div>
+      
+      <div class="paginacion__seleccion" *ngIf="trabajadoresSeleccionados.length > 0">
+        <span class="badge badge--primary">
+          {{ trabajadoresSeleccionados.length }} seleccionados
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA DE TARJETAS -->
+  <div class="tarjetas-container" *ngIf="vistaActual === 'tarjetas'">
+    <div class="tarjetas-grid">
+      <div 
+        class="trabajador-card" 
+        *ngFor="let trabajador of trabajadoresPaginados"
+        [class.selected]="estaSeleccionado(trabajador.id)"
+        (dblclick)="verDetalle(trabajador)"
+      >
+        <!-- Checkbox de selección -->
+        <div class="card-checkbox">
+          <input 
+            type="checkbox" 
+            [checked]="estaSeleccionado(trabajador.id)"
+            (change)="toggleSeleccion(trabajador.id)"
+            (click)="$event.stopPropagation()"
+          />
+        </div>
+
+        <!-- Avatar profesional -->
+        <div class="card-avatar">
+          <div class="avatar-circle-card" [style.background]="obtenerColorAvatar(trabajador.nombreCompleto || trabajador.nombres)">
+            <span class="avatar-iniciales-card">
+              {{ obtenerIniciales(trabajador.nombres, trabajador.apellidoPaterno) }}
+            </span>
+          </div>
+          <div class="avatar-status" [ngClass]="'status-' + (trabajador.estado?.toLowerCase() || 'activo')"></div>
+        </div>
+
+        <!-- Información principal -->
+        <div class="card-content">
+          <div class="card-header">
+            <h3 class="card-nombre">{{ trabajador.nombreCompleto }}</h3>
+            <span class="card-codigo">{{ trabajador.codigoTrabajador }}</span>
+          </div>
+
+          <div class="card-details">
+            <div class="card-detail-item">
+              <span class="detail-label">DNI:</span>
+              <span class="detail-value">{{ trabajador.dni }}</span>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-label">Cargo:</span>
+              <span class="detail-value">{{ formatearCargoParaLista(trabajador.cargo) }}</span>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-label">Régimen:</span>
+              <span class="detail-value">{{ trabajador.regimenLaboral || 'N/A' }}</span>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-label">Remuneración:</span>
+              <span class="detail-value detail-monto">{{ formatearMoneda(trabajador.remuneracionBasica) }}</span>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <span class="card-badge" [ngClass]="getEstadoBadgeClass(trabajador.estado)">
+              {{ trabajador.estado }}
+            </span>
+            <div class="card-actions">
+              <button 
+                class="card-action-btn" 
+                title="Ver detalles"
+                (click)="verDetalle(trabajador); $event.stopPropagation()"
+              >
+                👁️
+              </button>
+              <button 
+                class="card-action-btn" 
+                title="Editar"
+                (click)="editarTrabajador(trabajador); $event.stopPropagation()"
+              >
+                ✏️
+              </button>
+              <button 
+                class="card-action-btn card-action-btn--danger" 
+                title="Eliminar"
+                (click)="eliminarTrabajador(trabajador); $event.stopPropagation()"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state para tarjetas -->
+    <div class="tarjetas-empty" *ngIf="!cargando && trabajadoresPaginados.length === 0">
+      <div class="empty-state">
+        <span class="empty-state__icon">🔍</span>
+        <p class="empty-state__text">No se encontraron trabajadores</p>
+        <button class="btn btn--sm btn--outline" (click)="limpiarFiltros()">
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- PAGINACIÓN -->
+    <div class="paginacion" *ngIf="!cargando && trabajadoresFiltrados.length > 0">
+    <div class="paginacion__info">
+      Mostrando 
+      <strong>{{ (paginaActual - 1) * itemsPorPagina + 1 }}</strong> 
+      a 
+      <strong>{{ Math.min(paginaActual * itemsPorPagina, trabajadoresFiltrados.length) }}</strong> 
+      de 
+      <strong>{{ trabajadoresFiltrados.length }}</strong> 
+      registros
+    </div>
+
+    <div class="paginacion__controles">
+      <button 
+        class="btn-pag" 
+        [disabled]="paginaActual === 1"
+        (click)="cambiarPagina(1)"
+      >
+        ⏮️
+      </button>
+      <button 
+        class="btn-pag" 
+        [disabled]="paginaActual === 1"
+        (click)="cambiarPagina(paginaActual - 1)"
+      >
+        ◀️
+      </button>
+
+      <span class="paginacion__paginas">
+        <input 
+          type="number" 
+          class="paginacion__input"
+          [value]="paginaActual"
+          (change)="cambiarPagina(+$any($event.target).value)"
+          min="1"
+          [max]="totalPaginas"
+        />
+        <span class="paginacion__total">de {{ totalPaginas }}</span>
+      </span>
+
+      <button 
+        class="btn-pag" 
+        [disabled]="paginaActual === totalPaginas"
+        (click)="cambiarPagina(paginaActual + 1)"
+      >
+        ▶️
+      </button>
+      <button 
+        class="btn-pag" 
+        [disabled]="paginaActual === totalPaginas"
+        (click)="cambiarPagina(totalPaginas)"
+      >
+        ⏭️
+      </button>
+    </div>
+
+    <div class="paginacion__seleccion" *ngIf="trabajadoresSeleccionados.length > 0">
+      <span class="badge badge--primary">
+        {{ trabajadoresSeleccionados.length }} seleccionados
+      </span>
+    </div>
+    </div>
+  </div>
+
+<!-- MODAL DE DETALLE DE TRABAJADOR (nuevo componente, NO aquí) -->
+<app-trabajador-detalle
+  *ngIf="trabajadorDetalle"
+  [trabajador]="trabajadorDetalle"
+  (cerrar)="cerrarDetalle()"
+  (editar)="editarTrabajadorDesdeDetalle(trabajadorDetalle)"
+></app-trabajador-detalle>
+
+<!-- ============================================
+     MODAL INDEPENDIENTE DE TRABAJADORES ELIMINADOS
+     ============================================ -->
+<div class="modal-eliminados-overlay" *ngIf="mostrarModalEliminados">
+  <div class="modal-eliminados-backdrop" (click)="cerrarModalEliminados()"></div>
+  
+  <div class="modal-eliminados-container" (click)="$event.stopPropagation()">
+    <!-- HEADER PROFESIONAL -->
+    <div class="modal-elim-header">
+      <div class="modal-elim-header__left">
+        <div class="header-icon-circle">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </div>
+        <div class="header-text">
+          <h2 class="modal-elim-title">Trabajadores Eliminados</h2>
+          <p class="modal-elim-subtitle">Personal inactivo • Gestión de respaldo</p>
+        </div>
+      </div>
+      <button class="btn-modal-close" (click)="cerrarModalEliminados()" title="Cerrar (Esc)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="modal-elim-content">
+      <!-- LOADING STATE -->
+      <div *ngIf="cargando" class="estado-cargando">
+        <div class="spinner-container">
+          <div class="spinner-orbital">
+            <div class="spinner-orbital__ring"></div>
+            <div class="spinner-orbital__ring"></div>
+            <div class="spinner-orbital__ring"></div>
+          </div>
+        </div>
+        <p class="estado-cargando__text">Cargando trabajadores eliminados...</p>
+        <p class="estado-cargando__subtext">Por favor espera un momento</p>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div *ngIf="!cargando && trabajadoresEliminados.length === 0" class="estado-sin-datos">
+        <div class="sin-datos-icon">
+          <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+            <line x1="2" y1="2" x2="22" y2="22" opacity="0.3"></line>
+          </svg>
+        </div>
+        <h3 class="sin-datos-title">¡Sistema limpio!</h3>
+        <p class="sin-datos-text">No hay trabajadores eliminados en este momento</p>
+        <p class="sin-datos-subtext">Todos los trabajadores están activos en el sistema</p>
+      </div>
+
+      <!-- CONTENIDO CON DATOS -->
+      <div *ngIf="!cargando && trabajadoresEliminados.length > 0" class="modal-elim-datos">
+        <!-- ESTADÍSTICAS -->
+        <div class="elim-stats">
+          <div class="stat-badge">
+            <div class="stat-badge__numero">{{ trabajadoresEliminados.length }}</div>
+            <div class="stat-badge__texto">
+              <span class="stat-badge__label">Total</span>
+              <span class="stat-badge__desc">{{ trabajadoresEliminados.length === 1 ? 'Eliminado' : 'Eliminados' }}</span>
+            </div>
+          </div>
+          
+          <div class="elim-filtros">
+            <input 
+              type="text" 
+              class="elim-search" 
+              placeholder="🔍 Buscar por nombre, DNI o código..."
+              [(ngModel)]="busquedaEliminados"
+            />
+          </div>
+        </div>
+
+        <!-- GRID DE TARJETAS PROFESIONALES -->
+        <div class="tarjetas-eliminados-grid">
+          <div 
+            class="tarjeta-elim" 
+            *ngFor="let trabajador of trabajadoresEliminadosFiltrados(); let i = index"
+            [style.animation-delay]="(i * 0.03) + 's'"
+          >
+            <!-- Indicador de posición -->
+            <div class="tarjeta-elim__numero">#{{ i + 1 }}</div>
+
+            <!-- Contenido de la tarjeta -->
+            <div class="tarjeta-elim__contenido">
+              <!-- Avatar -->
+              <div class="tarjeta-elim__avatar">
+                <div class="avatar-circle">
+                  <span class="avatar-iniciales">
+                    {{ obtenerIniciales(trabajador.Nombres || trabajador.nombres, trabajador.ApellidoPaterno || trabajador.apellidoPaterno) }}
+                  </span>
+                </div>
+                <div class="avatar-badge-eliminado">✕</div>
+              </div>
+
+              <!-- Info Principal -->
+              <div class="tarjeta-elim__info">
+                <h4 class="tarjeta-elim__nombre">
+                  {{ trabajador.ApellidoPaterno || trabajador.apellidoPaterno || '' }} 
+                  {{ trabajador.ApellidoMaterno || trabajador.apellidoMaterno || '' }}
+                </h4>
+                <p class="tarjeta-elim__subnombre">
+                  {{ trabajador.Nombres || trabajador.nombres || 'Sin nombre' }}
+                </p>
+
+                <!-- Detalles -->
+                <div class="tarjeta-elim__detalles">
+                  <div class="detalle-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="8.5" cy="7" r="4"></circle>
+                    </svg>
+                    <span>{{ trabajador.NumeroDocumento || trabajador.numeroDocumento || 'Sin DNI' }}</span>
+                  </div>
+                  <div class="detalle-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    </svg>
+                    <span>{{ trabajador.Codigo || trabajador.codigo || trabajador.codigoTrabajador || 'N/A' }}</span>
+                  </div>
+                </div>
+
+                <!-- Tags -->
+                <div class="tarjeta-elim__tags">
+                  <span class="tag-elim tag-elim--area">
+                    {{ trabajador.AreaNombre || trabajador.areaNombre || trabajador.area || 'Sin área' }}
+                  </span>
+                  <span class="tag-elim tag-elim--cargo">
+                    {{ trabajador.CargoNombre || trabajador.cargoNombre || trabajador.cargo || 'Sin cargo' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Botones de Acción -->
+              <div class="tarjeta-elim__actions">
+                <button 
+                  class="btn-restaurar-elim" 
+                  (click)="restaurarTrabajador(trabajador.TrabajadorID || trabajador.trabajadorId || trabajador.id); $event.stopPropagation()"
+                  title="Restaurar trabajador"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                  </svg>
+                  <span>Restaurar</span>
+                </button>
+                
+                <button 
+                  class="btn-eliminar-definitivo" 
+                  (click)="eliminarDefinitivoTrabajador(trabajador.TrabajadorID || trabajador.trabajadorId || trabajador.id, trabajador)"
+                  title="Eliminar definitivamente"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  <span>Eliminar Definitivo</span>
+                </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     MODAL PROFESIONAL DE ELIMINACIÓN DEFINITIVA
+     ============================================ -->
+<div class="modal-eliminacion-overlay" *ngIf="mostrarModalEliminacionDefinitiva">
+  <div class="modal-eliminacion-backdrop" (click)="cerrarModalEliminacionDefinitiva()"></div>
+  
+  <div class="modal-eliminacion-container" (click)="$event.stopPropagation()">
+    <!-- HEADER CON ADVERTENCIA -->
+    <div class="modal-eliminacion-header">
+      <div class="warning-icon-container">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </div>
+      <div class="header-content">
+        <h2 class="modal-eliminacion-title">⚠️ ELIMINACIÓN DEFINITIVA</h2>
+        <p class="modal-eliminacion-subtitle">Acción irreversible • Confirmación requerida</p>
+      </div>
+      <button class="btn-modal-close" (click)="cerrarModalEliminacionDefinitiva()" title="Cerrar (Esc)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="modal-eliminacion-content">
+      <!-- INFORMACIÓN DEL TRABAJADOR -->
+      <div class="trabajador-info-card">
+        <div class="trabajador-avatar">
+          <div class="avatar-circle-large">
+            <span class="avatar-iniciales-large">
+              {{ obtenerIniciales(trabajadorAEliminar?.Nombres || trabajadorAEliminar?.nombres, trabajadorAEliminar?.ApellidoPaterno || trabajadorAEliminar?.apellidoPaterno) }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="trabajador-details">
+          <h3 class="trabajador-nombre">
+            {{ getNombreCompleto(trabajadorAEliminar) }}
+          </h3>
+          <div class="trabajador-metadata">
+            <div class="metadata-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+              </svg>
+              <span>DNI: {{ trabajadorAEliminar?.NumeroDocumento || trabajadorAEliminar?.numeroDocumento || 'N/A' }}</span>
+            </div>
+            <div class="metadata-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              </svg>
+              <span>Código: {{ trabajadorAEliminar?.Codigo || trabajadorAEliminar?.codigo || trabajadorAEliminar?.codigoTrabajador || 'N/A' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVERTENCIA PRINCIPAL -->
+      <div class="warning-section">
+        <div class="warning-box">
+          <div class="warning-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <div class="warning-content">
+            <h4 class="warning-title">¡ATENCIÓN! Esta acción es IRREVERSIBLE</h4>
+            <p class="warning-text">
+              Al confirmar esta eliminación, se borrará <strong>PERMANENTEMENTE</strong> toda la información 
+              relacionada con este trabajador de la base de datos, incluyendo:
+            </p>
+            <ul class="warning-list">
+              <li>Datos personales y laborales</li>
+              <li>Historial de planillas y boletas</li>
+              <li>Registros de asistencia</li>
+              <li>Información de préstamos y descuentos</li>
+              <li>Todos los registros relacionados</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIRMACIÓN REQUERIDA -->
+      <div class="confirmacion-section">
+        <div class="confirmacion-box">
+          <h4 class="confirmacion-title">Confirmación de Seguridad</h4>
+          <p class="confirmacion-text">
+            Para proceder con la eliminación definitiva, escriba exactamente:
+          </p>
+          <div class="confirmacion-input-container">
+            <input 
+              type="text" 
+              class="confirmacion-input"
+              [(ngModel)]="confirmacionTexto"
+              placeholder="Escriba aquí: ELIMINAR"
+              [disabled]="eliminando"
+            />
+            <div class="confirmacion-hint">
+              <span class="hint-text">Debe escribir exactamente: </span>
+              <span class="hint-required">ELIMINAR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER CON BOTONES -->
+    <div class="modal-eliminacion-footer">
+      <div class="footer-warning">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>Esta acción no se puede deshacer</span>
+      </div>
+      
+      <div class="footer-actions">
+        <button 
+          class="btn-cancelar-eliminacion" 
+          (click)="cerrarModalEliminacionDefinitiva()"
+          [disabled]="eliminando"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          <span>Cancelar</span>
+        </button>
+        
+        <button 
+          class="btn-confirmar-eliminacion" 
+          (click)="confirmarEliminacionDefinitiva()"
+          [disabled]="eliminando || confirmacionTexto !== 'ELIMINAR'"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          <span *ngIf="!eliminando">Eliminar Definitivamente</span>
+          <span *ngIf="eliminando">Eliminando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL DE ÉXITO AL ELIMINAR TRABAJADOR -->
+<div class="modal-overlay modal-overlay--exito-eliminar" *ngIf="mostrarModalExitoEliminar" (click)="cerrarModalExitoEliminar()" @fadeIn>
+  <div class="modal-exito-eliminar" (click)="$event.stopPropagation()" @slideInDown>
+    <div class="exito-eliminar">
+      <!-- Círculo de carga -->
+      <div class="exito-eliminar__loader" *ngIf="eliminandoTrabajadorProceso">
+        <div class="spinner spinner--green"></div>
+      </div>
+      
+      <!-- Check de éxito -->
+      <div class="exito-eliminar__check" *ngIf="trabajadorEliminadoCompletado">
+        <svg class="checkmark checkmark--green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="60" height="60">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+      
+      <h3 class="exito-eliminar__title">Trabajador Eliminado</h3>
+      <p class="exito-eliminar__message" *ngIf="trabajadorEliminadoCompletado">
+        {{ nombreTrabajadorEliminado }} ha sido eliminado correctamente
+      </p>
+      <p class="exito-eliminar__message" *ngIf="eliminandoTrabajadorProceso">
+        Eliminando trabajador...
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE ÉXITO AL ELIMINAR DEFINITIVAMENTE -->
+<div class="modal-overlay modal-overlay--exito-eliminar-definitivo" *ngIf="mostrarModalExitoEliminarDefinitivo" (click)="cerrarModalExitoEliminarDefinitivo()" @fadeIn>
+  <div class="modal-exito-eliminar-definitivo" (click)="$event.stopPropagation()" @slideInDown>
+    <div class="exito-eliminar-definitivo">
+      <!-- Círculo de carga -->
+      <div class="exito-eliminar-definitivo__loader" *ngIf="eliminandoDefinitivoProceso">
+        <div class="spinner spinner--green"></div>
+      </div>
+      
+      <!-- Check de éxito -->
+      <div class="exito-eliminar-definitivo__check" *ngIf="trabajadorEliminadoDefinitivoCompletado">
+        <svg class="checkmark checkmark--green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="60" height="60">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+      
+      <h3 class="exito-eliminar-definitivo__title">Trabajador Eliminado</h3>
+      <p class="exito-eliminar-definitivo__message" *ngIf="trabajadorEliminadoDefinitivoCompletado">
+        El trabajador ha sido eliminado definitivamente de la base de datos
+      </p>
+      <p class="exito-eliminar-definitivo__message" *ngIf="eliminandoDefinitivoProceso">
+        Eliminando trabajador...
+      </p>
+    </div>
+  </div>
+</div>
+
+        <!-- Sin resultados de búsqueda -->
+        <div *ngIf="trabajadoresEliminadosFiltrados().length === 0" class="sin-resultados">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <p>No se encontraron resultados</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="modal-elim-footer">
+      <div class="footer-info">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>Los trabajadores eliminados permanecen en el sistema para auditoría</span>
+      </div>
+      <button class="btn-elim-cerrar" (click)="cerrarModalEliminados()">
+        <span>Cerrar</span>
+        <kbd>Esc</kbd>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     MODAL DE CONFIRMACIÓN PARA RESTAURAR TRABAJADOR
+     ============================================ -->
+<div class="modal-eliminacion-overlay" *ngIf="mostrarModalConfirmarRestaurar">
+  <div class="modal-eliminacion-backdrop" (click)="cancelarRestaurarTrabajador()"></div>
+  
+  <div class="modal-eliminacion-container" (click)="$event.stopPropagation()">
+    <!-- HEADER CON ADVERTENCIA -->
+    <div class="modal-eliminacion-header">
+      <div class="warning-icon-container">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </div>
+      <div class="header-content">
+        <h2 class="modal-eliminacion-title">🔄 CONFIRMAR RESTAURACIÓN</h2>
+        <p class="modal-eliminacion-subtitle">Restaurar trabajador • Volver a activo</p>
+      </div>
+      <button class="btn-modal-close" (click)="cancelarRestaurarTrabajador()" title="Cerrar (Esc)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="modal-eliminacion-content">
+      <div class="trabajador-info-box" style="background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2);">
+        <div class="info-icon">👤</div>
+        <div class="info-text">
+          <p class="info-label">¿Está seguro de restaurar a:</p>
+          <p class="info-name" style="color: #22c55e;">{{ getNombreCompleto(trabajadorARestaurar) }}</p>
+        </div>
+      </div>
+      
+      <div class="warning-box" style="background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); color: #22c55e;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        <span>El trabajador volverá a estar activo en el sistema</span>
+      </div>
+    </div>
+
+    <!-- FOOTER CON BOTONES -->
+    <div class="modal-eliminacion-footer">
+      <div class="footer-actions" style="width: 100%; justify-content: flex-end;">
+        <button 
+          class="btn-cancelar-eliminacion" 
+          (click)="cancelarRestaurarTrabajador()"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          <span>Cancelar</span>
+        </button>
+        
+        <button 
+          class="btn-confirmar-eliminacion" 
+          (click)="confirmarRestaurarTrabajador()"
+          style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%);"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          <span>Restaurar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     MODAL DE ÉXITO AL RESTAURAR TRABAJADOR
+     ============================================ -->
+<div class="modal-overlay modal-overlay--exito-restaurar" *ngIf="mostrarModalExitoRestaurar" (click)="cerrarModalExitoRestaurar()" @fadeIn>
+  <div class="modal-exito-restaurar" (click)="$event.stopPropagation()" @slideInDown>
+    <div class="exito-restaurar">
+      <!-- Círculo de carga -->
+      <div class="exito-restaurar__loader" *ngIf="restaurandoTrabajador">
+        <div class="spinner spinner--green"></div>
+      </div>
+      
+      <!-- Checkmark verde -->
+      <div class="exito-restaurar__check" *ngIf="trabajadorRestauradoCompletado">
+        <svg class="checkmark checkmark--green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="60" height="60">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+      
+      <h3 class="exito-restaurar__title">
+        {{ trabajadorRestauradoCompletado ? 'Trabajador Restaurado' : 'Restaurando Trabajador' }}
+      </h3>
+      <p class="exito-restaurar__message" *ngIf="trabajadorRestauradoCompletado">
+        {{ nombreTrabajadorRestaurado }} ha sido restaurado exitosamente
+      </p>
+      <p class="exito-restaurar__message" *ngIf="restaurandoTrabajador">
+        Restaurando trabajador...
+      </p>
+    </div>
+  </div>
+</div>

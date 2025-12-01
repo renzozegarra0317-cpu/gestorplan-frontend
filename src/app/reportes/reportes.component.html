@@ -1,0 +1,413 @@
+<div class="reportes-container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">📊</span>
+        Centro de Reportes
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Generación de reportes y estadísticas del sistema
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--outline" (click)="abrirHistorial()">
+        📂 Historial
+      </button>
+      <button class="btn btn--sm btn--outline" (click)="programarReporte()">
+        🔔 Programar
+      </button>
+    </div>
+  </div>
+
+  <!-- ESTADISTICAS -->
+  <div class="estadisticas-reportes">
+    <div class="stat-card">
+      <div class="stat-card__icon">📊</div>
+      <div class="stat-card__content">
+        <span class="stat-card__label">Hoy</span>
+        <span class="stat-card__value">{{ estadisticas.reportesGeneradosHoy }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon">📈</div>
+      <div class="stat-card__content">
+        <span class="stat-card__label">Este Mes</span>
+        <span class="stat-card__value">{{ estadisticas.reportesGeneradosMes }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon">⭐</div>
+      <div class="stat-card__content">
+        <span class="stat-card__label">Más Generado</span>
+        <span class="stat-card__value stat-card__value--text">{{ estadisticas.reporteMasGenerado }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon">🕐</div>
+      <div class="stat-card__content">
+        <span class="stat-card__label">Última Generación</span>
+        <span class="stat-card__value stat-card__value--text">{{ formatearFecha(estadisticas.ultimaGeneracion) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS Y BÚSQUEDA -->
+  <div class="filtros-section">
+    <div class="filtros-header">
+      <div class="filtros-header__left">
+        <div class="search-box-wrapper">
+          <div class="search-box">
+            <div class="search-box__input-wrapper">
+              <span class="search-box__icon">🔍</span>
+              <input
+                type="text"
+                class="search-box__input"
+                placeholder="Buscar reporte por nombre, código o descripción..."
+                [(ngModel)]="busqueda"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="filtros-header__right">
+        <div class="vista-toggle">
+          <button 
+            class="btn btn--sm btn--outline" 
+            [class.active]="vistaActual === 'categorias'"
+            (click)="vistaActual = 'categorias'; categoriaSeleccionada = null"
+          >
+            📑 Categorías
+          </button>
+          <button 
+            class="btn btn--sm btn--outline" 
+            [class.active]="vistaActual === 'favoritos'"
+            (click)="vistaActual = 'favoritos'"
+          >
+            ⭐ Favoritos
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="buscador-reportes">
+    
+    <div class="resultados-busqueda" *ngIf="busqueda && reportesFiltrados.length > 0">
+      <h4>Resultados de búsqueda ({{ reportesFiltrados.length }})</h4>
+      <div class="reportes-busqueda-grid">
+        <div 
+          class="reporte-card-mini" 
+          *ngFor="let reporte of reportesFiltrados"
+          (click)="abrirReporte(reporte)"
+        >
+          <div class="reporte-card-mini__header">
+            <span class="reporte-card-mini__icon">{{ reporte.icon }}</span>
+            <button 
+              class="btn-favorito"
+              [class.active]="esFavorito(reporte.id)"
+              (click)="toggleFavorito(reporte.id); $event.stopPropagation()"
+            >
+              {{ esFavorito(reporte.id) ? '⭐' : '☆' }}
+            </button>
+          </div>
+          <h5 class="reporte-card-mini__nombre">{{ reporte.nombre }}</h5>
+          <p class="reporte-card-mini__desc">{{ reporte.descripcion }}</p>
+          <span class="reporte-card-mini__codigo">{{ reporte.codigo }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="sin-resultados" *ngIf="busqueda && reportesFiltrados.length === 0">
+      <span class="sin-resultados__icon">🔍</span>
+      <p>No se encontraron reportes</p>
+    </div>
+  </div>
+
+  <!-- VISTA CATEGORIAS -->
+  <div class="vista-categorias" *ngIf="vistaActual === 'categorias' && !categoriaSeleccionada && !busqueda">
+    <div class="categorias-grid">
+      <div 
+        class="categoria-card" 
+        *ngFor="let categoria of categorias"
+        (click)="seleccionarCategoria(categoria)"
+        [style.border-color]="categoria.color"
+      >
+        <div class="categoria-card__header">
+          <span class="categoria-card__icon">{{ categoria.icon }}</span>
+          <span class="categoria-card__count">{{ categoria.reportes.length }}</span>
+        </div>
+        <h3 class="categoria-card__nombre">{{ categoria.nombre }}</h3>
+        <p class="categoria-card__desc">{{ categoria.descripcion }}</p>
+        <div class="categoria-card__footer">
+          <span class="categoria-card__label">Ver reportes</span>
+          <span class="categoria-card__arrow">→</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA LISTA DE REPORTES -->
+  <div class="vista-lista" *ngIf="categoriaSeleccionada && !busqueda">
+    <div class="lista-header">
+      <button class="btn btn--ghost" (click)="volverCategorias()">
+        ← Volver a Categorías
+      </button>
+      <h2 class="lista-titulo">
+        <span [style.color]="categoriaSeleccionada.color">{{ categoriaSeleccionada.icon }}</span>
+        {{ categoriaSeleccionada.nombre }}
+      </h2>
+      <p class="lista-desc">{{ categoriaSeleccionada.descripcion }}</p>
+    </div>
+
+    <div class="reportes-grid">
+      <div 
+        class="reporte-card" 
+        *ngFor="let reporte of categoriaSeleccionada.reportes"
+        (click)="abrirReporte(reporte)"
+      >
+        <div class="reporte-card__header">
+          <div class="reporte-card__icon-wrapper">
+            <span class="reporte-card__icon">{{ reporte.icon }}</span>
+          </div>
+          <button 
+            class="btn-favorito"
+            [class.active]="esFavorito(reporte.id)"
+            (click)="toggleFavorito(reporte.id); $event.stopPropagation()"
+          >
+            {{ esFavorito(reporte.id) ? '⭐' : '☆' }}
+          </button>
+        </div>
+        
+        <div class="reporte-card__body">
+          <h4 class="reporte-card__nombre">{{ reporte.nombre }}</h4>
+          <p class="reporte-card__desc">{{ reporte.descripcion }}</p>
+          <span class="reporte-card__codigo">{{ reporte.codigo }}</span>
+          
+          <div class="reporte-card__badges">
+            <span class="badge-frecuencia" [ngClass]="getFrecuenciaClass(reporte.frecuenciaUso)">
+              {{ reporte.frecuenciaUso }}
+            </span>
+            <span class="badge-graficos" *ngIf="reporte.tieneGraficos">📊 Gráficos</span>
+          </div>
+          
+          <div class="reporte-card__formatos">
+            <span class="formato-tag" *ngFor="let formato of reporte.formatosDisponibles">
+              {{ getFormatoIcon(formato) }} {{ formato }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="reporte-card__footer">
+          <button class="btn-generar">
+            Generar Reporte →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA FAVORITOS -->
+  <div class="vista-favoritos" *ngIf="vistaActual === 'favoritos' && !busqueda">
+    <div class="favoritos-header">
+      <h2 class="favoritos-titulo">⭐ Reportes Favoritos</h2>
+      <p class="favoritos-desc">Acceso rápido a tus reportes más utilizados</p>
+    </div>
+
+    <div class="reportes-grid" *ngIf="reportesFavoritosLista.length > 0">
+      <div 
+        class="reporte-card" 
+        *ngFor="let reporte of reportesFavoritosLista"
+        (click)="abrirReporte(reporte)"
+      >
+        <div class="reporte-card__header">
+          <div class="reporte-card__icon-wrapper">
+            <span class="reporte-card__icon">{{ reporte.icon }}</span>
+          </div>
+          <button 
+            class="btn-favorito active"
+            (click)="toggleFavorito(reporte.id); $event.stopPropagation()"
+          >
+            ⭐
+          </button>
+        </div>
+        
+        <div class="reporte-card__body">
+          <h4 class="reporte-card__nombre">{{ reporte.nombre }}</h4>
+          <p class="reporte-card__desc">{{ reporte.descripcion }}</p>
+          <span class="reporte-card__codigo">{{ reporte.codigo }}</span>
+          
+          <div class="reporte-card__formatos">
+            <span class="formato-tag" *ngFor="let formato of reporte.formatosDisponibles">
+              {{ getFormatoIcon(formato) }} {{ formato }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="reporte-card__footer">
+          <button class="btn-generar">
+            Generar Reporte →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-favoritos" *ngIf="reportesFavoritosLista.length === 0">
+      <span class="empty-favoritos__icon">⭐</span>
+      <h3>No tienes reportes favoritos</h3>
+      <p>Marca reportes como favoritos para acceder rápidamente a ellos</p>
+      <button class="btn btn--primary" (click)="vistaActual = 'categorias'">
+        Explorar Reportes
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: FILTROS -->
+  <div class="modal" *ngIf="mostrarModalFiltros" (click)="mostrarModalFiltros = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">
+          <span *ngIf="reporteSeleccionado">{{ reporteSeleccionado.icon }}</span>
+          Configurar Reporte
+        </h3>
+        <button class="modal__close" (click)="mostrarModalFiltros = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="reporteSeleccionado">
+        <div class="reporte-info-modal">
+          <h4>{{ reporteSeleccionado.nombre }}</h4>
+          <p>{{ reporteSeleccionado.descripcion }}</p>
+          <span class="codigo-modal">{{ reporteSeleccionado.codigo }}</span>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="form-section">
+          <h4 class="form-section__title">📅 Periodo del Reporte</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Mes *</label>
+              <select class="form-select" [(ngModel)]="filtros.mes">
+                <option *ngFor="let mes of meses" [value]="mes.valor">{{ mes.nombre }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Año *</label>
+              <select class="form-select" [(ngModel)]="filtros.anio">
+                <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Área</label>
+              <select class="form-select" [(ngModel)]="filtros.area">
+                <option *ngFor="let area of areas" [value]="area">{{ area }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONFIGURACION -->
+        <div class="form-section">
+          <h4 class="form-section__title">⚙️ Configuración</h4>
+          <div class="opciones-grid">
+            <label class="opcion-check">
+              <input type="checkbox" [(ngModel)]="configuracion.incluirGraficos" />
+              <span>📊 Incluir gráficos</span>
+            </label>
+            <label class="opcion-check">
+              <input type="checkbox" [(ngModel)]="configuracion.incluirResumen" />
+              <span>📋 Incluir resumen</span>
+            </label>
+            <label class="opcion-check">
+              <input type="checkbox" [(ngModel)]="configuracion.incluirDetalle" />
+              <span>📄 Incluir detalle</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Orientación</label>
+            <select class="form-select" [(ngModel)]="configuracion.orientacion">
+              <option value="Portrait">Vertical</option>
+              <option value="Landscape">Horizontal</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- FORMATOS -->
+        <div class="form-section">
+          <h4 class="form-section__title">💾 Formato de Exportación</h4>
+          <div class="formatos-disponibles">
+            <button 
+              class="btn-formato"
+              *ngFor="let formato of reporteSeleccionado.formatosDisponibles"
+              (click)="generarReporte(formato)"
+              [disabled]="cargando"
+            >
+              <span class="btn-formato__icon">{{ getFormatoIcon(formato) }}</span>
+              <span class="btn-formato__texto">{{ formato }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalFiltros = false">Cancelar</button>
+        <button class="btn btn--outline" (click)="limpiarFiltros()">🔄 Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HISTORIAL -->
+  <div class="modal" *ngIf="mostrarModalHistorial" (click)="mostrarModalHistorial = false">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">📂 Historial de Reportes</h3>
+        <button class="modal__close" (click)="mostrarModalHistorial = false">✖️</button>
+      </div>
+      <div class="modal__body">
+        <div class="historial-lista">
+          <div class="historial-item" *ngFor="let historial of historialReportes">
+            <div class="historial-item__icon">
+              {{ getFormatoIcon(historial.formato) }}
+            </div>
+            <div class="historial-item__info">
+              <h5 class="historial-item__nombre">{{ historial.reporteNombre }}</h5>
+              <div class="historial-item__meta">
+                <span>📅 {{ formatearFecha(historial.fechaGeneracion) }}</span>
+                <span>👤 {{ historial.generadoPor }}</span>
+                <span>💾 {{ historial.tamanioArchivo }}</span>
+              </div>
+            </div>
+            <div class="historial-item__acciones">
+              <button class="btn btn--sm btn--outline" (click)="descargarReporte(historial)">
+                📥 Descargar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-historial" *ngIf="historialReportes.length === 0">
+          <span class="empty-historial__icon">📂</span>
+          <p>No hay reportes en el historial</p>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalHistorial = false">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" *ngIf="cargando">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>Generando reporte...</p>
+      <span>Por favor espere</span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,148 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.56);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding-left: 260px; // igual al ancho de tu sidebar
+  box-sizing: border-box;
+}
+
+.modal {
+  background: #222e3c;
+  border-radius: 16px;
+  padding: 2.5rem 3.5rem 2.5rem 3.5rem;
+  min-width: 700px;
+  width: 100%;
+  max-width: 1100px; // O AJUSTA al tamaño que mejor quede para asistencia
+  color: #e8f0fa;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 40px; // separa del borde superior
+  transition: all 0.2s;
+  overflow-y: auto;
+  max-height: 96vh;
+  border: 2.5px solid #2b4157;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.45rem;
+  font-weight: 800;
+  padding-bottom: 1.4rem;
+  color: #51e6ee;
+  letter-spacing: 0.5px;
+}
+
+.close-btn {
+  font-size: 2rem;
+  color: #fff;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s;
+  &:hover { color: #ff4e4e; }
+}
+
+.modal-body form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); // 3 columnas para asistencia, ajústalo según contenido
+  gap: 1.6rem 2.2rem;
+  margin-bottom: 1.4rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-bottom: 0.18rem;
+  label {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #6fdcfb;
+    font-size: 1rem;
+    letter-spacing: 0.03em;
+  }
+  input, select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border-radius: 7px;
+    border: 1.5px solid #6fdcfb33;
+    background: #27384a;
+    color: #e8f0fa;
+    font-size: 1.13rem;
+    min-width: 0;
+    outline: none;
+    transition: border 0.13s;
+    &:focus { border-color: #54bfff; }
+  }
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #1ee698;
+    margin: 0.3rem auto 0 auto;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.2rem;
+  margin-top: 1.7rem;
+  button {
+    border: none;
+    border-radius: 7px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 0.66rem 1.6rem;
+    cursor: pointer;
+    transition: background 0.18s;
+    letter-spacing: 0.03em;
+  }
+  .guardar {
+    background: #1ee698;
+    color: #122;
+    &:hover { background: #00b26a; }
+  }
+  .cancelar {
+    background: #db3b3b;
+    color: #fff;
+    &:hover { background: #ab2323; }
+  }
+}
+
+/* Responsive: baja a 2 columnas en pantallas medianas */
+@media (max-width: 900px) {
+  .modal {
+    max-width: 99vw;
+    padding: 1.1rem 0.7rem 1.1rem 0.7rem;
+  }
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Responsive: baja a 1 columna en móviles */
+@media (max-width: 600px) {
+  .modal {
+    min-width: 100vw;
+    max-width: 100vw;
+    padding: 0.6rem 0.15rem 0.8rem 0.15rem;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

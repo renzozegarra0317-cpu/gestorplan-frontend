@@ -1,0 +1,2327 @@
+/* ==================== MODAL DETALLE PLANILLA COMPLETO ==================== */
+
+/* Usar ::ng-deep para forzar estilos globalmente y evitar que contenedores padre los limiten */
+::ng-deep .modal--detalle {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 999999 !important; /* Z-index extremadamente alto para estar siempre por encima */
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  background: rgba(0, 0, 0, 0.75) !important; /* Fondo oscuro para cubrir todo */
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  pointer-events: all !important;
+  
+  /* Forzar que no haya transform, filter, perspective o will-change que cree stacking context */
+  transform: none !important;
+  filter: none !important;
+  perspective: none !important;
+  will-change: auto !important;
+  isolation: isolate !important; /* Crear nuevo stacking context para el modal */
+  
+  /* CRÍTICO: Solo deshabilitar cuando realmente está oculto (hidden attribute) */
+  &[hidden] {
+    display: none !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+    visibility: hidden !important;
+  }
+}
+
+.modal--detalle {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 999999 !important; /* Z-index extremadamente alto para estar siempre por encima */
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  background: rgba(0, 0, 0, 0.75) !important; /* Fondo oscuro para cubrir todo */
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  pointer-events: all !important;
+  
+  /* Forzar que no haya transform, filter, perspective o will-change que cree stacking context */
+  transform: none !important;
+  filter: none !important;
+  perspective: none !important;
+  will-change: auto !important;
+  isolation: isolate !important; /* Crear nuevo stacking context para el modal */
+  
+  /* CRÍTICO: Solo deshabilitar cuando realmente está oculto (hidden attribute) */
+  &[hidden] {
+    display: none !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+    visibility: hidden !important;
+  }
+  
+  .modal__content--xlarge {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    border-radius: 0 !important;
+  }
+
+  .modal__header--compact {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--panel);
+    
+    .modal__header-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 0 0 auto;
+    }
+    
+    .modal__title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0;
+      white-space: nowrap;
+    }
+    
+    .badge--sm {
+      font-size: 11px;
+      padding: 4px 10px;
+    }
+  }
+
+  .modal__body--compact {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    max-height: calc(95vh - 140px);
+    border-radius: 0 !important; /* Sin radio en el body del modal */
+  }
+
+  .modal__subtitle {
+    font-size: 13px;
+    color: var(--text-2);
+    margin: 4px 0 0 0;
+  }
+}
+
+.detalle-totales-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  flex: 1;
+  
+  &--compact {
+    gap: 8px;
+    margin: 0;
+  }
+}
+
+.total-item {
+  padding: 10px 12px;
+  background: var(--panel-2);
+  border-radius: 0 !important;
+  border: 2px solid var(--border);
+  
+  &--compact {
+    padding: 8px 10px;
+    border-radius: 0 !important;
+    border-width: 1px;
+  }
+  
+  &--success {
+    border-color: rgba(34, 197, 94, 0.6) !important;
+    background: rgba(34, 197, 94, 0.25) !important; /* Fondo verde más visible para INGRESOS */
+  }
+  
+  &--danger {
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    background: rgba(239, 68, 68, 0.25) !important; /* Fondo rojo más visible para DESCUENTOS */
+  }
+  
+  &--primary {
+    border-color: rgba(59, 130, 246, 0.6) !important;
+    background: rgba(59, 130, 246, 0.25) !important; /* Fondo azul más visible para NETO */
+  }
+  
+  &--warning {
+    border-color: rgba(245, 158, 11, 0.6) !important;
+    background: rgba(245, 158, 11, 0.25) !important; /* Fondo amarillo/naranja más visible para APORTES */
+  }
+
+  .total-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: 2px;
+    letter-spacing: 0.05em;
+    
+    .total-item--compact & {
+      font-size: 9px;
+      margin-bottom: 1px;
+    }
+  }
+
+  .total-value {
+    display: block;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-1);
+    
+    .total-item--compact & {
+      font-size: 14px;
+    }
+  }
+}
+
+.tabla-detalle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  padding: 16px 20px;
+  width: 100%;
+  box-sizing: border-box;
+  height: 100%;
+  border-radius: 0 !important; /* Sin radio en el contenedor de la tabla */
+  
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+    padding: 0;
+    
+    &--compact {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+  }
+  
+  &__title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  &__actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+}
+
+/* Estilos para la barra de filtros */
+.tabla-filtros {
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  background: var(--panel);
+  
+  &--compact {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    gap: 12px;
+  }
+  
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    
+    &--compact {
+      flex: 1;
+      min-width: 280px;
+      max-width: 400px;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 0 !important;
+      background: var(--panel-2);
+      color: var(--text-1);
+      font-size: 13px;
+      box-sizing: border-box;
+      
+      &--compact {
+        padding: 8px 14px;
+        font-size: 13px;
+        border-radius: 0 !important;
+      }
+      
+      &:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+    }
+  }
+  
+  .filter-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    
+    &--compact {
+      gap: 6px;
+    }
+    
+    .filter-chip {
+      padding: 6px 12px;
+      border-radius: 0 !important;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text-1);
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+      
+      &--compact {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 0 !important;
+      }
+      
+      &:hover {
+        background: var(--panel-2);
+      }
+      
+      &.active {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+      }
+    }
+  }
+  
+  .btn-clear-filters {
+    padding: 6px 12px;
+    border-radius: 0 !important;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text-1);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    
+    &--compact {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 0 !important;
+    }
+    
+    &:hover {
+      background: var(--panel-2);
+      border-color: var(--accent);
+    }
+  }
+}
+
+.td-expandir {
+  width: 40px;
+  padding: 8px !important;
+  text-align: center;
+}
+
+.btn-expandir {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-1);
+  border-radius: 0 !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    transform: scale(1.1);
+  }
+  
+  &.expandido {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+}
+
+.detalle-expandido {
+  background: var(--panel-2);
+  
+  &__cell {
+    padding: 0 !important;
+    border-top: 2px solid var(--border);
+  }
+}
+
+.detalle-completo {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.5) 100%);
+  border-radius: 0 !important;
+  margin: 8px;
+}
+
+.detalle-seccion {
+  background: var(--panel);
+  border-radius: 0 !important;
+  padding: 20px;
+  border: 1px solid var(--border);
+  
+  &--ingresos {
+    border-left: 4px solid #22c55e;
+  }
+  
+  &--descuentos {
+    border-left: 4px solid #ef4444;
+  }
+  
+  &--aportes {
+    border-left: 4px solid #f59e0b;
+  }
+  
+  &--neto {
+    border-left: 4px solid #3b82f6;
+  }
+  
+  &__titulo {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-1);
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.detalle-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detalle-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--panel-2);
+  border-radius: 0 !important;
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: var(--panel-3);
+    border-color: var(--accent);
+  }
+  
+  &--total {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    padding: 14px 16px;
+    margin-top: 8px;
+  }
+}
+
+.detalle-label {
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.detalle-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+  
+  &--success {
+    color: #22c55e;
+  }
+  
+  &--danger {
+    color: #ef4444;
+  }
+  
+  &--warning {
+    color: #f59e0b;
+  }
+  
+  &--primary {
+    color: #3b82f6;
+  }
+}
+
+/* ==================== VISTA EXCEL EXPANDIDA ==================== */
+
+.tabla-scroll-excel {
+  flex: 1;
+  overflow-y: auto !important; /* Forzar scroll vertical */
+  overflow-x: auto !important; /* Permitir scroll horizontal para contenido grande */
+  border: 1px solid var(--border);
+  border-radius: 0 !important;
+  background: var(--panel);
+  min-height: 0;
+  max-height: 100%;
+  display: block;
+  position: relative;
+  overscroll-behavior: contain;
+  scroll-behavior: auto;
+  
+  /* Prevenir que el scroll se resetee - CRÍTICO */
+  will-change: auto !important;
+  scroll-snap-type: none !important;
+  -webkit-overflow-scrolling: touch !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  contain: none !important; /* Remover contain que puede causar problemas */
+  
+  /* Asegurar que el scrollbar sea visible y funcional */
+  &::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+    -webkit-appearance: none;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--panel-2);
+    border-radius: 0 !important;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 0 !important;
+    border: 2px solid var(--panel);
+    min-height: 30px;
+    
+    &:hover {
+      background: var(--accent);
+    }
+    
+    &:active {
+      background: var(--accent);
+    }
+  }
+  
+  &::-webkit-scrollbar-corner {
+    background: var(--panel);
+  }
+  
+  /* Scrollbar para Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--panel-2);
+  
+  /* Asegurar que el contenido respete los bordes redondeados */
+  .vista-excel-container {
+    padding: 12px;
+    padding-bottom: 12px;
+    min-height: fit-content;
+  }
+}
+
+.vista-excel-container {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tabla-scroll-excel {
+  flex: 1;
+  overflow-y: scroll !important; /* Forzar scroll vertical */
+  overflow-x: auto !important; /* Permitir scroll horizontal para contenido grande */
+  border: 1px solid var(--border);
+  border-radius: 0 !important;
+  background: var(--panel);
+  min-height: 0;
+  max-height: calc(95vh - 280px);
+  margin-top: 12px;
+  padding: 12px;
+  padding-bottom: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none !important; /* Sin límite máximo para permitir expansión */
+  overscroll-behavior: contain;
+  scroll-behavior: auto;
+  
+  /* Prevenir que el scroll se resetee - CRÍTICO */
+  will-change: auto !important;
+  scroll-snap-type: none !important;
+  -webkit-overflow-scrolling: touch !important;
+  transform: translateZ(0) !important; /* Aceleración de hardware */
+  backface-visibility: hidden !important;
+  -webkit-transform: translateZ(0) !important;
+  
+  /* Prevenir que Angular resetee el scroll durante cambios */
+  contain: none !important; /* Remover contain que puede causar problemas */
+  
+  /* Asegurar que el scroll se mantenga */
+  position: relative !important;
+  isolation: isolate !important;
+  
+  /* Asegurar que el último grupo no tenga margen extra */
+  > ng-container:last-child,
+  > *:last-child {
+    .grupo-regimen-header {
+      margin-bottom: 0;
+    }
+    
+    .tabla-excel-scroll {
+      margin-bottom: 0;
+    }
+  }
+  
+  /* Asegurar que el scrollbar sea visible y funcional */
+  &::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+    -webkit-appearance: none;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--panel-2);
+    border-radius: 0 !important;
+    border: 1px solid var(--border);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 0 !important;
+    border: 2px solid var(--panel);
+    min-height: 40px;
+    
+    &:hover {
+      background: var(--accent);
+    }
+    
+    &:active {
+      background: var(--accent);
+    }
+  }
+  
+  &::-webkit-scrollbar-corner {
+    background: var(--panel);
+    border-radius: 0 !important;
+  }
+  
+  /* Scrollbar para Firefox */
+  scrollbar-width: auto;
+  scrollbar-color: var(--border) var(--panel-2);
+}
+
+.grupo-regimen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+  border-radius: 0 !important;
+  margin-bottom: 12px;
+  margin-top: 0;
+  border-left: 4px solid var(--accent);
+  width: 100%;
+  box-sizing: border-box;
+  
+  &:first-child {
+    margin-top: 0;
+  }
+  
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.grupo-regimen-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin: 0;
+}
+
+.grupo-regimen-count {
+  font-size: 12px;
+  color: var(--text-2);
+  background: var(--panel-2);
+  padding: 4px 12px;
+  border-radius: 0 !important;
+}
+
+.tabla-excel-scroll {
+  overflow-x: auto !important; /* Permitir scroll horizontal para contenido grande */
+  overflow-y: visible;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: none !important; /* Sin límite máximo para permitir expansión */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  position: relative;
+  
+  /* Prevenir que el scroll se regrese - REMOVIDO contain que causa problemas */
+  will-change: auto; /* Cambiado de scroll-position a auto */
+  touch-action: pan-x pan-y; /* Permitir scroll en ambas direcciones */
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+  
+  /* REMOVIDO contain que puede causar que el scroll se resetee */
+  contain: none !important; /* Forzar que no haya contain */
+  isolation: isolate;
+  
+  /* Asegurar que el scroll se mantenga */
+  scroll-snap-type: none !important;
+  -webkit-overflow-scrolling: touch !important;
+  
+  /* Prevenir que el scroll se resetee durante cambios de detección - CRÍTICO */
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  -webkit-transform: translateZ(0) !important;
+  will-change: auto !important;
+  
+  /* Asegurar que el scroll no se resetee */
+  position: relative !important;
+  
+  /* Mejorar el scroll horizontal */
+  &::-webkit-scrollbar {
+    height: 12px;
+    -webkit-appearance: none;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--panel-2);
+    border-radius: 0 !important;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-radius: 0 !important;
+    border: 2px solid var(--panel-2);
+    cursor: grab;
+    
+    &:hover {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    }
+    
+    &:active {
+      background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+      cursor: grabbing;
+    }
+  }
+  
+  /* Scrollbar para Firefox */
+  scrollbar-width: auto;
+  scrollbar-color: #22c55e var(--panel-2);
+  
+  /* Asegurar que el último elemento no tenga margen extra */
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* Asegurar que la tabla no se salga */
+  table {
+    margin-bottom: 0;
+  }
+}
+
+.tabla-excel {
+  width: max-content !important; /* Permitir que la tabla se expanda según el contenido */
+  min-width: 2000px;
+  border-collapse: collapse !important; /* Bordes unidos como Excel */
+  font-size: 12px;
+  table-layout: auto !important; /* Auto para que las columnas se ajusten al contenido */
+  border: 2px solid var(--border) !important; /* Borde exterior de la tabla */
+  
+  /* Asegurar que todas las celdas se expandan horizontalmente y tengan bordes visibles */
+  th, td {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas */
+  }
+  
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--panel-2);
+    
+      th {
+        padding: 10px 8px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas */
+        border-top: 2px solid var(--border) !important; /* Borde superior más grueso */
+        border-bottom: 2px solid var(--border) !important; /* Borde inferior más grueso */
+        white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+        background: var(--panel-2) !important;
+        overflow: visible !important; /* Mostrar todo el contenido expandiendo horizontalmente */
+        
+        &.grupo-verde {
+          background: rgba(34, 197, 94, 0.1);
+          color: #22c55e;
+        }
+        
+        &.grupo-rojo {
+          background: rgba(239, 68, 68, 0.1);
+          color: #ef4444;
+        }
+        
+        &.grupo-amarillo {
+          background: rgba(245, 158, 11, 0.1);
+          color: #f59e0b;
+        }
+        
+        &.grupo-azul {
+          background: rgba(59, 130, 246, 0.1);
+          color: #3b82f6;
+        }
+        
+        &.total-col {
+          border-left: 2px solid var(--border);
+          border-right: 2px solid var(--border);
+          font-weight: 800;
+        }
+      }
+  }
+  
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s ease;
+      
+      &:hover {
+        background: var(--panel-2);
+      }
+      
+      td {
+        padding: 8px;
+        border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas como Excel */
+        white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+        overflow: visible !important; /* Mostrar todo el contenido expandiendo horizontalmente */
+        text-overflow: clip !important;
+        
+        &.grupo-verde {
+          color: #22c55e;
+        }
+        
+        &.grupo-rojo {
+          color: #ef4444;
+        }
+        
+        &.grupo-amarillo {
+          color: #f59e0b;
+        }
+        
+        &.grupo-azul {
+          color: #3b82f6;
+          font-weight: 600;
+        }
+        
+        &.total-col {
+          border-left: 2px solid var(--border);
+          border-right: 2px solid var(--border);
+          font-weight: 700;
+        }
+      }
+    }
+  }
+  
+  tfoot {
+    tr.tabla-totales-grupo {
+      background: var(--panel-3);
+      font-weight: 700;
+      
+      td {
+        padding: 12px 8px;
+        border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas como Excel */
+        border-top: 2px solid var(--border) !important; /* Borde superior más grueso */
+        
+        &.grupo-verde {
+          color: #22c55e;
+        }
+        
+        &.grupo-rojo {
+          color: #ef4444;
+        }
+        
+        &.grupo-amarillo {
+          color: #f59e0b;
+        }
+        
+        &.grupo-azul {
+          color: #3b82f6;
+        }
+      }
+    }
+  }
+}
+
+/* Scroll mejorado para vista Excel */
+.tabla-scroll-excel::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+
+.tabla-scroll-excel::-webkit-scrollbar-track {
+  background: var(--panel-2);
+  border-radius: 0 !important;
+}
+
+.tabla-scroll-excel::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 0 !important;
+  
+  &:hover {
+    background: var(--accent);
+  }
+}
+
+
+.grid-moderno-container {
+  /* FORZAR ESTILOS CON !important PARA ASEGURAR QUE SE APLIQUEN */
+  margin-top: 24px !important;
+  width: 100% !important;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  border-radius: 0 !important;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(34, 197, 94, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  overflow: hidden !important;
+  border: 2px solid rgba(34, 197, 94, 0.3) !important;
+  position: relative !important;
+  z-index: 1 !important;
+  
+  /* BARRA SUPERIOR VERDE BRILLANTE */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, 
+      #22c55e 0%, 
+      #16a34a 25%, 
+      #15803d 50%, 
+      #16a34a 75%, 
+      #22c55e 100%);
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.5);
+  }
+  
+  /* EFECTO GLOW */
+  &::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+/* HEADER COMPLETAMENTE NUEVO - DISEÑO DASHBOARD */
+.grid-header-premium {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, 
+    rgba(15, 23, 42, 0.95) 0%, 
+    rgba(30, 41, 59, 0.95) 50%,
+    rgba(15, 23, 42, 0.95) 100%);
+  border-bottom: 3px solid rgba(34, 197, 94, 0.4);
+  flex-wrap: wrap;
+  gap: 24px;
+  position: relative;
+  z-index: 10;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  
+  /* PATRÓN DE FONDO SUTIL */
+  background-image: 
+    linear-gradient(90deg, rgba(34, 197, 94, 0.03) 1px, transparent 1px),
+    linear-gradient(rgba(34, 197, 94, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.grid-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grid-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.03em;
+  text-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(34, 197, 94, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  
+  /* Efecto glow en el emoji que ya está en el HTML */
+  filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.4));
+}
+
+.grid-subtitle {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 11px;
+}
+
+.grid-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* BÚSQUEDA PREMIUM */
+.search-box-premium {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 280px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 16px 20px;
+  padding-right: 50px;
+  border: 2px solid rgba(34, 197, 94, 0.3);
+  border-radius: 0 !important;
+  background: rgba(15, 23, 42, 0.8);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  
+  &:focus {
+    border-color: #22c55e;
+    box-shadow: 
+      0 0 0 4px rgba(34, 197, 94, 0.2),
+      0 8px 24px rgba(34, 197, 94, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    background: rgba(30, 41, 59, 0.9);
+    transform: translateY(-2px) scale(1.02);
+  }
+  
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 500;
+  }
+}
+
+.search-clear {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-2);
+  font-size: 20px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 !important;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: var(--panel-2);
+    color: var(--text-1);
+    transform: scale(1.1);
+  }
+}
+
+/* FILTROS CHIPS */
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 12px 24px;
+  border: 2px solid rgba(34, 197, 94, 0.3);
+  border-radius: 0 !important;
+  background: rgba(15, 23, 42, 0.6);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  &:hover {
+    border-color: rgba(34, 197, 94, 0.6);
+    background: rgba(30, 41, 59, 0.8);
+    color: #ffffff;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+      0 8px 24px rgba(34, 197, 94, 0.3),
+      0 0 0 1px rgba(34, 197, 94, 0.4);
+    
+    &::before {
+      left: 100%;
+    }
+  }
+  
+  &.active {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%);
+    border-color: #22c55e;
+    color: #ffffff;
+    box-shadow: 
+      0 8px 32px rgba(34, 197, 94, 0.5),
+      0 0 20px rgba(34, 197, 94, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px) scale(1.08);
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    animation: pulse-glow 2s ease-in-out infinite;
+    
+    &::after {
+      content: '✓';
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      font-weight: 900;
+      opacity: 1;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 
+      0 8px 32px rgba(34, 197, 94, 0.5),
+      0 0 20px rgba(34, 197, 94, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 8px 32px rgba(34, 197, 94, 0.7),
+      0 0 30px rgba(34, 197, 94, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+}
+
+.btn-clear-filters {
+  padding: 12px 24px;
+  border: 2px solid rgba(239, 68, 68, 0.4);
+  border-radius: 0 !important;
+  background: rgba(239, 68, 68, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
+  &:hover {
+    border-color: rgba(239, 68, 68, 0.6);
+    background: rgba(239, 68, 68, 0.2);
+    color: #ffffff;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 
+      0 6px 20px rgba(239, 68, 68, 0.3),
+      0 0 0 1px rgba(239, 68, 68, 0.4);
+  }
+}
+
+/* TABLA WRAPPER */
+.grid-table-wrapper {
+  max-height: 70vh;
+  overflow: hidden;
+  background: var(--panel);
+  
+  .tabla-doble-container {
+    border-radius: 0 !important;
+    border: none;
+    box-shadow: none;
+    max-height: 70vh;
+    background: transparent;
+  }
+  
+  .tabla-fija-izquierda {
+    border-right: 3px solid var(--accent);
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.08);
+    background: var(--panel);
+  }
+  
+  .tabla-scroll-derecha {
+    background: var(--panel);
+    
+    &::-webkit-scrollbar {
+      height: 10px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+      border-radius: 0 !important;
+    }
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .grid-header-premium {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .grid-header-right {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .search-box-premium {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .filter-chips {
+    justify-content: flex-start;
+  }
+}
+
+/* ANIMACIONES PREMIUM */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.grid-moderno-container {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-chip {
+  animation: fadeIn 0.3s ease-out;
+  animation-fill-mode: both;
+  
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.05}s;
+    }
+  }
+}
+
+/* MANTENER ESTILOS EXISTENTES PERO MEJORADOS */
+.detalle-tabla-container {
+  margin-top: 0;
+  position: static !important;
+  overflow: visible !important;
+  width: 100%;
+}
+
+/* NUEVO: Contenedor de tabla doble */
+.tabla-doble-container {
+  display: flex;
+  width: 100%;
+  max-height: 65vh;
+  border-radius: 0 !important;
+  border: 2px solid var(--border);
+  background: var(--panel);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  align-items: flex-start; /* Asegurar que ambas tablas empiecen desde arriba */
+}
+
+/* TABLA IZQUIERDA FIJA */
+.tabla-fija-izquierda {
+  flex-shrink: 0;
+  min-width: 670px; /* Ancho mínimo: 100 + 320 + 100 + 150 = 670px */
+  width: auto !important; /* Permitir que se expanda según el contenido */
+  overflow-y: auto;
+  overflow-x: auto !important; /* Permitir scroll horizontal si el contenido es muy grande */
+  border-right: 3px solid var(--accent);
+  background: var(--panel);
+  position: relative;
+  z-index: 10;
+  box-sizing: border-box;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--panel-2);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-radius: 0 !important;
+
+    &:hover {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    }
+  }
+  
+  .tabla--fija {
+    width: max-content !important; /* Permitir que la tabla se expanda según el contenido */
+    border-collapse: collapse !important; /* Bordes unidos como Excel */
+    border-spacing: 0;
+    font-size: 12px;
+    background: var(--panel);
+    table-layout: auto !important; /* Auto para que las columnas se ajusten al contenido */
+    margin: 0;
+    padding: 0;
+    border: 2px solid var(--border) !important; /* Borde exterior de la tabla */
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    thead {
+      background: var(--panel-2);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 0;
+      padding: 0;
+      
+      tr {
+        height: 80px;
+      }
+      
+      th.th-fijo {
+        padding: 12px 8px;
+        text-align: center;
+        font-size: 10px;
+        font-weight: 800;
+        color: var(--text-2);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+        border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas */
+        border-top: 2px solid var(--border) !important; /* Borde superior más grueso */
+        border-bottom: 2px solid var(--border) !important; /* Borde inferior más grueso */
+        background: var(--panel-2) !important;
+        border-right: 2px solid var(--accent) !important;
+        height: auto !important; /* Altura automática según contenido */
+        min-height: 80px;
+        vertical-align: middle;
+        overflow: visible !important; /* Mostrar todo el contenido */
+        
+        /* Colores de fondo para headers según la columna */
+        &:nth-child(1) {
+          min-width: 100px;
+          width: auto !important; /* Ancho automático según contenido */
+          max-width: none !important; /* Sin límite máximo - expandir horizontalmente */
+          background: rgba(139, 92, 246, 0.25) !important; /* Fondo morado para header DNI */
+        }
+        &:nth-child(2) {
+          min-width: 320px;
+          width: auto !important; /* Ancho automático según contenido */
+          max-width: none !important; /* Sin límite máximo - expandir horizontalmente */
+          background: rgba(34, 197, 94, 0.25) !important; /* Fondo verde para header TRABAJADOR */
+        }
+        &:nth-child(3) {
+          min-width: 100px;
+          width: auto !important; /* Ancho automático según contenido */
+          max-width: none !important; /* Sin límite máximo - expandir horizontalmente */
+          background: rgba(245, 158, 11, 0.25) !important; /* Fondo amarillo para header DÍAS */
+        }
+        &:nth-child(4) {
+          min-width: 150px;
+          width: auto !important; /* Ancho automático según contenido */
+          max-width: none !important; /* Sin límite máximo - expandir horizontalmente */
+          background: rgba(168, 85, 247, 0.25) !important; /* Fondo morado claro para header RÉGIMEN */
+        }
+      }
+    }
+    
+    tbody {
+      margin: 0;
+      padding: 0;
+      
+      tr {
+        border-bottom: 1px solid var(--border);
+        background: var(--panel);
+        height: 60px !important;
+        min-height: 60px !important;
+        max-height: 60px !important;
+        box-sizing: border-box;
+        display: table-row;
+        
+        &:hover {
+          background: var(--panel-2);
+        }
+        
+        &.row-highlight {
+          background: rgba(255, 255, 255, 0.02);
+        }
+        
+        td {
+          padding: 8px !important;
+          font-size: 12px;
+          color: var(--text-1);
+          border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas como Excel */
+          border-right: 2px solid var(--accent) !important;
+          white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+          background: inherit;
+          height: auto !important; /* Altura automática según contenido */
+          min-height: 60px !important;
+          max-height: none !important; /* Sin límite máximo */
+          vertical-align: middle !important;
+          box-sizing: border-box !important;
+          overflow: visible !important; /* Mostrar todo el contenido expandiendo horizontalmente */
+          
+          &.td-dni {
+            min-width: 100px;
+            width: auto !important; /* Ancho automático según contenido */
+            max-width: none !important; /* Sin límite máximo - expandir horizontalmente */
+            font-family: monospace;
+            font-weight: 600;
+            text-align: center;
+            padding: 8px !important;
+            /* Sin color de fondo - solo en el header */
+          }
+          
+          &.td-nombre {
+            min-width: 320px;
+            width: auto !important; /* Permitir que se expanda según el contenido */
+            max-width: none !important; /* Sin límite máximo - expandir horizontalmente */
+            white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+            vertical-align: middle !important;
+            text-align: left;
+            padding: 8px !important;
+            overflow: visible !important; /* Mostrar todo el contenido */
+            /* Sin color de fondo - solo en el header */
+            
+            .trabajador-info {
+              display: flex;
+              flex-direction: row !important; /* Cambiar a horizontal para mostrar todo en una línea */
+              justify-content: flex-start;
+              align-items: center;
+              height: 100%;
+              min-height: 44px;
+              overflow: visible !important; /* Mostrar todo el contenido */
+              gap: 8px;
+              
+              strong {
+                display: inline !important; /* En línea para que no haya saltos */
+                margin-right: 4px;
+                line-height: 1.3;
+                font-size: 11px;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                white-space: nowrap !important;
+              }
+              
+              small {
+                display: inline !important; /* En línea para que no haya saltos */
+                line-height: 1.2;
+                font-size: 9px;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                white-space: nowrap !important;
+              }
+            }
+          }
+          
+          &.td-cargo,
+          &.td-gerencia,
+          &.td-subgerencia,
+          &.td-unidad {
+            /* Sin color de fondo - solo en el header */
+          }
+          
+          &.td-dias {
+            min-width: 100px;
+            width: auto !important; /* Ancho automático según contenido */
+            max-width: none !important; /* Sin límite máximo - expandir horizontalmente */
+            text-align: center;
+            font-weight: 600;
+            padding: 8px !important;
+            /* Sin color de fondo - solo en el header */
+          }
+          
+          &.td-regimen {
+            min-width: 150px;
+            width: auto !important; /* Ancho automático según contenido */
+            max-width: none !important; /* Sin límite máximo - expandir horizontalmente */
+            text-align: center;
+            padding: 8px !important;
+            /* Sin color de fondo - solo en el header */
+            
+            .regimen-badge {
+              display: inline-block;
+            }
+          }
+        }
+      }
+    }
+    
+    tfoot {
+      position: sticky;
+      bottom: 0;
+      background: var(--panel-1);
+      border-top: 3px solid var(--accent);
+      z-index: 19;
+      margin: 0;
+      padding: 0;
+      
+      tr {
+        height: 50px;
+      }
+      
+      td.totales-label {
+        padding: 14px 8px;
+        font-size: 13px;
+        font-weight: 700;
+        border: 1px solid var(--border);
+        border-right: 2px solid var(--accent);
+        background: var(--panel-1);
+        height: 50px;
+        vertical-align: middle;
+        text-align: center;
+      }
+    }
+  }
+}
+
+/* TABLA DERECHA SCROLLABLE */
+.tabla-scroll-derecha {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+  background: var(--panel);
+  position: relative;
+  box-sizing: border-box;
+  
+  &::-webkit-scrollbar {
+    height: 12px;
+    width: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--panel-2);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-radius: 0 !important;
+
+    &:hover {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    }
+  }
+  
+  .tabla--detalle {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse !important; /* Bordes unidos como Excel */
+    border-spacing: 0;
+    font-size: 12px;
+    background: var(--panel);
+    display: table !important;
+    table-layout: auto !important;
+    margin: 0;
+    padding: 0;
+    border: 2px solid var(--border) !important; /* Borde exterior de la tabla */
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    thead {
+      background: var(--panel-2);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: table-header-group;
+      margin: 0;
+      padding: 0;
+      
+      tr:first-child {
+        height: 40px;
+        
+        th.grupo-header {
+          padding: 12px 8px;
+          height: 40px;
+          vertical-align: middle;
+        }
+      }
+      
+      tr:last-child {
+        height: 40px;
+        
+        th {
+          padding: 12px 8px;
+          text-align: center;
+          font-size: 10px;
+          font-weight: 800;
+          color: var(--text-2);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          white-space: nowrap !important;
+          border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas */
+          border-top: 2px solid var(--border) !important; /* Borde superior más grueso */
+          border-bottom: 2px solid var(--border) !important; /* Borde inferior más grueso */
+          display: table-cell;
+          height: auto !important; /* Altura automática según contenido */
+          min-height: 40px;
+          vertical-align: middle;
+          background: var(--panel-2) !important;
+          
+          &.sub-header--neto {
+            min-width: 120px !important;
+            width: 120px !important;
+            max-width: 120px !important;
+            box-sizing: border-box !important;
+          }
+          
+          &.sub-header--bancario {
+            min-width: 150px !important;
+            width: 150px !important;
+            max-width: 150px !important;
+            box-sizing: border-box !important;
+          }
+        }
+      }
+    }
+    
+    tbody {
+      display: table-row-group;
+      margin: 0;
+      padding: 0;
+      
+      tr {
+        border-bottom: 1px solid var(--border);
+        background: var(--panel);
+        display: table-row;
+        height: 60px !important;
+        min-height: 60px !important;
+        max-height: 60px !important;
+        box-sizing: border-box;
+        
+        &:hover {
+          background: var(--panel-2);
+        }
+        
+        &.row-highlight {
+          background: rgba(255, 255, 255, 0.02);
+        }
+        
+        td {
+          padding: 8px !important;
+          font-size: 12px;
+          color: var(--text-1);
+          border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas como Excel */
+          white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+          display: table-cell;
+          height: auto !important; /* Altura automática según contenido */
+          min-height: 60px !important;
+          max-height: none !important; /* Sin límite máximo */
+          vertical-align: middle !important;
+          text-align: center;
+          box-sizing: border-box !important;
+          overflow: visible !important; /* Mostrar todo el contenido expandiendo horizontalmente */
+          
+          &.td-monto {
+            text-align: right !important;
+          }
+          
+          &.td-monto--neto {
+            min-width: 120px !important;
+            width: 120px !important;
+            max-width: 120px !important;
+            text-align: right !important;
+            box-sizing: border-box !important;
+          }
+          
+          &.td-banco,
+          &.td-cuenta {
+            min-width: 150px !important;
+            width: 150px !important;
+            max-width: 150px !important;
+            text-align: center !important;
+            box-sizing: border-box !important;
+          }
+          
+          &.td-sistema {
+            text-align: center !important;
+          }
+        }
+      }
+    }
+    
+    tfoot {
+      display: table-footer-group;
+      position: sticky;
+      bottom: 0;
+      background: var(--panel-1);
+      border-top: 3px solid var(--accent);
+      z-index: 19;
+      margin: 0;
+      padding: 0;
+      
+      tr {
+        display: table-row;
+        height: 50px;
+      }
+      
+      td {
+        padding: 14px 8px;
+        font-size: 13px;
+        font-weight: 700;
+        border: 1px solid var(--border);
+        display: table-cell;
+        white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+        height: auto !important; /* Altura automática según contenido */
+        min-height: 50px;
+        vertical-align: middle;
+        text-align: center;
+        overflow: visible !important; /* Mostrar todo el contenido expandiendo horizontalmente */
+        
+        &.td-monto--neto {
+          min-width: 120px !important;
+          width: 120px !important;
+          max-width: 120px !important;
+          text-align: right !important;
+        }
+        
+        &.td-banco,
+        &.td-cuenta {
+          min-width: 150px !important;
+          width: 150px !important;
+          max-width: 150px !important;
+        }
+      }
+    }
+  }
+}
+
+.detalle-planilla {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.modal--detalle .modal__body {
+  overflow: visible !important;
+  position: relative;
+  border-radius: 0 !important; /* Sin radio en el body del modal */
+}
+
+.modal--detalle .modal__content--xlarge {
+  overflow: visible !important;
+  position: relative;
+  /* CAMBIAR de flex a block para no interferir con sticky */
+  display: block !important;
+  /* CRÍTICO: Remover transform después de animación para no bloquear sticky */
+  transform: none !important;
+  will-change: auto;
+  border-radius: 0 !important; /* Sin radio en el contenedor */
+}
+
+.detalle-tabla-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Mantener para compatibilidad pero no se usa */
+.tabla-scroll-horizontal {
+  display: none; /* Ocultar, ahora usamos tabla-doble-container */
+}
+
+.tabla--detalle {
+  width: max-content !important; /* Permitir que la tabla se expanda según el contenido */
+  min-width: 100%;
+  border-collapse: collapse !important; /* CRÍTICO: collapse para bordes como Excel */
+  border-spacing: 0;
+  font-size: 12px;
+  position: relative;
+  background: var(--panel);
+  display: table !important;
+  /* CRÍTICO: Auto para que las columnas se ajusten al contenido */
+  table-layout: auto !important;
+  /* CRÍTICO: Asegurar que no haya transform que bloquee sticky */
+  transform: none !important;
+  will-change: auto !important;
+  /* CRÍTICO: Asegurar que no haya perspective o filter que bloquee */
+  perspective: none !important;
+  filter: none !important;
+  isolation: isolate !important;
+  border: 2px solid var(--border) !important; /* Borde exterior de la tabla */
+  
+  /* Mejorar legibilidad con bordes más visibles como Excel */
+  th, td {
+    border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas */
+    border-color: var(--border) !important;
+  }
+
+  thead {
+    background: var(--panel-2);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: table-header-group;
+    
+    /* PRIMERA FILA - HEADERS CON ROWSPAN - JavaScript manejará el sticky */
+    tr:first-child {
+      th[rowspan="2"]:nth-child(1) {
+        /* Los estilos se aplicarán vía JavaScript */
+        border-right: 2px solid var(--accent) !important;
+        background: rgba(139, 92, 246, 0.25) !important; /* Fondo morado para header DNI */
+      }
+      th[rowspan="2"]:nth-child(2) {
+        border-right: 2px solid var(--accent) !important;
+        background: rgba(34, 197, 94, 0.25) !important; /* Fondo verde para header TRABAJADOR */
+      }
+      th[rowspan="2"]:nth-child(3) {
+        border-right: 2px solid var(--accent) !important;
+        background: rgba(245, 158, 11, 0.25) !important; /* Fondo amarillo para header DÍAS */
+      }
+      th[rowspan="2"]:nth-child(4) {
+        /* Los estilos se aplicarán vía JavaScript */
+        border-right: 2px solid var(--accent) !important;
+        background: rgba(168, 85, 247, 0.25) !important; /* Fondo morado claro para header RÉGIMEN */
+      }
+    }
+    
+    /* Colores de fondo para headers de columnas de datos */
+    tr:last-child th:nth-child(1) {
+      background: rgba(139, 92, 246, 0.25) !important; /* Fondo morado para header DNI */
+    }
+    tr:last-child th:nth-child(2) {
+      background: rgba(34, 197, 94, 0.25) !important; /* Fondo verde para header TRABAJADOR */
+    }
+    tr:last-child th:nth-child(3) {
+      background: rgba(59, 130, 246, 0.25) !important; /* Fondo azul para header CARGO */
+    }
+    tr:last-child th:nth-child(4) {
+      background: rgba(59, 130, 246, 0.2) !important; /* Fondo azul claro para header GERENCIA */
+    }
+    tr:last-child th:nth-child(5) {
+      background: rgba(59, 130, 246, 0.2) !important; /* Fondo azul claro para header SUBGERENCIA */
+    }
+    tr:last-child th:nth-child(6) {
+      background: rgba(59, 130, 246, 0.2) !important; /* Fondo azul claro para header UNIDAD */
+    }
+    tr:last-child th:nth-child(7) {
+      background: rgba(245, 158, 11, 0.25) !important; /* Fondo amarillo para header DÍAS */
+    }
+    
+    th {
+      padding: 12px 8px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+      border: 1px solid var(--border) !important; /* Bordes visibles como Excel */
+      border-top: 2px solid var(--border) !important; /* Borde superior más grueso */
+      border-bottom: 2px solid var(--border) !important; /* Borde inferior más grueso */
+      display: table-cell;
+      /* CRÍTICO: Permitir que el contenido se muestre completo expandiendo horizontalmente */
+      overflow: visible !important;
+      text-overflow: clip !important;
+      background: var(--panel-2) !important;
+    }
+    
+    /* ANCHOS FIJOS PARA COLUMNAS DE NETO */
+    .sub-header--neto {
+      min-width: 120px !important;
+      width: 120px !important;
+      max-width: 120px !important;
+    }
+    
+    /* ANCHOS FIJOS PARA COLUMNAS BANCARIAS */
+    .sub-header--bancario {
+      min-width: 150px !important;
+      width: 150px !important;
+      max-width: 150px !important;
+    }
+  }
+
+  .grupo-header {
+    text-align: center !important;
+    font-size: 11px;
+    padding: 14px 8px !important;
+    border-top: 3px solid !important;
+    white-space: nowrap;
+    
+    &--ingresos {
+      background: rgba(34, 197, 94, 0.08);
+      border-top-color: #22c55e !important;
+      color: #22c55e;
+    }
+    
+    &--descuentos {
+      background: rgba(239, 68, 68, 0.08);
+      border-top-color: #ef4444 !important;
+      color: #ef4444;
+    }
+    
+    &--aportes {
+      background: rgba(245, 158, 11, 0.08);
+      border-top-color: #f59e0b !important;
+      color: #f59e0b;
+    }
+    
+    &--neto {
+      background: rgba(59, 130, 246, 0.08);
+      border-top-color: #3b82f6 !important;
+      color: #3b82f6;
+    }
+    
+    &--bancario {
+      background: rgba(139, 92, 246, 0.08);
+      border-top-color: #8b5cf6 !important;
+      color: #8b5cf6;
+    }
+  }
+
+  .sub-header {
+    font-size: 9px;
+    padding: 10px 6px !important;
+    
+    &--ingresos {
+      background: rgba(34, 197, 94, 0.05);
+      border-left-color: rgba(34, 197, 94, 0.2) !important;
+    }
+    
+    &--descuentos {
+      background: rgba(239, 68, 68, 0.05);
+      border-left-color: rgba(239, 68, 68, 0.2) !important;
+    }
+    
+    &--aportes {
+      background: rgba(245, 158, 11, 0.05);
+      border-left-color: rgba(245, 158, 11, 0.2) !important;
+    }
+    
+    &--neto {
+      background: rgba(59, 130, 246, 0.05);
+      border-left-color: rgba(59, 130, 246, 0.2) !important;
+    }
+    
+    &--bancario {
+      background: rgba(139, 92, 246, 0.05);
+      border-left-color: rgba(139, 92, 246, 0.2) !important;
+    }
+
+    &.total {
+      font-weight: 900;
+      background: var(--panel-1) !important;
+    }
+  }
+
+  tbody {
+    display: table-row-group;
+    
+    tr {
+      border-bottom: 1px solid var(--border);
+      transition: all 0.2s ease;
+      background: var(--panel);
+      display: table-row;
+
+      &:hover {
+        background: var(--panel-2);
+      }
+
+      &.row-highlight {
+        background: rgba(255, 255, 255, 0.02);
+      }
+    }
+
+    td {
+      padding: 10px 8px;
+      font-size: 12px;
+      color: var(--text-1);
+      border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas como Excel */
+      white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+      display: table-cell;
+      /* CRÍTICO: Permitir que el contenido se muestre completo expandiendo horizontalmente */
+      overflow: visible !important;
+      text-overflow: clip !important;
+      
+      /* COLUMNAS STICKY - JavaScript manejará el sticky */
+      &.td-dni,
+      &.td-nombre,
+      &.td-dias,
+      &.td-regimen {
+        /* Los estilos se aplicarán vía JavaScript */
+        border-right: 2px solid var(--accent) !important;
+      }
+      
+      /* Sin colores de fondo en las celdas - solo en los headers */
+    }
+  }
+
+  tfoot {
+    display: table-footer-group;
+    position: sticky;
+    bottom: 0;
+    background: var(--panel-1);
+    border-top: 3px solid var(--accent);
+    z-index: 19;
+
+    tr {
+      display: table-row;
+    }
+
+    td {
+      padding: 14px 8px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid var(--border) !important; /* Bordes visibles en todas las celdas como Excel */
+      border-top: 2px solid var(--border) !important; /* Borde superior más grueso */
+      display: table-cell;
+      
+      /* COLUMNAS STICKY EN FOOTER - JavaScript manejará el sticky */
+      &:nth-child(1),
+      &:nth-child(2),
+      &:nth-child(3),
+      &:nth-child(4) {
+        /* Los estilos se aplicarán vía JavaScript */
+        border-right: 2px solid var(--accent) !important;
+      }
+    }
+  }
+}
+
+.td-dni {
+  font-family: monospace;
+  font-weight: 600;
+  background: rgba(139, 92, 246, 0.1) !important; /* Fondo morado para DNI */
+}
+
+.td-cargo,
+.td-gerencia,
+.td-subgerencia,
+.td-unidad {
+  /* Sin color de fondo - solo en el header */
+}
+
+.td-dias {
+  /* Sin color de fondo - solo en el header */
+}
+
+.td-regimen {
+  /* Sin color de fondo - solo en el header */
+}
+
+.td-nombre,
+.td-trabajador {
+  min-width: 320px;
+  max-width: none !important; /* Sin límite máximo - expandir horizontalmente */
+  width: auto !important; /* Ancho automático según contenido */
+  background: rgba(34, 197, 94, 0.08) !important; /* Fondo verde claro para NOMBRE/TRABAJADOR */
+  text-align: left;
+  vertical-align: top;
+  padding: 10px 8px !important;
+  overflow: visible !important;
+  white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+}
+
+.trabajador-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-1);
+    line-height: 1.3;
+    max-width: none !important; /* Sin límite máximo */
+    display: inline !important; /* En línea para mantener todo horizontal */
+    overflow: visible !important;
+    white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+    text-overflow: clip !important;
+    margin-right: 4px;
+  }
+
+  small {
+    font-size: 10px;
+    color: var(--text-2);
+    line-height: 1.2;
+    max-width: none !important; /* Sin límite máximo */
+    display: inline !important; /* En línea para mantener todo horizontal */
+    overflow: visible !important;
+    white-space: nowrap !important; /* Mantener todo en una línea horizontal */
+    text-overflow: clip !important;
+    
+    &:first-of-type {
+      font-weight: 600;
+      color: var(--text-1);
+    }
+    
+    &:last-of-type {
+      color: #22c55e;
+      font-weight: 500;
+    }
+  }
+}
+
+.td-dias {
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ==================== RESPONSIVE PARA TRABAJADOR ==================== */
+@media (max-width: 1200px) {
+  .td-nombre {
+    min-width: 280px;
+    max-width: 280px;
+    width: 280px;
+    padding: 8px 6px !important;
+  }
+  
+  .trabajador-info {
+    strong {
+      font-size: 12px;
+    }
+    
+    small {
+      font-size: 9px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .td-nombre {
+    min-width: 250px;
+    max-width: 250px;
+    width: 250px;
+    padding: 6px 4px !important;
+  }
+  
+  .trabajador-info {
+    strong {
+      font-size: 11px;
+    }
+    
+    small {
+      font-size: 8px;
+    }
+  }
+}
+
+.td-sistema {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.td-monto {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+  
+  &--descuento {
+    color: #ef4444;
+    font-weight: 600;
+  }
+  
+  &--aporte {
+    color: #f59e0b;
+    font-weight: 600;
+  }
+  
+  &--neto {
+    color: #3b82f6;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  
+  &--total {
+    background: var(--panel-1);
+    font-size: 13px;
+    font-weight: 800;
+    
+    &--ingresos {
+      color: #22c55e;
+      background: rgba(34, 197, 94, 0.12) !important;
+      border-left: 3px solid #22c55e !important;
+    }
+    
+    &--descuentos {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.12) !important;
+      border-left: 3px solid #ef4444 !important;
+    }
+    
+    &--aportes {
+      color: #f59e0b;
+      background: rgba(245, 158, 11, 0.12) !important;
+      border-left: 3px solid #f59e0b !important;
+    }
+  }
+}
+
+.td-monto--neto {
+  min-width: 120px !important;
+  width: 120px !important;
+  max-width: 120px !important;
+  text-align: right;
+  font-family: 'Courier New', monospace;
+}
+
+.td-banco,
+.td-cuenta {
+  font-size: 11px;
+  min-width: 150px !important;
+  max-width: 150px !important;
+  width: 150px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(139, 92, 246, 0.03);
+  font-weight: 500;
+  
+  &:empty {
+    color: var(--text-2);
+    font-style: italic;
+  }
+}
+
+.th-banco,
+.th-cuenta {
+  min-width: 150px !important;
+  max-width: 150px !important;
+  width: 150px !important;
+}
+
+.totales-row {
+  font-weight: 800;
+  
+  .totales-label {
+    text-align: right !important;
+    color: var(--text-1);
+    font-size: 14px;
+  }
+}
+
+
+

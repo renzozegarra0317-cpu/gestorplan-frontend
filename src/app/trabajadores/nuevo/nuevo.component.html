@@ -1,0 +1,1970 @@
+<div class="nuevo-trabajador">
+  <!-- MODAL DE RECUPERACIÓN DE DATOS -->
+  <div class="modal-overlay" *ngIf="mostrarModalRecuperacion" @fadeIn>
+    <div class="modal-recuperacion" @slideInDown>
+      <!-- Header del Modal -->
+      <div class="modal-recuperacion__header">
+        <div class="modal-recuperacion__icon">
+          ⚠️
+        </div>
+        <h2 class="modal-recuperacion__title">¡Datos No Guardados Detectados!</h2>
+        <p class="modal-recuperacion__subtitle">Encontramos información sin guardar para este DNI</p>
+      </div>
+
+      <!-- Información del Borrador -->
+      <div class="modal-recuperacion__content">
+        <div class="modal-recuperacion__info-grid">
+          <div class="info-item">
+            <span class="info-item__label">👤 Trabajador:</span>
+            <span class="info-item__value">
+              {{ (datosGuardados?.nombres || '') | uppercase }} 
+              {{ (datosGuardados?.apellidoPaterno || '') | uppercase }} 
+              {{ (datosGuardados?.apellidoMaterno || '') | uppercase }}
+            </span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-item__label">🆔 DNI:</span>
+            <span class="info-item__value">{{ datosGuardados?.dni || 'No registrado' }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-item__label">📅 Fecha de Nacimiento:</span>
+            <span class="info-item__value">{{ datosGuardados?.fechaNacimiento || 'No registrada' }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-item__label">📞 Celular:</span>
+            <span class="info-item__value">{{ datosGuardados?.celular || 'No registrado' }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-item__label">💼 Cargo:</span>
+            <span class="info-item__value">{{ getNombreCargo(datosGuardados?.cargo) || 'No registrado' }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-item__label">🏢 Área:</span>
+            <span class="info-item__value">{{ getNombreArea(datosGuardados?.area) || 'No registrada' }}</span>
+          </div>
+        </div>
+
+        <!-- Barra de Progreso -->
+        <div class="modal-recuperacion__progress">
+          <div class="progress-info">
+            <span class="progress-info__label">Progreso del Formulario:</span>
+            <span class="progress-info__value">{{ datosGuardados?.porcentajeCompletado || 0 }}%</span>
+          </div>
+          <div class="progress-bar-horizontal">
+            <div class="progress-bar-horizontal__fill" [style.width.%]="datosGuardados?.porcentajeCompletado || 0"></div>
+          </div>
+        </div>
+
+        <!-- Tiempo Transcurrido -->
+        <div class="modal-recuperacion__time">
+          <span class="time-icon">⏰</span>
+          <span class="time-text">Guardado {{ getTiempoTranscurrido(datosGuardados?.timestamp) }}</span>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="modal-recuperacion__actions">
+        <button class="btn-modal btn-modal--primary" (click)="recuperarDatos()">
+          <span class="btn-modal__icon">🔄</span>
+          Recuperar Datos
+        </button>
+
+        <button class="btn-modal btn-modal--secondary" (click)="verDetallesBorrador()">
+          <span class="btn-modal__icon">📋</span>
+          Ver Detalles
+        </button>
+
+        <button class="btn-modal btn-modal--danger" (click)="descartarBorrador()">
+          <span class="btn-modal__icon">🗑️</span>
+          Descartar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Trabajador Eliminado -->
+  <div class="modal-overlay" *ngIf="mostrarModalEliminado" @fadeIn>
+    <div class="modal-eliminado" @slideInDown>
+      <div class="modal-eliminado__header">
+        <div class="modal-eliminado__icon">⚠️</div>
+        <h2 class="modal-eliminado__title">Trabajador Eliminado Detectado</h2>
+        <p class="modal-eliminado__subtitle">{{ trabajadorEliminadoInfo?.message }}</p>
+      </div>
+
+      <div class="modal-eliminado__content">
+        <div class="trabajador-info">
+          <span class="trabajador-info__label">👤 Trabajador:</span>
+          <span class="trabajador-info__value">{{ trabajadorEliminadoInfo?.nombreCompleto }}</span>
+        </div>
+        <p class="modal-eliminado__text">
+          Este trabajador fue eliminado anteriormente. Elige una opción:
+        </p>
+      </div>
+
+      <div class="modal-eliminado__actions">
+        <button class="btn-modal btn-modal--primary" (click)="restaurarYEditar()">
+          <span class="btn-modal__icon">🔄</span>
+          Restaurar y Editar
+        </button>
+        <button class="btn-modal btn-modal--success" (click)="continuarConNuevo()">
+          <span class="btn-modal__icon">✅</span>
+          Continuar (Actualizar Datos)
+        </button>
+        <button class="btn-modal btn-modal--secondary" (click)="cancelarModalEliminado()">
+          <span class="btn-modal__icon">✖️</span>
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN PARA CANCELAR -->
+  <div class="modal-overlay" *ngIf="mostrarModalCancelar" (click)="cerrarModalCancelar()" @fadeIn>
+    <div class="modal-confirm" (click)="$event.stopPropagation()" @slideInDown>
+      <div class="modal-confirm__header">
+        <div class="modal-confirm__icon">
+          <span>⚠️</span>
+        </div>
+        <h3 class="modal-confirm__title">¿Cancelar registro?</h3>
+      </div>
+      <div class="modal-confirm__body">
+        <p class="modal-confirm__message">
+          Se perderán todos los datos ingresados permanentemente.
+        </p>
+        <p class="modal-confirm__submessage">
+          ¿Estás seguro de que deseas salir sin guardar?
+        </p>
+      </div>
+      <div class="modal-confirm__footer">
+        <button 
+          class="btn btn--ghost" 
+          (click)="cerrarModalCancelar()"
+        >
+          <span class="btn__icon">✕</span>
+          Mantener registro
+        </button>
+        <button 
+          class="btn btn--danger" 
+          (click)="confirmarCancelar()"
+        >
+          <span class="btn__icon">→</span>
+          Sí, cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE ÉXITO RENIEC -->
+  <div class="modal-overlay modal-overlay--exito-reniec" *ngIf="mostrarModalExitoRENIEC" (click)="cerrarModalExitoRENIEC()" @fadeIn>
+    <div class="modal-exito-reniec" (click)="$event.stopPropagation()" @slideInDown>
+      <div class="exito-reniec">
+        <!-- Círculo de carga -->
+        <div class="exito-reniec__loader" *ngIf="cargandoDatosRENIEC">
+          <div class="spinner spinner--green"></div>
+        </div>
+        
+        <!-- Check de éxito -->
+        <div class="exito-reniec__check" *ngIf="datosRENIECCompletados">
+          <svg class="checkmark checkmark--green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="60" height="60">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
+        
+        <h3 class="exito-reniec__title">Datos Cargados</h3>
+        <p class="exito-reniec__message" *ngIf="datosRENIECCompletados">
+          Los datos se han cargado exitosamente desde RENIEC
+        </p>
+        <p class="exito-reniec__message" *ngIf="cargandoDatosRENIEC">
+          Cargando datos desde RENIEC...
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE ÉXITO AL GUARDAR TRABAJADOR -->
+  <div class="modal-overlay modal-overlay--exito-guardar" *ngIf="mostrarModalExitoGuardar" (click)="cerrarModalExitoGuardar()" @fadeIn>
+    <div class="modal-exito-guardar" (click)="$event.stopPropagation()" @slideInDown>
+      <div class="exito-guardar">
+        <!-- Círculo de carga -->
+        <div class="exito-guardar__loader" *ngIf="guardandoTrabajadorProceso">
+          <div class="spinner spinner--green"></div>
+        </div>
+        
+        <!-- Check de éxito -->
+        <div class="exito-guardar__check" *ngIf="trabajadorGuardadoCompletado">
+          <svg class="checkmark checkmark--green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="60" height="60">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
+        
+        <h3 class="exito-guardar__title">Trabajador Registrado</h3>
+        <p class="exito-guardar__message" *ngIf="trabajadorGuardadoCompletado">
+          El trabajador se ha registrado exitosamente
+        </p>
+        <p class="exito-guardar__message" *ngIf="guardandoTrabajadorProceso">
+          Guardando trabajador...
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DNI INVÁLIDO -->
+  <div class="modal-overlay modal-overlay--dni" *ngIf="mostrarModalDNIInvalido" (click)="cerrarModalDNIInvalido()" @fadeIn>
+    <div class="modal-dni" (click)="$event.stopPropagation()" @slideInDown>
+      <div class="modal-dni__icon">⚠️</div>
+      <h2 class="modal-dni__title">{{ mensajeDNI === 'Ingrese un DNI' ? 'DNI Requerido' : 'DNI Inválido' }}</h2>
+      <p class="modal-dni__message">{{ mensajeDNI }}</p>
+      <div class="modal-dni__info">
+        <p class="info-text">El DNI debe tener <strong>exactamente 8 dígitos</strong> numéricos.</p>
+        <div class="example-box">
+          <span class="example-label">Ejemplo:</span>
+          <span class="example-value">12345678</span>
+        </div>
+      </div>
+      <button 
+        class="btn-modal btn-modal--primary" 
+        (click)="cerrarModalDNIInvalido()"
+      >
+        Aceptar
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL DE RENIEC DESHABILITADO -->
+  <div class="modal-overlay modal-overlay--reniec" *ngIf="mostrarModalRENIECDeshabilitado" (click)="cerrarModalRENIECDeshabilitado()" @fadeIn>
+    <div class="modal-reniec" (click)="$event.stopPropagation()" @slideInDown>
+      <div class="modal-reniec__header">
+        <div class="modal-reniec__icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.2"/>
+            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h2 class="modal-reniec__title">Integración Deshabilitada</h2>
+        <p class="modal-reniec__subtitle">La consulta a RENIEC no está disponible</p>
+      </div>
+      
+      <div class="modal-reniec__content">
+        <div class="modal-reniec__message">
+          <p class="message-text">
+            La integración con <strong>RENIEC</strong> está actualmente deshabilitada en el sistema.
+          </p>
+          <p class="message-text">
+            Para habilitar la búsqueda automática de datos, debes activar esta integración en la configuración del sistema.
+          </p>
+        </div>
+        
+        <div class="modal-reniec__path">
+          <div class="path-item">
+            <span class="path-icon">⚙️</span>
+            <span class="path-text">Configuración</span>
+          </div>
+          <div class="path-arrow">→</div>
+          <div class="path-item">
+            <span class="path-icon">🔗</span>
+            <span class="path-text">Integraciones</span>
+          </div>
+          <div class="path-arrow">→</div>
+          <div class="path-item path-item--active">
+            <span class="path-icon">🆔</span>
+            <span class="path-text">RENIEC</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-reniec__actions">
+        <button 
+          class="btn-modal btn-modal--secondary" 
+          (click)="cerrarModalRENIECDeshabilitado()"
+        >
+          <span class="btn-modal__icon">✕</span>
+          <span class="btn-modal__text">Cerrar</span>
+        </button>
+        <button 
+          class="btn-modal btn-modal--primary" 
+          (click)="irAConfiguracionIntegraciones()"
+        >
+          <span class="btn-modal__icon">⚙️</span>
+          <span class="btn-modal__text">Ir a Configuración</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <div class="page-header__title-wrap">
+        <h1 class="page-title">
+          <span class="page-title__icon">👤</span>
+          Nuevo Trabajador
+        </h1>
+        <p class="page-subtitle">
+          <span class="page-subtitle__dots">
+            <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+            <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+            <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+          </span>
+          Registro completo de personal municipal
+        </p>
+      </div>
+    </div>
+    <div class="page-header__right">
+      <button class="btn-back" (click)="cancelar()" title="Volver a la lista">
+        <span class="btn-back__icon">←</span>
+        <span class="btn-back__text">Volver</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="progress-bar">
+    <div class="progress-bar__steps">
+      <div 
+        class="progress-step" 
+        [class.active]="paso >= 1"
+        [class.completed]="paso > 1"
+      >
+        <div class="progress-step__circle">1</div>
+        <span class="progress-step__label">Datos Personales</span>
+      </div>
+      
+      <div 
+        class="progress-step" 
+        [class.active]="paso >= 2"
+        [class.completed]="paso > 2"
+      >
+        <div class="progress-step__circle">2</div>
+        <span class="progress-step__label">Contacto</span>
+      </div>
+      
+      <div 
+        class="progress-step" 
+        [class.active]="paso >= 3"
+        [class.completed]="paso > 3"
+      >
+        <div class="progress-step__circle">3</div>
+        <span class="progress-step__label">Datos Laborales</span>
+      </div>
+      
+      <div 
+        class="progress-step" 
+        [class.active]="paso >= 4"
+        [class.completed]="paso > 4"
+      >
+        <div class="progress-step__circle">4</div>
+        <span class="progress-step__label">Remuneración</span>
+      </div>
+      
+      <div 
+        class="progress-step" 
+        [class.active]="paso >= 5"
+        [class.completed]="paso > 5"
+      >
+        <div class="progress-step__circle">5</div>
+        <span class="progress-step__label">Datos Bancarios</span>
+      </div>
+    </div>
+    <div class="progress-bar__line">
+      <div class="progress-bar__fill" [style.width]="getProgressWidth()"></div>
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <form [formGroup]="trabajadorForm" class="form-container">
+    
+    <!-- PASO 1: DATOS PERSONALES -->
+    <div class="form-step" *ngIf="paso === 1">
+      <div class="step-header">
+        <h2 class="step-title">
+          <span class="step-title__icon">📋</span>
+          <span class="step-title__text">Datos Personales</span>
+        </h2>
+        <p class="step-description">Información básica del trabajador</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- DNI -->
+        <div class="form-group form-group--featured">
+          <label class="form-label">
+            DNI <span class="required">*</span>
+          </label>
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-input"
+              formControlName="dni"
+              placeholder="12345678"
+              maxlength="8"
+              [class.invalid]="isInvalid('dni') || dniExiste"
+              (input)="onDNIChange($event)"
+              (keypress)="soloNumeros($event)"
+            />
+            <button type="button" class="btn btn--sm btn--accent" (click)="buscarDNI()">
+              🔍 Buscar RENIEC
+            </button>
+          </div>
+          <span class="form-error" *ngIf="isInvalid('dni')">{{ getError('dni') }}</span>
+          
+          <!-- Mensajes de validación del DNI -->
+          <div class="dni-validation" *ngIf="trabajadorForm.get('dni')?.value && trabajadorForm.get('dni')?.value.length === 8">
+            <div class="validation-message validation-message--loading" *ngIf="validandoDNI">
+              <span class="validation-icon">⏳</span>
+              <span class="validation-text">Validando DNI...</span>
+            </div>
+            
+            <div class="validation-message validation-message--success" *ngIf="!validandoDNI && dniValido && !dniExiste">
+              <span class="validation-icon">✅</span>
+              <span class="validation-text">DNI disponible</span>
+            </div>
+            
+            <div class="validation-message validation-message--error" *ngIf="!validandoDNI && dniExiste">
+              <span class="validation-icon">❌</span>
+              <span class="validation-text">Este DNI ya existe en el sistema</span>
+            </div>
+            
+            <div class="validation-message validation-message--error" *ngIf="!validandoDNI && !dniValido">
+              <span class="validation-icon">⚠️</span>
+              <span class="validation-text">Error al validar DNI</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Apellido Paterno -->
+        <div class="form-group">
+          <label class="form-label">
+            Apellido Paterno <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="apellidoPaterno"
+            placeholder="GARCÍA"
+            [class.invalid]="isInvalid('apellidoPaterno')"
+          />
+          <span class="form-error" *ngIf="isInvalid('apellidoPaterno')">{{ getError('apellidoPaterno') }}</span>
+        </div>
+
+        <!-- Apellido Materno -->
+        <div class="form-group">
+          <label class="form-label">
+            Apellido Materno <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="apellidoMaterno"
+            placeholder="PÉREZ"
+            [class.invalid]="isInvalid('apellidoMaterno')"
+          />
+          <span class="form-error" *ngIf="isInvalid('apellidoMaterno')">{{ getError('apellidoMaterno') }}</span>
+        </div>
+
+        <!-- Nombres -->
+        <div class="form-group">
+          <label class="form-label">
+            Nombres <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="nombres"
+            placeholder="JUAN CARLOS"
+            [class.invalid]="isInvalid('nombres')"
+          />
+          <span class="form-error" *ngIf="isInvalid('nombres')">{{ getError('nombres') }}</span>
+        </div>
+
+        <!-- Fecha de Nacimiento -->
+        <div class="form-group">
+          <label class="form-label">
+            Fecha de Nacimiento
+          </label>
+          <input
+            type="date"
+            class="form-input"
+            formControlName="fechaNacimiento"
+            [class.invalid]="isInvalid('fechaNacimiento')"
+          />
+          <span class="form-hint" *ngIf="calcularEdad > 0">
+            Edad: {{ calcularEdad }} años
+          </span>
+          <span class="form-error" *ngIf="isInvalid('fechaNacimiento')">{{ getError('fechaNacimiento') }}</span>
+        </div>
+
+        <!-- Sexo -->
+        <div class="form-group">
+          <label class="form-label">
+            Sexo
+          </label>
+          <select class="form-select" formControlName="sexo" [class.invalid]="isInvalid('sexo')">
+            <option value="">Seleccione</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('sexo')">{{ getError('sexo') }}</span>
+        </div>
+
+        <!-- Estado Civil -->
+        <div class="form-group">
+          <label class="form-label">
+            Estado Civil
+          </label>
+          <select class="form-select" formControlName="estadoCivil" [class.invalid]="isInvalid('estadoCivil')">
+            <option value="">Seleccione</option>
+            <option value="Soltero">Soltero</option>
+<option value="Casado">Casado</option>
+<option value="Divorciado">Divorciado</option>
+<option value="Viudo">Viudo</option>
+<option value="Conviviente">Conviviente</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('estadoCivil')">{{ getError('estadoCivil') }}</span>
+        </div>
+
+        <!-- Nacionalidad -->
+        <div class="form-group">
+          <label class="form-label">
+            Nacionalidad
+          </label>
+          <select class="form-select" formControlName="nacionalidad" [class.invalid]="isInvalid('nacionalidad')">
+            <option value="">Seleccione</option>
+            <option value="Peruana">Peruana</option>
+            <option value="Argentina">Argentina</option>
+            <option value="Boliviana">Boliviana</option>
+            <option value="Brasileña">Brasileña</option>
+            <option value="Chilena">Chilena</option>
+            <option value="Colombiana">Colombiana</option>
+            <option value="Ecuatoriana">Ecuatoriana</option>
+            <option value="Venezolana">Venezolana</option>
+            <option value="Otra">Otra</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('nacionalidad')">{{ getError('nacionalidad') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 2: CONTACTO -->
+    <div class="form-step" *ngIf="paso === 2">
+      <div class="step-header">
+        <h2 class="step-title">
+          <span class="step-title__icon">📞</span>
+          <span class="step-title__text">Datos de Contacto</span>
+        </h2>
+        <p class="step-description">Información de contacto y ubicación</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- Celular -->
+        <div class="form-group">
+          <label class="form-label">
+            Celular
+          </label>
+          <input
+            type="tel"
+            class="form-input"
+            formControlName="celular"
+            placeholder="987654321"
+            maxlength="9"
+            [class.invalid]="isInvalid('celular')"
+          />
+          <span class="form-error" *ngIf="isInvalid('celular')">{{ getError('celular') }}</span>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="form-group">
+          <label class="form-label">Teléfono Fijo</label>
+          <input
+            type="tel"
+            class="form-input"
+            formControlName="telefono"
+            placeholder="014567890"
+            [class.invalid]="isInvalid('telefono')"
+          />
+          <span class="form-error" *ngIf="isInvalid('telefono')">{{ getError('telefono') }}</span>
+        </div>
+
+        <!-- Correo Personal -->
+        <div class="form-group">
+          <label class="form-label">
+            Correo Personal
+          </label>
+          <input
+            type="email"
+            class="form-input"
+            formControlName="emailPersonal"
+            placeholder="nombre@gmail.com"
+            [class.invalid]="isInvalid('emailPersonal')"
+          />
+          <span class="form-error" *ngIf="isInvalid('emailPersonal')">{{ getError('emailPersonal') }}</span>
+        </div>
+
+        <!-- Correo Corporativo -->
+        <div class="form-group">
+          <label class="form-label">
+            Correo Corporativo
+          </label>
+          <input
+            type="email"
+            class="form-input"
+            formControlName="emailCorporativo"
+            placeholder="nombre@munihuanchaco.gob.pe"
+            [class.invalid]="isInvalid('emailCorporativo')"
+          />
+          <span class="form-error" *ngIf="isInvalid('emailCorporativo')">{{ getError('emailCorporativo') }}</span>
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-group">
+          <label class="form-label">
+            Dirección
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="direccion"
+            placeholder="Av. Los Pinos 456"
+            [class.invalid]="isInvalid('direccion')"
+          />
+          <span class="form-error" *ngIf="isInvalid('direccion')">{{ getError('direccion') }}</span>
+        </div>
+
+        <!-- Contacto de Emergencia - Nombre -->
+        <div class="form-group">
+          <label class="form-label">
+            Contacto de Emergencia
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="contactoEmergenciaNombre"
+            placeholder="Nombre completo"
+            [class.invalid]="isInvalid('contactoEmergenciaNombre')"
+            (input)="onContactoEmergenciaChange($event)"
+          />
+          <span class="form-error" *ngIf="isInvalid('contactoEmergenciaNombre')">{{ getError('contactoEmergenciaNombre') }}</span>
+        </div>
+
+        <!-- Contacto de Emergencia - Parentesco -->
+        <div class="form-group">
+          <label class="form-label">
+            Parentesco
+          </label>
+          <select 
+            class="form-select" 
+            formControlName="contactoEmergenciaParentesco"
+            [class.invalid]="isInvalid('contactoEmergenciaParentesco')"
+            [disabled]="getContactoEmergenciaDisabled()"
+          >
+            <option value="">Seleccione</option>
+            <option value="Esposa">Esposa</option>
+            <option value="Esposo">Esposo</option>
+            <option value="Madre">Madre</option>
+            <option value="Padre">Padre</option>
+            <option value="Hija">Hija</option>
+            <option value="Hijo">Hijo</option>
+            <option value="Hermana">Hermana</option>
+            <option value="Hermano">Hermano</option>
+            <option value="Abuela">Abuela</option>
+            <option value="Abuelo">Abuelo</option>
+            <option value="Tía">Tía</option>
+            <option value="Tío">Tío</option>
+            <option value="Prima">Prima</option>
+            <option value="Primo">Primo</option>
+            <option value="Suegra">Suegra</option>
+            <option value="Suegro">Suegro</option>
+            <option value="Yerno">Yerno</option>
+            <option value="Nuera">Nuera</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('contactoEmergenciaParentesco')">{{ getError('contactoEmergenciaParentesco') }}</span>
+        </div>
+
+        <!-- Contacto de Emergencia - Teléfono -->
+        <div class="form-group">
+          <label class="form-label">
+            Teléfono de Emergencia
+          </label>
+          <input
+            type="tel"
+            class="form-input"
+            formControlName="contactoEmergenciaTelefono"
+            placeholder="987654321"
+            maxlength="9"
+            [class.invalid]="isInvalid('contactoEmergenciaTelefono')"
+            [disabled]="getContactoEmergenciaDisabled()"
+            (keypress)="soloNumeros($event)"
+            (input)="onContactoEmergenciaTelefonoChange($event)"
+          />
+          <span class="form-error" *ngIf="isInvalid('contactoEmergenciaTelefono')">{{ getError('contactoEmergenciaTelefono') }}</span>
+        </div>
+
+        <!-- Departamento - Custom Select -->
+        <div class="form-group">
+          <label class="form-label">
+            Departamento
+          </label>
+          
+          <div class="custom-select-wrapper" [style.position]="'relative'">
+            <input type="text" 
+                   class="form-input" 
+                   [value]="getDepartamentoNombre(trabajadorForm.get('departamento')?.value) || 'Seleccione un departamento'"
+                   readonly
+                   (click)="toggleDepartamentoDropdown(); $event.stopPropagation()"
+                   [style.cursor]="'pointer'"
+                   [style.background]="'var(--panel-2)'"
+                   [style.color]="trabajadorForm.get('departamento')?.value ? '#e5e7eb' : '#94a3b8'"
+                   [style.font-weight]="trabajadorForm.get('departamento')?.value ? '600' : '400'"
+                   [style.border-color]="mostrarDepartamentosDropdown ? 'var(--accent)' : 'var(--border)'"
+                   [style.padding-right]="'48px'">
+            <!-- Flecha hacia abajo -->
+            <svg class="custom-select-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            
+            <div class="custom-dropdown custom-dropdown--up" 
+                 *ngIf="mostrarDepartamentosDropdown && departamentos.length > 0">
+              
+              <div class="custom-option"
+                   (click)="seleccionarDepartamento(''); $event.stopPropagation()"
+                   [style.padding]="'12px 16px'"
+                   [style.cursor]="'pointer'"
+                   [style.color]="'#94a3b8'"
+                   [style.font-style]="'italic'"
+                   [style.transition]="'all 0.2s'"
+                   (mouseenter)="$event.target.style.background='var(--panel-2)'"
+                   (mouseleave)="$event.target.style.background='transparent'">
+                Seleccione un departamento
+              </div>
+              
+              <div class="custom-option"
+                   *ngFor="let dep of departamentos; trackBy: trackByCodigo"
+                   (click)="seleccionarDepartamento(dep.codigo); $event.stopPropagation()"
+                   [style.padding]="'12px 16px'"
+                   [style.cursor]="'pointer'"
+                   [style.color]="'#e5e7eb'"
+                   [style.font-weight]="trabajadorForm.get('departamento')?.value === dep.codigo ? '600' : '400'"
+                   [style.background]="trabajadorForm.get('departamento')?.value === dep.codigo ? 'rgba(34,197,94,0.15)' : 'transparent'"
+                   [style.border-left]="trabajadorForm.get('departamento')?.value === dep.codigo ? '4px solid #22c55e' : '4px solid transparent'"
+                   [style.transition]="'all 0.2s'"
+                   (mouseenter)="$event.target.style.background='rgba(34,197,94,0.1)'"
+                   (mouseleave)="$event.target.style.background=(trabajadorForm.get('departamento')?.value === dep.codigo ? 'rgba(34,197,94,0.15)' : 'transparent')">
+                {{ dep.nombre | uppercase }}
+              </div>
+              
+              <div class="custom-option" *ngIf="departamentos.length === 0" 
+                   [style.padding]="'12px 16px'"
+                   [style.color]="'#94a3b8'"
+                   [style.font-style]="'italic'"
+                   [style.text-align]="'center'"
+                   [style.cursor]="'default'">
+                Cargando departamentos...
+              </div>
+            </div>
+          </div>
+          
+          <span class="form-error" *ngIf="isInvalid('departamento')">{{ getError('departamento') }}</span>
+        </div>
+
+        <!-- Provincia - Custom Select -->
+        <div class="form-group">
+          <label class="form-label">
+            Provincia
+          </label>
+          
+          <div class="custom-select-wrapper" [style.position]="'relative'">
+            <input type="text" 
+                   class="form-input" 
+                   [value]="getProvinciaNombre(trabajadorForm.get('provincia')?.value) || 'Seleccione una provincia'"
+                   readonly
+                   (click)="toggleProvinciaDropdown(); $event.stopPropagation()"
+                   [style.border-color]="mostrarProvinciasDropdown ? 'var(--accent)' : 'var(--border)'"
+                   [style.cursor]="'pointer'"
+                   [style.background]="'var(--panel-2)'"
+                   [style.color]="trabajadorForm.get('provincia')?.value ? '#e5e7eb' : '#94a3b8'"
+                   [style.font-weight]="trabajadorForm.get('provincia')?.value ? '600' : '400'"
+                   [style.padding-right]="'48px'">
+            <!-- Flecha hacia abajo -->
+            <svg class="custom-select-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            
+            <div class="custom-dropdown custom-dropdown--up" 
+                 *ngIf="mostrarProvinciasDropdown && provincias.length > 0">
+              
+              <div class="custom-option"
+                   (click)="seleccionarProvincia(''); $event.stopPropagation()"
+                   [style.padding]="'12px 16px'"
+                   [style.cursor]="'pointer'"
+                   [style.color]="'#94a3b8'"
+                   [style.font-style]="'italic'"
+                   [style.transition]="'all 0.2s'"
+                   (mouseenter)="$event.target.style.background='var(--panel-2)'"
+                   (mouseleave)="$event.target.style.background='transparent'">
+                Seleccione una provincia
+              </div>
+              
+              <div class="custom-option"
+                   *ngFor="let prov of provincias"
+                   (click)="seleccionarProvincia(prov.codigo); $event.stopPropagation()"
+                   [style.padding]="'12px 16px'"
+                   [style.cursor]="'pointer'"
+                   [style.color]="'#e5e7eb'"
+                   [style.font-weight]="trabajadorForm.get('provincia')?.value === prov.codigo ? '600' : '400'"
+                   [style.background]="trabajadorForm.get('provincia')?.value === prov.codigo ? 'rgba(34,197,94,0.15)' : 'transparent'"
+                   [style.border-left]="trabajadorForm.get('provincia')?.value === prov.codigo ? '4px solid #22c55e' : '4px solid transparent'"
+                   [style.transition]="'all 0.2s'"
+                   (mouseenter)="$event.target.style.background='rgba(34,197,94,0.1)'"
+                   (mouseleave)="$event.target.style.background=(trabajadorForm.get('provincia')?.value === prov.codigo ? 'rgba(34,197,94,0.15)' : 'transparent')">
+                {{ prov.nombre | uppercase }}
+              </div>
+            </div>
+          </div>
+          
+          <span class="form-error" *ngIf="isInvalid('provincia')">{{ getError('provincia') }}</span>
+        </div>
+
+        <!-- Distrito - Custom Select -->
+        <div class="form-group">
+          <label class="form-label">
+            Distrito
+          </label>
+          
+          <!-- Input que muestra el valor seleccionado (VISIBLE) -->
+          <div class="custom-select-wrapper" [style.position]="'relative'">
+            <input type="text" 
+                   class="form-input" 
+                   [value]="trabajadorForm.get('distrito')?.value || 'Seleccione un distrito'"
+                   readonly
+                   (click)="toggleDistritoDropdown(); $event.stopPropagation()"
+                   [style.border-color]="mostrarDistritosDropdown ? 'var(--accent)' : 'var(--border)'"
+                   [style.cursor]="'pointer'"
+                   [style.background]="'var(--panel-2)'"
+                   [style.color]="trabajadorForm.get('distrito')?.value ? '#e5e7eb' : '#94a3b8'"
+                   [style.font-weight]="trabajadorForm.get('distrito')?.value ? '600' : '400'"
+                   [style.padding-right]="'48px'">
+            <!-- Flecha hacia abajo -->
+            <svg class="custom-select-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            
+            <!-- Dropdown personalizado -->
+            <div class="custom-dropdown custom-dropdown--up" 
+                 *ngIf="mostrarDistritosDropdown && distritos.length > 0">
+              
+              <div class="custom-option"
+                   (click)="seleccionarDistrito(''); $event.stopPropagation()"
+                   [style.padding]="'12px 16px'"
+                   [style.cursor]="'pointer'"
+                   [style.color]="'#94a3b8'"
+                   [style.font-style]="'italic'"
+                   [style.transition]="'all 0.2s'"
+                   (mouseenter)="$event.target.style.background='var(--panel-2)'"
+                   (mouseleave)="$event.target.style.background='transparent'">
+                Seleccione un distrito
+              </div>
+              
+              <div class="custom-option"
+                   *ngFor="let dist of distritos"
+                   (click)="seleccionarDistrito(dist); $event.stopPropagation()"
+                   [style.padding]="'12px 16px'"
+                   [style.cursor]="'pointer'"
+                   [style.color]="'#e5e7eb'"
+                   [style.font-weight]="trabajadorForm.get('distrito')?.value?.toUpperCase() === dist.toUpperCase() ? '600' : '400'"
+                   [style.background]="trabajadorForm.get('distrito')?.value?.toUpperCase() === dist.toUpperCase() ? 'rgba(34,197,94,0.15)' : 'transparent'"
+                   [style.border-left]="trabajadorForm.get('distrito')?.value?.toUpperCase() === dist.toUpperCase() ? '4px solid #22c55e' : '4px solid transparent'"
+                   [style.transition]="'all 0.2s'"
+                   (mouseenter)="$event.target.style.background='rgba(34,197,94,0.1)'"
+                   (mouseleave)="$event.target.style.background=(trabajadorForm.get('distrito')?.value?.toUpperCase() === dist.toUpperCase() ? 'rgba(34,197,94,0.15)' : 'transparent')">
+                {{ dist | uppercase }}
+              </div>
+            </div>
+          </div>
+          
+          <span class="form-error" *ngIf="isInvalid('distrito')">{{ getError('distrito') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 3: DATOS LABORALES -->
+    <div class="form-step" *ngIf="paso === 3">
+      <div class="step-header">
+        <h2 class="step-title">
+          <span class="step-title__icon">💼</span>
+          <span class="step-title__text">Datos Laborales</span>
+        </h2>
+        <p class="step-description">Información del puesto y contrato</p>
+      </div>
+
+      <!-- SECCIÓN: ORGANIZACIÓN -->
+      <div class="form-section">
+        <h3 class="form-section-title">
+          <span class="section-icon">🏢</span>
+          Organización
+        </h3>
+        
+        <div class="form-grid">
+          <!-- Gerencia -->
+          <div class="form-group">
+            <label class="form-label">
+              Gerencia
+            </label>
+            <div class="input-with-toggle">
+              <select 
+                class="form-select" 
+                formControlName="gerencia" 
+                [class.invalid]="isInvalid('gerencia')"
+                (change)="onGerenciaChange($any($event.target).value)"
+                *ngIf="!gerenciaInputMode"
+              >
+                <option value="">Seleccione</option>
+                <option *ngFor="let gerencia of gerencias" [value]="gerencia.GerenciaID">{{ gerencia.Nombre }}</option>
+              </select>
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="gerenciaTexto"
+                placeholder="Escribir gerencia personalizada"
+                (input)="onGerenciaTextoChange($event)"
+                *ngIf="gerenciaInputMode"
+                [class.invalid]="isInvalid('gerenciaTexto')"
+              />
+              <button 
+                type="button" 
+                class="toggle-input-btn" 
+                (click)="toggleGerenciaInput()"
+                [title]="gerenciaInputMode ? 'Usar lista de gerencias' : 'Escribir gerencia personalizada'"
+              >
+                {{ gerenciaInputMode ? '📋' : '✏️' }}
+              </button>
+            </div>
+            <span class="form-error" *ngIf="isInvalid('gerencia')">{{ getError('gerencia') }}</span>
+            <small class="form-hint" *ngIf="gerenciaInputMode">
+              💡 Escriba la gerencia personalizada (se convertirá a mayúsculas)
+            </small>
+          </div>
+
+          <!-- Subgerencia -->
+          <div class="form-group">
+            <label class="form-label">
+              Subgerencia
+            </label>
+            <div class="input-with-toggle">
+              <select 
+                class="form-select" 
+                formControlName="subgerencia" 
+                (change)="onSubgerenciaChange($any($event.target).value)"
+                *ngIf="!subgerenciaInputMode"
+              >
+                <option value="">Seleccione (opcional)</option>
+                <option *ngFor="let subgerencia of subgerencias" [value]="subgerencia.SubgerenciaID">{{ subgerencia.Nombre }}</option>
+              </select>
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="subgerenciaTexto"
+                placeholder="Escribir subgerencia personalizada"
+                (input)="onSubgerenciaTextoChange($event)"
+                *ngIf="subgerenciaInputMode"
+                [class.invalid]="isInvalid('subgerenciaTexto')"
+              />
+              <button 
+                type="button" 
+                class="toggle-input-btn" 
+                (click)="toggleSubgerenciaInput()"
+                [title]="subgerenciaInputMode ? 'Usar lista de subgerencias' : 'Escribir subgerencia personalizada'"
+              >
+                {{ subgerenciaInputMode ? '📋' : '✏️' }}
+              </button>
+            </div>
+            <small class="form-hint" *ngIf="subgerenciaInputMode">
+              💡 Escriba la subgerencia personalizada (se convertirá a mayúsculas)
+            </small>
+            <small class="form-hint" *ngIf="!subgerenciaInputMode && subgerencias.length > 0">
+              💡 {{ subgerencias.length }} subgerencias disponibles
+            </small>
+          </div>
+
+          <!-- Unidad -->
+          <div class="form-group">
+            <label class="form-label">
+              Unidad
+            </label>
+            <div class="input-with-toggle">
+              <select 
+                class="form-select" 
+                formControlName="unidad"
+                *ngIf="!unidadInputMode"
+              >
+                <option value="">Seleccione (opcional)</option>
+                <option *ngFor="let unidad of unidades" [value]="unidad.UnidadID">{{ unidad.Nombre }}</option>
+              </select>
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="unidadTexto"
+                placeholder="Escribir unidad personalizada"
+                (input)="onUnidadTextoChange($event)"
+                *ngIf="unidadInputMode"
+                [class.invalid]="isInvalid('unidadTexto')"
+              />
+              <button 
+                type="button" 
+                class="toggle-input-btn" 
+                (click)="toggleUnidadInput()"
+                [title]="unidadInputMode ? 'Usar lista de unidades' : 'Escribir unidad personalizada'"
+              >
+                {{ unidadInputMode ? '📋' : '✏️' }}
+              </button>
+            </div>
+            <small class="form-hint" *ngIf="unidadInputMode">
+              💡 Escriba la unidad personalizada (se convertirá a mayúsculas)
+            </small>
+          </div>
+
+          <!-- Cargo -->
+          <div class="form-group">
+            <label class="form-label">
+              Cargo
+            </label>
+            <div class="input-with-toggle">
+              <select 
+                class="form-select" 
+                formControlName="cargo" 
+                [class.invalid]="isInvalid('cargo')"
+                *ngIf="!cargoInputMode"
+              >
+                <option value="">Seleccione un cargo</option>
+                <option 
+                  *ngFor="let cargo of cargos" 
+                  [value]="cargo.CargoID"
+                >
+                  {{ cargo.Nombre }}
+                </option>
+              </select>
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="cargoTexto"
+                placeholder="Escribir cargo personalizado"
+                (input)="onCargoTextoChange($event)"
+                *ngIf="cargoInputMode"
+                [class.invalid]="isInvalid('cargoTexto')"
+              />
+              <button 
+                type="button" 
+                class="toggle-input-btn" 
+                (click)="toggleCargoInput()"
+                [title]="cargoInputMode ? 'Usar lista de cargos' : 'Escribir cargo personalizado'"
+              >
+                {{ cargoInputMode ? '📋' : '✏️' }}
+              </button>
+            </div>
+            <span class="form-error" *ngIf="isInvalid('cargo')">{{ getError('cargo') }}</span>
+            <small class="form-hint" *ngIf="cargos.length > 0 && !cargoInputMode">
+              💡 {{ cargos.length }} cargos disponibles
+            </small>
+            <small class="form-hint" *ngIf="cargoInputMode">
+              💡 Escriba el cargo personalizado (se convertirá a mayúsculas)
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: CLASIFICACIÓN -->
+      <div class="form-section">
+        <h3 class="form-section-title">
+          <span class="section-icon">📊</span>
+          Clasificación
+        </h3>
+        
+        <div class="form-grid">
+          <!-- Estado del Trabajador -->
+          <div class="form-group">
+            <label class="form-label">
+              Estado
+            </label>
+            <select class="form-select" formControlName="estado" [class.invalid]="isInvalid('estado')">
+              <option value="">Seleccione</option>
+              <option value="Activo">Activo</option>
+              <option value="Licencia">Licencia</option>
+              <option value="Suspendido">Suspendido</option>
+              <option value="Destacado">Destacado</option>
+              <option value="Comisionado">Comisionado</option>
+              <option value="Cesado">Cesado</option>
+            </select>
+            <span class="form-error" *ngIf="isInvalid('estado')">{{ getError('estado') }}</span>
+            <small class="form-hint" *ngIf="trabajadorForm.get('estado')?.value">
+              {{ getEstadoDescripcion() }}
+            </small>
+          </div>
+
+          <!-- Condición del Cargo -->
+          <div class="form-group">
+            <label class="form-label">
+              Condición Laboral
+            </label>
+            <div class="input-with-toggle">
+              <select 
+                class="form-select" 
+                formControlName="condicion" 
+                [class.invalid]="isInvalid('condicion')"
+                *ngIf="!condicionInputMode"
+              >
+                <option value="">Seleccione</option>
+                <option *ngFor="let condicion of condicionesLaborales" [value]="condicion.Nombre">
+                  {{ condicion.Nombre }}
+                  <span *ngIf="condicion.Descripcion"> - {{ condicion.Descripcion }}</span>
+                </option>
+              </select>
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="condicionTexto"
+                placeholder="Escribir condición laboral personalizada"
+                (input)="onCondicionTextoChange($event)"
+                *ngIf="condicionInputMode"
+                [class.invalid]="isInvalid('condicionTexto')"
+              />
+              <button 
+                type="button" 
+                class="toggle-input-btn" 
+                (click)="toggleCondicionInput()"
+                [title]="condicionInputMode ? 'Usar lista de condiciones' : 'Escribir condición personalizada'"
+              >
+                {{ condicionInputMode ? '📋' : '✏️' }}
+              </button>
+            </div>
+            <span class="form-error" *ngIf="isInvalid('condicion')">{{ getError('condicion') }}</span>
+            <small class="form-hint" *ngIf="trabajadorForm.get('condicion')?.value === 'Empleado de Confianza' && !condicionInputMode">
+              💡 Personal de confianza de la alta dirección municipal
+            </small>
+            <small class="form-hint" *ngIf="condicionInputMode">
+              💡 Escriba la condición laboral personalizada (se convertirá a mayúsculas)
+            </small>
+          </div>
+
+          <!-- Nivel / Categoría -->
+          <div class="form-group">
+            <label class="form-label">
+              Nivel / Categoría
+            </label>
+            <div class="input-with-toggle">
+              <select 
+                class="form-select" 
+                formControlName="nivel" 
+                [class.invalid]="isInvalid('nivel')"
+                *ngIf="!nivelInputMode"
+              >
+                <option value="">Seleccione</option>
+                <optgroup label="Funcionarios">
+                  <option value="F-8">F-8 (Alcalde)</option>
+                  <option value="F-7">F-7 (Gerente Municipal)</option>
+                  <option value="F-6">F-6 (Gerente)</option>
+                  <option value="F-5">F-5 (Sub Gerente)</option>
+                  <option value="F-4">F-4</option>
+                  <option value="F-3">F-3</option>
+                  <option value="F-2">F-2</option>
+                  <option value="F-1">F-1</option>
+                </optgroup>
+                <optgroup label="Empleados de Confianza">
+                  <option value="EC">EC (Empleado de Confianza)</option>
+                </optgroup>
+                <optgroup label="Servidores Públicos">
+                  <option value="SP-ES">SP-ES (Especialista)</option>
+                  <option value="SP-AP">SP-AP (Apoyo)</option>
+                  <option value="STA">STA (Técnico Administrativo)</option>
+                  <option value="SAP">SAP (Servidor de Apoyo)</option>
+                </optgroup>
+                <optgroup label="Profesionales">
+                  <option value="P-4">P-4 (Profesional Principal)</option>
+                  <option value="P-3">P-3 (Profesional Senior)</option>
+                  <option value="P-2">P-2 (Profesional)</option>
+                  <option value="P-1">P-1 (Profesional Junior)</option>
+                </optgroup>
+                <optgroup label="Técnicos y Obreros">
+                  <option value="T-3">T-3 (Técnico Senior)</option>
+                  <option value="T-2">T-2 (Técnico)</option>
+                  <option value="T-1">T-1 (Técnico Junior)</option>
+                  <option value="O-3">O-3 (Obrero Nivel 3)</option>
+                  <option value="O-2">O-2 (Obrero Nivel 2)</option>
+                  <option value="O-1">O-1 (Obrero Nivel 1)</option>
+                </optgroup>
+                <optgroup label="Auxiliares">
+                  <option value="A-3">A-3 (Auxiliar Senior)</option>
+                  <option value="A-2">A-2 (Auxiliar)</option>
+                  <option value="A-1">A-1 (Auxiliar Junior)</option>
+                </optgroup>
+                <optgroup label="Otros">
+                  <option value="PRE">PRE (Practicante)</option>
+                  <option value="CAS">CAS (Contrato Administrativo)</option>
+                  <option value="LOC">LOC (Locación de Servicios)</option>
+                </optgroup>
+              </select>
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="nivelTexto"
+                placeholder="Escribir nivel/categoría personalizado"
+                (input)="onNivelTextoChange($event)"
+                *ngIf="nivelInputMode"
+                [class.invalid]="isInvalid('nivelTexto')"
+              />
+              <button 
+                type="button" 
+                class="toggle-input-btn" 
+                (click)="toggleNivelInput()"
+                [title]="nivelInputMode ? 'Usar lista de niveles' : 'Escribir nivel personalizado'"
+              >
+                {{ nivelInputMode ? '📋' : '✏️' }}
+              </button>
+            </div>
+            <span class="form-error" *ngIf="isInvalid('nivel')">{{ getError('nivel') }}</span>
+            <small class="form-hint" *ngIf="nivelInputMode">
+              💡 Escriba el nivel/categoría personalizado (se convertirá a mayúsculas)
+            </small>
+          </div>
+
+          <!-- Tipo de Plaza -->
+          <div class="form-group">
+            <label class="form-label">
+              Tipo de Plaza
+            </label>
+            <div class="input-with-toggle">
+              <select 
+                class="form-select" 
+                formControlName="tipoPlaza" 
+                [class.invalid]="isInvalid('tipoPlaza')"
+                *ngIf="!tipoPlazaInputMode"
+              >
+                <option value="">Seleccione</option>
+                <option value="Permanente">Plaza Permanente</option>
+                <option value="Temporal">Plaza Temporal</option>
+                <option value="Confianza">Plaza de Confianza</option>
+                <option value="Supernumeraria">Plaza Supernumeraria</option>
+                <option value="Sin Plaza">Sin Plaza (Locación)</option>
+              </select>
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="tipoPlazaTexto"
+                placeholder="Escribir tipo de plaza personalizado"
+                (input)="onTipoPlazaTextoChange($event)"
+                *ngIf="tipoPlazaInputMode"
+                [class.invalid]="isInvalid('tipoPlazaTexto')"
+              />
+              <button 
+                type="button" 
+                class="toggle-input-btn" 
+                (click)="toggleTipoPlazaInput()"
+                [title]="tipoPlazaInputMode ? 'Usar lista de tipos de plaza' : 'Escribir tipo personalizado'"
+              >
+                {{ tipoPlazaInputMode ? '📋' : '✏️' }}
+              </button>
+            </div>
+            <span class="form-error" *ngIf="isInvalid('tipoPlaza')">{{ getError('tipoPlaza') }}</span>
+            <small class="form-hint" *ngIf="tipoPlazaInputMode">
+              💡 Escriba el tipo de plaza personalizado (se convertirá a mayúsculas)
+            </small>
+          </div>
+
+          <!-- Grupo Ocupacional -->
+          <div class="form-group">
+            <label class="form-label">
+              Grupo Ocupacional
+            </label>
+            <div class="input-with-toggle">
+              <select 
+                class="form-select" 
+                formControlName="grupoOcupacional" 
+                [class.invalid]="isInvalid('grupoOcupacional')"
+                *ngIf="!grupoOcupacionalInputMode"
+              >
+                <option value="">Seleccione</option>
+                <option value="Funcionario">Funcionario</option>
+                <option value="Directivo">Directivo</option>
+                <option value="Profesional">Profesional</option>
+                <option value="Tecnico">Técnico</option>
+                <option value="Auxiliar">Auxiliar</option>
+                <option value="Obrero">Obrero</option>
+                <option value="Practicante">Practicante</option>
+              </select>
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="grupoOcupacionalTexto"
+                placeholder="Escribir grupo ocupacional personalizado"
+                (input)="onGrupoOcupacionalTextoChange($event)"
+                *ngIf="grupoOcupacionalInputMode"
+                [class.invalid]="isInvalid('grupoOcupacionalTexto')"
+              />
+              <button 
+                type="button" 
+                class="toggle-input-btn" 
+                (click)="toggleGrupoOcupacionalInput()"
+                [title]="grupoOcupacionalInputMode ? 'Usar lista de grupos' : 'Escribir grupo personalizado'"
+              >
+                {{ grupoOcupacionalInputMode ? '📋' : '✏️' }}
+              </button>
+            </div>
+            <span class="form-error" *ngIf="isInvalid('grupoOcupacional')">{{ getError('grupoOcupacional') }}</span>
+            <small class="form-hint" *ngIf="grupoOcupacionalInputMode">
+              💡 Escriba el grupo ocupacional personalizado (se convertirá a mayúsculas)
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: CONTRATO -->
+      <div class="form-section">
+        <h3 class="form-section-title">
+          <span class="section-icon">📄</span>
+          Contrato y Régimen
+        </h3>
+        
+        <div class="form-grid">
+          <!-- Tipo de Contrato -->
+          <div class="form-group">
+            <label class="form-label">
+              Tipo de Contrato
+            </label>
+            <div class="input-with-toggle">
+              <select 
+                class="form-select" 
+                formControlName="tipoContrato" 
+                [class.invalid]="isInvalid('tipoContrato')"
+                *ngIf="!tipoContratoInputMode"
+              >
+                <option value="">Seleccione un tipo de contrato</option>
+                <option *ngFor="let tipo of tiposContrato" 
+                        [value]="tipo.TipoContratoID" 
+                        [title]="tipo.Descripcion">
+                  {{ tipo.Nombre }}
+                </option>
+              </select>
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="tipoContratoTexto"
+                placeholder="Escribir tipo de contrato personalizado"
+                (input)="onTipoContratoTextoChange($event)"
+                *ngIf="tipoContratoInputMode"
+                [class.invalid]="isInvalid('tipoContratoTexto')"
+              />
+              <button 
+                type="button" 
+                class="toggle-input-btn" 
+                (click)="toggleTipoContratoInput()"
+                [title]="tipoContratoInputMode ? 'Usar lista de tipos de contrato' : 'Escribir tipo personalizado'"
+              >
+                {{ tipoContratoInputMode ? '📋' : '✏️' }}
+              </button>
+            </div>
+            <span class="form-error" *ngIf="isInvalid('tipoContrato')">{{ getError('tipoContrato') }}</span>
+            <small class="form-hint" *ngIf="trabajadorForm.get('tipoContrato')?.value && getTipoContratoDescripcion() && !tipoContratoInputMode">
+              💡 {{ getTipoContratoDescripcion() }}
+            </small>
+            <small class="form-hint" *ngIf="tipoContratoInputMode">
+              💡 Escriba el tipo de contrato personalizado (se convertirá a mayúsculas)
+            </small>
+          </div>
+
+          <!-- Régimen Laboral -->
+          <div class="form-group">
+            <label class="form-label">
+              Régimen Laboral
+            </label>
+            <div class="input-with-toggle">
+              <select 
+                class="form-select" 
+                formControlName="regimenLaboral" 
+                [class.invalid]="isInvalid('regimenLaboral')"
+                *ngIf="!regimenLaboralInputMode"
+              >
+                <option value="">Seleccione un régimen laboral</option>
+                <option *ngFor="let regimen of regimenesLaborales" 
+                        [value]="regimen.RegimenID" 
+                        [title]="regimen.Descripcion + ' | ' + regimen.BaseNormativa">
+                  {{ regimen.Nombre }}
+                </option>
+              </select>
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="regimenLaboralTexto"
+                placeholder="Escribir régimen laboral personalizado"
+                (input)="onRegimenLaboralTextoChange($event)"
+                *ngIf="regimenLaboralInputMode"
+                [class.invalid]="isInvalid('regimenLaboralTexto')"
+              />
+              <button 
+                type="button" 
+                class="toggle-input-btn" 
+                (click)="toggleRegimenLaboralInput()"
+                [title]="regimenLaboralInputMode ? 'Usar lista de regímenes' : 'Escribir régimen personalizado'"
+              >
+                {{ regimenLaboralInputMode ? '📋' : '✏️' }}
+              </button>
+            </div>
+            <span class="form-error" *ngIf="isInvalid('regimenLaboral')">{{ getError('regimenLaboral') }}</span>
+            <small class="form-hint" *ngIf="trabajadorForm.get('regimenLaboral')?.value && getRegimenDescripcion() && !regimenLaboralInputMode">
+              💡 {{ getRegimenDescripcion() }}
+              <br>
+              📜 {{ getRegimenBaseNormativa() }}
+            </small>
+            <small class="form-hint" *ngIf="regimenLaboralInputMode">
+              💡 Escriba el régimen laboral personalizado (se convertirá a mayúsculas)
+            </small>
+          </div>
+
+          <!-- Fecha de Ingreso -->
+          <div class="form-group">
+            <label class="form-label">
+              Fecha de Ingreso
+            </label>
+            <input
+              type="date"
+              class="form-input"
+              formControlName="fechaIngreso"
+              [class.invalid]="isInvalid('fechaIngreso')"
+            />
+            <span class="form-error" *ngIf="isInvalid('fechaIngreso')">{{ getError('fechaIngreso') }}</span>
+          </div>
+
+          <!-- Inicio Contrato -->
+          <div class="form-group">
+            <label class="form-label">
+              Inicio de Contrato
+            </label>
+            <input
+              type="date"
+              class="form-input"
+              formControlName="fechaInicioContrato"
+              [class.invalid]="isInvalid('fechaInicioContrato')"
+            />
+            <span class="form-error" *ngIf="isInvalid('fechaInicioContrato')">{{ getError('fechaInicioContrato') }}</span>
+          </div>
+
+          <!-- Fin Contrato -->
+          <div class="form-group">
+            <label class="form-label">
+              Fin de Contrato
+            </label>
+            <input
+              type="date"
+              class="form-input"
+              formControlName="fechaFinContrato"
+              [class.invalid]="isInvalid('fechaFinContrato')"
+            />
+            <span class="form-error" *ngIf="isInvalid('fechaFinContrato')">{{ getError('fechaFinContrato') }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 4: REMUNERACIÓN -->
+    <div class="form-step" *ngIf="paso === 4">
+      <div class="step-header">
+        <h2 class="step-title">
+          <span class="step-title__icon">💰</span>
+          <span class="step-title__text">Remuneración y Pensiones</span>
+        </h2>
+        <p class="step-description">Datos salariales y sistema de pensiones</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- Remuneración Básica -->
+        <div class="form-group">
+          <label class="form-label">
+            Remuneración Básica
+          </label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="remuneracionBasica"
+              placeholder="0.00"
+              step="0.01"
+              [class.invalid]="isInvalid('remuneracionBasica')"
+            />
+          </div>
+          <span class="form-hint">Sueldo mínimo: S/. 1,025.00</span>
+          <span class="form-error" *ngIf="isInvalid('remuneracionBasica')">{{ getError('remuneracionBasica') }}</span>
+        </div>
+
+        <!-- Costo de Vida -->
+        <div class="form-group">
+          <label class="form-label">Costo de Vida</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="costoVida"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+
+        <!-- Movilidad -->
+        <div class="form-group">
+          <label class="form-label">Movilidad</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="movilidad"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Horas Extras -->
+        <div class="form-group">
+          <label class="form-label">Horas Extras</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="horasExtras"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Bono Productividad -->
+        <div class="form-group">
+          <label class="form-label">Bono de Productividad</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="bonoProductividad"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- P.C (2015-2016) -->
+        <div class="form-group">
+          <label class="form-label">P.C (2015-2016)</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="pc_2015_2016"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- R.A (829-2011-MDH) -->
+        <div class="form-group">
+          <label class="form-label">R.A (829-2011-MDH)</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="ra_829_2011_mdh"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Otras y/o Reintegros -->
+        <div class="form-group">
+          <label class="form-label">Otras y/o Reintegros</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="otrasReintegros"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Convenio 2022-2023 -->
+        <div class="form-group">
+          <label class="form-label">Conv. Centralizado (2022-2023)</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="convenio_2022_2023"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Convenio 2023-2024 -->
+        <div class="form-group">
+          <label class="form-label">Conv. Centralizado (2023-2024)</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="convenio_2023_2024"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Convenio 2024-2025 -->
+        <div class="form-group">
+          <label class="form-label">Conv. Centralizado (2024-2025)</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="convenio_2024_2025"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Homologación -->
+        <div class="form-group">
+          <label class="form-label">Homologación</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="homologacion"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Otros Ingresos -->
+        <div class="form-group">
+          <label class="form-label">Otros Ingresos</label>
+          <div class="input-group">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="otrosIngresos"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Total Ingresos -->
+        <div class="form-group form-group--full">
+          <div class="total-box">
+            <span class="total-label">Total Ingresos:</span>
+            <span class="total-value">S/. {{ totalIngresos.toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <!-- Sistema de Pensiones -->
+        <div class="form-group">
+          <label class="form-label">
+            Sistema de Pensiones
+          </label>
+          <select class="form-select" formControlName="sistemasPensiones" [class.invalid]="isInvalid('sistemasPensiones')">
+            <option value="">Seleccione</option>
+            <option value="ONP">ONP - Sistema Nacional de Pensiones</option>
+            <option value="AFP Integra">AFP Integra</option>
+            <option value="AFP Prima">AFP Prima</option>
+            <option value="AFP Profuturo">AFP Profuturo</option>
+            <option value="AFP Habitat">AFP Habitat</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('sistemasPensiones')">{{ getError('sistemasPensiones') }}</span>
+        </div>
+
+        <!-- CUSPP (solo si es AFP) -->
+        <div class="form-group" *ngIf="trabajadorForm.get('sistemasPensiones')?.value !== 'ONP' && trabajadorForm.get('sistemasPensiones')?.value">
+          <label class="form-label">
+            CUSPP
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="cuspp"
+            placeholder="592771EBANA6"
+            maxlength="12"
+            [class.invalid]="isInvalid('cuspp')"
+            style="text-transform: uppercase;"
+          />
+          <span class="form-hint">Código Único del Sistema Privado de Pensiones (12 caracteres: números y letras)</span>
+          <span class="form-error" *ngIf="isInvalid('cuspp')">{{ getError('cuspp') }}</span>
+        </div>
+
+        <!-- Tipo Comisión AFP -->
+        <div class="form-group" *ngIf="trabajadorForm.get('sistemasPensiones')?.value !== 'ONP' && trabajadorForm.get('sistemasPensiones')?.value">
+          <label class="form-label">
+            Tipo de Comisión
+          </label>
+          <select class="form-select" formControlName="tipoComisionAFP" [class.invalid]="isInvalid('tipoComisionAFP')">
+            <option value="">Seleccione</option>
+            <option value="Flujo">Comisión por Flujo</option>
+            <option value="Mixta">Comisión Mixta</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('tipoComisionAFP')">{{ getError('tipoComisionAFP') }}</span>
+        </div>
+
+        <!-- Código ESSALUD -->
+        <div class="form-group">
+          <label class="form-label">
+            Código ESSALUD
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="codigoEssalud"
+            placeholder="6603180MCGIG005"
+            maxlength="20"
+            [class.invalid]="isInvalid('codigoEssalud')"
+            style="text-transform: uppercase;"
+          />
+          <span class="form-hint">Código de afiliación a ESSALUD (opcional)</span>
+          <span class="form-error" *ngIf="isInvalid('codigoEssalud')">{{ getError('codigoEssalud') }}</span>
+        </div>
+
+        <!-- Asignación Familiar -->
+        <div class="form-group">
+          <label class="form-label">Asignación Familiar</label>
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="tieneAsignacion"
+              formControlName="tieneAsignacionFamiliar"
+            />
+            <label for="tieneAsignacion">Tiene asignación familiar (S/. 102.50)</label>
+          </div>
+          <input
+            type="number"
+            class="form-input"
+            formControlName="numeroHijos"
+            placeholder="Número de hijos"
+            *ngIf="trabajadorForm.get('tieneAsignacionFamiliar')?.value"
+          />
+        </div>
+
+        <!-- Sindicalización -->
+        <div class="form-group">
+          <label class="form-label">Sindicalización</label>
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="esSindicalizado"
+              formControlName="esSindicalizado"
+            />
+            <label for="esSindicalizado">Es sindicalizado</label>
+          </div>
+        </div>
+
+        <!-- Rimac Seguros -->
+        <div class="form-group">
+          <label class="form-label">Rimac Seguros</label>
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="tieneRimacSeguros"
+              formControlName="tieneRimacSeguros"
+            />
+            <label for="tieneRimacSeguros">Tiene Rimac Seguros</label>
+          </div>
+          <div class="input-group" *ngIf="trabajadorForm.get('tieneRimacSeguros')?.value" style="margin-top: 8px;">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="aporteRimacSeguros"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+          </div>
+          <span class="form-hint" *ngIf="trabajadorForm.get('tieneRimacSeguros')?.value">
+            Monto que aporta mensualmente (opcional)
+          </span>
+        </div>
+
+        <!-- Descuento Judicial -->
+        <div class="form-group">
+          <label class="form-label">Descuento Judicial</label>
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="tieneDescuentoJudicial"
+              formControlName="tieneDescuentoJudicial"
+            />
+            <label for="tieneDescuentoJudicial">Tiene descuento judicial</label>
+          </div>
+          <div class="input-group" *ngIf="trabajadorForm.get('tieneDescuentoJudicial')?.value" style="margin-top: 8px;">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="montoDescuentoJudicial"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+          </div>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="numeroCuentaDescuento"
+            placeholder="Número de cuenta (opcional)"
+            *ngIf="trabajadorForm.get('tieneDescuentoJudicial')?.value"
+            style="margin-top: 8px;"
+          />
+          <span class="form-hint" *ngIf="trabajadorForm.get('tieneDescuentoJudicial')?.value">
+            Monto del descuento judicial mensual (opcional)
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 5: DATOS BANCARIOS -->
+    <div class="form-step" *ngIf="paso === 5">
+      <div class="step-header">
+        <h2 class="step-title">
+          <span class="step-title__icon">🏦</span>
+          <span class="step-title__text">Datos Bancarios</span>
+        </h2>
+        <p class="step-description">Cuenta para pago de remuneración</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- Banco -->
+        <div class="form-group">
+          <label class="form-label">
+            Banco
+          </label>
+          <select class="form-select" formControlName="banco" [class.invalid]="isInvalid('banco')">
+            <option value="">Seleccione</option>
+            <option *ngFor="let banco of bancos" [value]="banco">{{ banco }}</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('banco')">{{ getError('banco') }}</span>
+        </div>
+
+        <!-- Tipo de Cuenta -->
+        <div class="form-group">
+          <label class="form-label">
+            Tipo de Cuenta
+          </label>
+          <select class="form-select" formControlName="tipoCuenta" [class.invalid]="isInvalid('tipoCuenta')">
+            <option value="">Seleccione</option>
+            <option value="Ahorros">Ahorros</option>
+            <option value="Corriente">Corriente</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('tipoCuenta')">{{ getError('tipoCuenta') }}</span>
+        </div>
+
+        <!-- Número de Cuenta -->
+        <div class="form-group">
+          <label class="form-label">
+            Número de Cuenta
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="numeroCuenta"
+            placeholder="00123456789"
+            [class.invalid]="isInvalid('numeroCuenta')"
+          />
+          <span class="form-error" *ngIf="isInvalid('numeroCuenta')">{{ getError('numeroCuenta') }}</span>
+        </div>
+
+        <!-- CCI -->
+        <div class="form-group">
+          <label class="form-label">
+            CCI
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="cci"
+            placeholder="01809900012345678901"
+            maxlength="20"
+            [class.invalid]="isInvalid('cci')"
+          />
+          <span class="form-hint">Código de Cuenta Interbancaria (20 dígitos)</span>
+          <span class="form-error" *ngIf="isInvalid('cci')">{{ getError('cci') }}</span>
+        </div>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- BOTONES DE NAVEGACIÓN -->
+  <div class="form-actions">
+    <button
+      type="button"
+      class="btn btn--outline btn-nav"
+      (click)="pasoAnterior()"
+      *ngIf="paso > 1"
+    >
+      <span class="btn-nav__icon">←</span>
+      <span class="btn-nav__text">Anterior</span>
+    </button>
+
+    <button
+      type="button"
+      class="btn btn--ghost btn-nav"
+      (click)="cancelar()"
+    >
+      <span class="btn-nav__text">Cancelar</span>
+    </button>
+
+    <button
+      type="button"
+      class="btn btn--primary btn-nav"
+      [class.btn--disabled]="dniExiste || validandoDNI || !dniValido"
+      [disabled]="dniExiste || validandoDNI || !dniValido"
+      (click)="siguientePaso()"
+      *ngIf="paso < totalPasos"
+    >
+      <span class="btn-nav__text" *ngIf="validandoDNI">⏳ Validando...</span>
+      <span class="btn-nav__text" *ngIf="!validandoDNI">Siguiente</span>
+      <span class="btn-nav__icon" *ngIf="!validandoDNI">→</span>
+    </button>
+
+    <button
+      type="button"
+      class="btn btn--accent btn-nav"
+      (click)="guardarTrabajador()"
+      *ngIf="paso === totalPasos"
+      [disabled]="guardando"
+    >
+      <span class="btn-nav__icon" *ngIf="!guardando">✓</span>
+      <span class="btn-nav__text" *ngIf="!guardando">Guardar Trabajador</span>
+      <span class="btn-nav__text" *ngIf="guardando">⏳ Guardando...</span>
+    </button>
+  </div>
+</div>

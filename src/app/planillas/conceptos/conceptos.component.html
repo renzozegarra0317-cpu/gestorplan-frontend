@@ -1,0 +1,342 @@
+<div class="conceptos-planillas">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">📋</span>
+        Conceptos de Planilla
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Gestión de ingresos, descuentos y aportes
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--info" (click)="irAConfiguracion()">
+        📊 Ver Tasas Configurables
+      </button>
+      <button class="btn btn--sm btn--outline" (click)="importarConceptos()">
+        📥 Importar
+      </button>
+      <button class="btn btn--sm btn--outline" (click)="exportarConceptos()">
+        📤 Exportar
+      </button>
+      <button class="btn btn--sm btn--primary" (click)="nuevoFormulario()">
+        ➕ Nuevo Concepto
+      </button>
+    </div>
+  </div>
+
+  <!-- RESUMEN GENERAL -->
+  <div class="resumen-general" *ngIf="estadisticas">
+    <div class="resumen-card resumen-card--primary">
+      <div class="resumen-card__icon">📋</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Conceptos</span>
+        <span class="resumen-card__value">{{ estadisticas.totalConceptos }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--success">
+      <div class="resumen-card__icon">💰</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Ingresos</span>
+        <span class="resumen-card__value">{{ totalIngresos }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--warning">
+      <div class="resumen-card__icon">➖</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Descuentos</span>
+        <span class="resumen-card__value">{{ totalDescuentos }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--info">
+      <div class="resumen-card__icon">🏛️</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Aportes</span>
+        <span class="resumen-card__value">{{ totalAportes }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN TASAS CONFIGURABLES -->
+  <div class="info-tasas" *ngIf="mostrarVistaConfig">
+    <div class="info-header">
+      <h3>📊 Tasas y Valores Configurables</h3>
+      <button class="btn btn--sm btn--primary" (click)="irAConfiguracion()">
+        ⚙️ Ir a Configuración
+      </button>
+    </div>
+    
+    <div class="alert alert--info">
+      <strong>ℹ️ Información:</strong> Estas tasas se utilizan automáticamente en los cálculos de planilla. 
+      Para editar sus valores, usa el botón "Ir a Configuración" arriba.
+    </div>
+
+    <div class="tasas-grid">
+      <div class="tasa-card" *ngFor="let tasa of tasas">
+        <div class="tasa-card__header">
+          <span class="tasa-card__codigo">{{ tasa.Codigo }}</span>
+          <span class="badge badge--{{ tasa.Tipo === 'Porcentaje' ? 'info' : tasa.Tipo === 'Monto' ? 'success' : 'secondary' }}">
+            {{ tasa.Tipo }}
+          </span>
+        </div>
+        <div class="tasa-card__body">
+          <h4>{{ tasa.Nombre }}</h4>
+          <div class="tasa-card__valor">{{ formatearValorTasa(tasa.Valor, tasa.Tipo) }}</div>
+          <p class="tasa-card__descripcion">{{ tasa.Descripcion || 'Sin descripción' }}</p>
+          <div class="tasa-card__vigencia">
+            <small>Vigente desde: {{ tasa.FechaVigenciaInicio | date:'dd/MM/yyyy' }}</small>
+            <small *ngIf="tasa.FechaVigenciaFin">Hasta: {{ tasa.FechaVigenciaFin | date:'dd/MM/yyyy' }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="tasas.length === 0">
+      <p>No hay tasas configurables activas</p>
+      <button class="btn btn--primary" (click)="irAConfiguracion()">
+        Configurar Tasas
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-section">
+    <div class="filtros-header">
+      <h3 class="filtros-title">
+        <span class="filtros-icon">🔍</span>
+        Filtros
+      </h3>
+      <button class="btn btn--sm btn--outline" (click)="limpiarFiltros()">
+        ❌ Limpiar
+      </button>
+    </div>
+    
+    <div class="filtros-content">
+      <div class="filtro-group">
+        <label class="filtro-label">Tipo:</label>
+        <select [(ngModel)]="filtros.tipoConcepto" (change)="aplicarFiltros()" class="filtro-select">
+          <option *ngFor="let tipo of tiposConcepto" [value]="tipo">{{ tipo }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-group">
+        <label class="filtro-label">Estado:</label>
+        <select [(ngModel)]="filtros.estado" (change)="aplicarFiltros()" class="filtro-select">
+          <option *ngFor="let estado of estadosConcepto" [value]="estado">{{ estado }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-group">
+        <label class="filtro-label">Buscar:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="filtros.busqueda" 
+          (input)="aplicarFiltros()"
+          placeholder="Buscar por código, nombre..."
+          class="filtro-input"
+        />
+      </div>
+    </div>
+
+    <div class="filtros-info">
+      <span>Mostrando {{ conceptosFiltrados.length }} conceptos</span>
+    </div>
+  </div>
+
+  <!-- TABLA DE CONCEPTOS -->
+  <div class="tabla-container" *ngIf="!cargando">
+    <div class="tabla-scroll">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>CODIGO</th>
+            <th>NOMBRE</th>
+            <th>TIPO</th>
+            <th>CATEGORIA</th>
+            <th>ESTADO</th>
+            <th>ORDEN</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let concepto of conceptosFiltrados">
+            <td class="td-codigo">
+              <span class="codigo-badge">{{ concepto.codigo }}</span>
+            </td>
+            <td class="td-nombre">
+              <div class="concepto-info">
+                <strong>{{ concepto.nombre }}</strong>
+                <small>{{ concepto.descripcion }}</small>
+              </div>
+            </td>
+            <td class="td-tipo">
+              <span class="badge" [ngClass]="getTipoBadgeClass(concepto.tipo)">
+                {{ concepto.tipo }}
+              </span>
+            </td>
+            <td class="td-categoria">{{ concepto.categoria }}</td>
+            <td class="td-estado">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(concepto.estado)">
+                {{ concepto.estado }}
+              </span>
+            </td>
+            <td class="td-orden">{{ concepto.orden }}</td>
+            <td class="td-acciones">
+              <div class="acciones-menu">
+                <button 
+                  class="btn-action btn-action--primary" 
+                  title="Editar"
+                  (click)="abrirModalEditar(concepto)"
+                >
+                  ✏️
+                </button>
+                <button 
+                  class="btn-action btn-action--info" 
+                  title="Duplicar"
+                  (click)="duplicarConcepto(concepto)"
+                >
+                  📋
+                </button>
+                <button 
+                  class="btn-action btn-action--warning" 
+                  title="Cambiar Estado"
+                  (click)="cambiarEstado(concepto)"
+                >
+                  🔄
+                </button>
+                <button 
+                  class="btn-action btn-action--danger" 
+                  title="Eliminar"
+                  (click)="abrirModalEliminar(concepto)"
+                >
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" *ngIf="cargando">
+    <div class="loading-spinner"></div>
+    <p>Cargando conceptos...</p>
+  </div>
+
+  <!-- MODAL CREAR/EDITAR -->
+  <div class="modal" *ngIf="mostrarModalCrear || mostrarModalEditar" (click)="cerrarModales()">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3>{{ mostrarModalCrear ? 'Nuevo Concepto' : 'Editar Concepto' }}</h3>
+        <button class="btn-close" (click)="cerrarModales()">❌</button>
+      </div>
+      
+      <div class="modal__body">
+        <form class="form-concepto">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="formularioConcepto.nombre" 
+              name="nombre"
+              placeholder="Nombre del concepto"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea 
+              [(ngModel)]="formularioConcepto.descripcion" 
+              name="descripcion"
+              placeholder="Descripción del concepto"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo *</label>
+              <select [(ngModel)]="formularioConcepto.tipo" name="tipo">
+                <option value="Ingreso">Ingreso</option>
+                <option value="Descuento">Descuento</option>
+                <option value="Aporte">Aporte</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Categoría *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="formularioConcepto.categoria" 
+                name="categoria"
+                placeholder="Categoría del concepto"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Estado *</label>
+              <select [(ngModel)]="formularioConcepto.estado" name="estado">
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Orden *</label>
+              <input 
+                type="number" 
+                [(ngModel)]="formularioConcepto.orden" 
+                name="orden"
+                placeholder="0"
+                min="0"
+              />
+              <small>Orden de aparición en la boleta</small>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal__footer">
+        <button class="btn btn--outline" (click)="cerrarModales()">Cancelar</button>
+        <button 
+          class="btn btn--primary" 
+          (click)="mostrarModalCrear ? crearConcepto() : actualizarConcepto()"
+        >
+          {{ mostrarModalCrear ? 'Crear' : 'Actualizar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ELIMINAR -->
+  <div class="modal" *ngIf="mostrarModalEliminar" (click)="cerrarModales()">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3>Eliminar Concepto</h3>
+        <button class="btn-close" (click)="cerrarModales()">❌</button>
+      </div>
+      
+      <div class="modal__body">
+        <p>¿Está seguro de eliminar el concepto <strong>{{ conceptoAEliminar?.nombre }}</strong>?</p>
+        <p class="text-warning">Esta acción no se puede deshacer.</p>
+      </div>
+
+      <div class="modal__footer">
+        <button class="btn btn--outline" (click)="cerrarModales()">Cancelar</button>
+        <button class="btn btn--danger" (click)="eliminarConcepto()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>

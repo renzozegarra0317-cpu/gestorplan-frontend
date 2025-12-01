@@ -1,0 +1,105 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg); // Fondo más oscuro como en la imagen
+
+  &__container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    margin-left: var(--sidebar-w, 280px); // Desplaza todo el contenido hacia la derecha
+    transition: margin-left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); // Misma velocidad que el topbar
+  }
+
+  &__content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: transparent;
+    padding-top: 80px; // Altura del topbar
+    
+    // Asegura que el contenido no se desborde
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  // Cuando el sidebar está colapsado
+  &:has(.sidebar.collapsed) {
+    .layout__container {
+      margin-left: var(--sidebar-w-collapsed, 80px);
+    }
+  }
+}
+
+// Estilos para el contenido principal - SIN contenedor grande
+.app-main {
+  padding: 1.5rem; // Espacio moderado en todos los lados
+  min-height: calc(100vh - 80px); // Altura total menos el topbar
+  
+  // Espacios específicos para separar del sidebar y topbar - AJUSTADOS
+  margin-left: 16px; // Separación del sidebar - moderada
+  margin-right: 16px; // Separación del lado derecho - moderada
+  margin-top: 16px; // Separación del topbar - moderada
+  margin-bottom: 16px; // Separación del bottom - moderada
+  
+  // SIN fondo, bordes ni sombra - cada sección tendrá su propio contenedor
+  background: transparent;
+}
+
+// Responsive
+@media (max-width: 900px) {
+  .layout {
+    &__container {
+      margin-left: 0; // Sin margen del sidebar en móvil
+    }
+    
+    &__content {
+      padding-top: 64px;
+    }
+  }
+  
+  .app-main {
+    padding: 1rem;
+    margin: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .layout {
+    &__content {
+      padding-top: 60px;
+    }
+  }
+  
+  .app-main {
+    padding: 0.75rem;
+    margin: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-main {
+    padding: 0.5rem;
+    margin: 4px;
+    margin-top: 8px;
+  }
+}
+
+/* ==================== MODO CLARO - LAYOUT ==================== */
+:host-context([data-theme="light"]) {
+  /* Fondo del layout y contenedores para que coincida con el dashboard */
+  .layout {
+    background: #f3f4f6; /* Mismo gris que el dashboard */
+  }
+
+  .layout__content {
+    background: #f3f4f6; /* Mismo gris que el dashboard */
+    padding-top: 96px; /* Aumentar padding-top para que el contenido esté más abajo (80px + 16px) */
+  }
+
+  .app-main {
+    background: #f3f4f6; /* Mismo gris que el dashboard */
+    margin-top: 24px; /* Aumentar margen superior para más separación */
+  }
+}

@@ -1,0 +1,384 @@
+<div class="modal-overlay" (click)="cerrar.emit()">
+  <div class="modal-contenido" (click)="$event.stopPropagation()">
+    <!-- HEADER -->
+    <div class="modal-header">
+      <div class="modal-header__left">
+        <div class="avatar">
+          {{ trabajador.nombres?.charAt(0) }}{{ trabajador.apellidoPaterno?.charAt(0) }}
+        </div>
+        <div>
+          <h2 class="modal-title">{{ trabajador.nombreCompleto }}</h2>
+          <p class="modal-subtitle">{{ trabajador.cargo }}</p>
+        </div>
+      </div>
+      <button class="btn-close" (click)="cerrar.emit()">✖️</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button 
+        class="tab" 
+        [class.active]="tabActivo === 'personal'"
+        (click)="tabActivo = 'personal'"
+      >
+        👤 Datos Personales
+      </button>
+      <button 
+        class="tab" 
+        [class.active]="tabActivo === 'laboral'"
+        (click)="tabActivo = 'laboral'"
+      >
+        💼 Datos Laborales
+      </button>
+      <button 
+        class="tab" 
+        [class.active]="tabActivo === 'contrato'"
+        (click)="tabActivo = 'contrato'"
+      >
+        📄 Contrato
+      </button>
+      <button 
+        class="tab" 
+        [class.active]="tabActivo === 'remuneracion'"
+        (click)="tabActivo = 'remuneracion'"
+      >
+        💰 Remuneración
+      </button>
+      <button 
+        class="tab" 
+        [class.active]="tabActivo === 'bancario'"
+        (click)="tabActivo = 'bancario'"
+      >
+        🏦 Datos Bancarios
+      </button>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="modal-body">
+      <!-- TAB: DATOS PERSONALES -->
+      <div class="tab-content" *ngIf="tabActivo === 'personal'">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">DNI</span>
+            <span class="info-value">{{ trabajador.dni }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Código</span>
+            <span class="info-value codigo-badge">{{ trabajador.codigoTrabajador }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Apellido Paterno</span>
+            <span class="info-value">{{ trabajador.apellidoPaterno }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Apellido Materno</span>
+            <span class="info-value">{{ trabajador.apellidoMaterno }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Nombres</span>
+            <span class="info-value">{{ trabajador.nombres }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Fecha de Nacimiento</span>
+            <span class="info-value">{{ formatearFecha(trabajador.fechaNacimiento) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Edad</span>
+            <span class="info-value">{{ trabajador.edad }} años</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Sexo</span>
+            <span class="info-value">{{ trabajador.sexo || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Estado Civil</span>
+            <span class="info-value">{{ trabajador.estadoCivil || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Celular</span>
+            <span class="info-value">{{ trabajador.celular }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Teléfono</span>
+            <span class="info-value">{{ trabajador.telefono || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ trabajador.email }}</span>
+          </div>
+          <div class="info-item full-width">
+            <span class="info-label">Dirección</span>
+            <span class="info-value">{{ trabajador.direccion || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Distrito</span>
+            <span class="info-value">{{ trabajador.distrito || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Provincia</span>
+            <span class="info-value">{{ trabajador.provincia || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Departamento</span>
+            <span class="info-value">{{ trabajador.departamento || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Nacionalidad</span>
+            <span class="info-value">{{ trabajador.Nacionalidad || trabajador.nacionalidad || 'No registrado' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: DATOS LABORALES -->
+      <div class="tab-content" *ngIf="tabActivo === 'laboral'">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">CARGO</span>
+            <span class="info-value">{{ trabajador.cargo }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">GERENCIA</span>
+            <span class="info-value">{{ trabajador.gerencia || 'No asignado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">RÉGIMEN LABORAL</span>
+            <span class="info-value">{{ trabajador.regimenLaboral || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">FECHA DE INGRESO</span>
+            <span class="info-value">{{ formatearFecha(trabajador.fechaIngreso) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">ANTIGÜEDAD</span>
+            <span class="info-value">{{ trabajador.antiguedad || 'Calcular' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">ESTADO</span>
+            <span class="badge" [ngClass]="getEstadoBadgeClass(trabajador.estado || trabajador.Estado)">
+              {{ trabajador.Estado || trabajador.estado || 'No registrado' }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">CONDICIÓN LABORAL</span>
+            <span class="info-value">{{ trabajador.Condicion || trabajador.condicion || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">NIVEL / CATEGORÍA</span>
+            <span class="info-value">{{ trabajador.Nivel || trabajador.nivel || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">TIPO DE PLAZA</span>
+            <span class="info-value">{{ trabajador.TipoPlaza || trabajador.tipoPlaza || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">GRUPO OCUPACIONAL</span>
+            <span class="info-value">{{ trabajador.GrupoOcupacional || trabajador.grupoOcupacional || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">JEFE INMEDIATO</span>
+            <span class="info-value">{{ trabajador.jefeInmediato || 'No asignado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">SISTEMA DE PENSIONES</span>
+            <span class="info-value">{{ trabajador.sistemasPensiones || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">ASIGNACIÓN FAMILIAR</span>
+            <span class="badge" [class.badge--activo]="trabajador.tieneAsignacionFamiliar" [class.badge--inactivo]="!trabajador.tieneAsignacionFamiliar">
+              {{ trabajador.tieneAsignacionFamiliar ? 'Sí' : 'No' }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">NÚMERO DE HIJOS</span>
+            <span class="info-value">{{ trabajador.NumeroHijos ?? trabajador.numeroHijos ?? 0 }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">TIPO COMISIÓN AFP</span>
+            <span class="info-value">{{ trabajador.TipoComisionAFP || trabajador.tipoComisionAFP || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">CÓDIGO ESSALUD</span>
+            <span class="info-value">{{ trabajador.CodigoEssalud || trabajador.codigoEssalud || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">SINDICALIZADO</span>
+            <span class="badge" [class.badge--activo]="trabajador.esSindicalizado" [class.badge--inactivo]="!trabajador.esSindicalizado">
+              {{ trabajador.esSindicalizado ? 'Sí' : 'No' }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">RIMAC SEGUROS</span>
+            <span class="badge" [class.badge--activo]="trabajador.tieneRimacSeguros || trabajador.TieneRimacSeguros" [class.badge--inactivo]="!(trabajador.tieneRimacSeguros || trabajador.TieneRimacSeguros)">
+              {{ (trabajador.tieneRimacSeguros || trabajador.TieneRimacSeguros) ? 'Sí' : 'No' }}
+            </span>
+          </div>
+          <div class="info-item" *ngIf="trabajador.tieneRimacSeguros || trabajador.TieneRimacSeguros">
+            <span class="info-label">APORTE RIMAC SEGUROS</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.aporteRimacSeguros || trabajador.AporteRimacSeguros || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">DESCUENTO JUDICIAL</span>
+            <span class="badge" [class.badge--activo]="trabajador.tieneDescuentoJudicial || trabajador.TieneDescuentoJudicial" [class.badge--inactivo]="!(trabajador.tieneDescuentoJudicial || trabajador.TieneDescuentoJudicial)">
+              {{ (trabajador.tieneDescuentoJudicial || trabajador.TieneDescuentoJudicial) ? 'Sí' : 'No' }}
+            </span>
+          </div>
+          <div class="info-item" *ngIf="trabajador.tieneDescuentoJudicial || trabajador.TieneDescuentoJudicial">
+            <span class="info-label">MONTO DESCUENTO JUDICIAL</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.montoDescuentoJudicial || trabajador.MontoDescuentoJudicial || 0) }}</span>
+          </div>
+          <div class="info-item" *ngIf="(trabajador.tieneDescuentoJudicial || trabajador.TieneDescuentoJudicial) && (trabajador.numeroCuentaDescuento || trabajador.NumeroCuentaDescuento)">
+            <span class="info-label">NÚMERO DE CUENTA DESCUENTO</span>
+            <span class="info-value">{{ trabajador.numeroCuentaDescuento || trabajador.NumeroCuentaDescuento || 'No registrado' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: CONTRATO -->
+      <div class="tab-content" *ngIf="tabActivo === 'contrato'">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Tipo de Contrato</span>
+            <span class="badge badge--contrato badge--{{ trabajador.TipoContratoNombre || trabajador.tipoContratoNombre || trabajador.tipoContrato }}">
+              {{ trabajador.TipoContratoNombre || trabajador.tipoContratoNombre || trabajador.TipoContrato || trabajador.tipoContrato || 'Sin especificar' }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Fecha Inicio</span>
+            <span class="info-value">{{ formatearFecha(trabajador.fechaInicioContrato) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Fecha Fin</span>
+            <span class="info-value">{{ formatearFecha(trabajador.fechaFinContrato) }}</span>
+          </div>
+          <div class="info-item" *ngIf="trabajador.diasRestantes">
+            <span class="info-label">Días Restantes</span>
+            <span class="badge" [ngClass]="getContratoBadgeClass(trabajador.diasRestantes)">
+              {{ trabajador.diasRestantes }} días
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Contrato Firmado</span>
+            <span class="badge" [class.badge--activo]="trabajador.tieneContratoFirmado" [class.badge--inactivo]="!trabajador.tieneContratoFirmado">
+              {{ trabajador.tieneContratoFirmado ? 'Sí' : 'No' }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Ficha RUC</span>
+            <span class="badge" [class.badge--activo]="trabajador.tieneFichaRUC" [class.badge--inactivo]="!trabajador.tieneFichaRUC">
+              {{ trabajador.tieneFichaRUC ? 'Sí' : 'No' }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Declaración Jurada</span>
+            <span class="badge" [class.badge--activo]="trabajador.tieneDeclaracionJurada" [class.badge--inactivo]="!trabajador.tieneDeclaracionJurada">
+              {{ trabajador.tieneDeclaracionJurada ? 'Sí' : 'No' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="documentos-section" *ngIf="trabajador.documentos && trabajador.documentos.length > 0">
+          <h3 class="section-title">📎 Documentos Adjuntos</h3>
+          <div class="documentos-lista">
+            <div class="documento-item" *ngFor="let doc of trabajador.documentos">
+              <span class="documento-icon">📄</span>
+              <span class="documento-nombre">{{ doc.nombre }}</span>
+              <button class="btn-sm" (click)="descargarDocumento(doc)">Descargar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: REMUNERACIÓN -->
+      <div class="tab-content" *ngIf="tabActivo === 'remuneracion'">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Remuneración Básica</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.remuneracionBasica) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Costo de Vida</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.costoVida || trabajador.CostoVida || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Asignación Familiar</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.asignacionFamiliar || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Movilidad</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.movilidad || trabajador.MovilidadLocal || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Horas Extras</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.horasExtras || trabajador.HorasExtras || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Bono Productividad</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.bonoProductividad || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">P.C (2015-2016)</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.pc_2015_2016 || trabajador.PC_2015_2016 || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">R.A (829-2011-MDH)</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.ra_829_2011_mdh || trabajador.RA_829_2011_MDH || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Otras y/o Reintegros</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.otrasReintegros || trabajador.OtrasReintegros || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Conv. Centralizado (2022-2023)</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.convenio_2022_2023 || trabajador.Convenio_2022_2023 || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Conv. Centralizado (2023-2024)</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.convenio_2023_2024 || trabajador.Convenio_2023_2024 || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Conv. Centralizado (2024-2025)</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.convenio_2024_2025 || trabajador.Convenio_2024_2025 || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Homologación</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.homologacion || trabajador.Homologacion || 0) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Otros Ingresos</span>
+            <span class="info-value monto">{{ formatearMoneda(trabajador.otrosIngresos || 0) }}</span>
+          </div>
+          <div class="info-item total">
+            <span class="info-label">Total Ingresos</span>
+            <span class="info-value monto-total">{{ formatearMoneda(calcularTotalIngresos()) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: DATOS BANCARIOS -->
+      <div class="tab-content tab-content--bancario" *ngIf="tabActivo === 'bancario'">
+        <div class="info-grid info-grid--bancario">
+          <div class="info-item">
+            <span class="info-label">Banco</span>
+            <span class="info-value">{{ trabajador.banco || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Número de Cuenta</span>
+            <span class="info-value codigo-badge">{{ trabajador.numeroCuenta || 'No registrado' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">CCI</span>
+            <span class="info-value codigo-badge">{{ trabajador.cci || 'No registrado' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="modal-footer">
+      <button class="btn btn--outline" (click)="cerrar.emit()">Cerrar</button>
+      <button class="btn btn--primary" (click)="editar.emit()">
+        ✏️ Editar Trabajador
+      </button>
+    </div>
+  </div>
+</div>

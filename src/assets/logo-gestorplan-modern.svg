@@ -1,0 +1,29 @@
+<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradiente verde moderno -->
+    <linearGradient id="modernGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#34d399;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Sombra moderna -->
+    <filter id="modernShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#10b981" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  
+  <!-- Fondo con esquinas redondeadas modernas -->
+  <rect x="8" y="8" width="44" height="44" rx="12" ry="12" fill="url(#modernGreen)" filter="url(#modernShadow)"/>
+  
+  <!-- Icono de gráfico/planilla -->
+  <g transform="translate(18, 18)">
+    <!-- Barras del gráfico -->
+    <rect x="2" y="14" width="4" height="10" fill="white" rx="1"/>
+    <rect x="8" y="10" width="4" height="14" fill="white" rx="1"/>
+    <rect x="14" y="6" width="4" height="18" fill="white" rx="1"/>
+    
+    <!-- Checkmark sobre el gráfico -->
+    <circle cx="20" cy="8" r="6" fill="white"/>
+    <path d="M17 8 L19 10 L23 6" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

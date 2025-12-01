@@ -1,0 +1,298 @@
+<!-- ===================================================== -->
+<!-- SUPER PANEL EMPRESARIAL - DISEÑO SIMPLE Y DIRECTO -->
+<!-- ===================================================== -->
+
+<div class="configuracion-empresarial">
+  
+  <!-- ========== PANEL DE CONFIGURACIÓN ==========-->
+  <div class="panel-header">
+    <div class="panel-title">
+      <span class="title-icon">⚙️</span>
+      <h2>Panel de Configuración</h2>
+    </div>
+  </div>
+  
+  <!-- ========== BOTONES DE CONFIGURACIÓN PROFESIONALES ==========-->
+  <div class="config-buttons">
+    <button *ngFor="let item of menuConfiguracion" 
+            class="config-button" 
+            [class.active]="tabActiva === item.id"
+            (click)="cambiarTab(item.id)">
+      <div class="button-icon">{{ item.icono }}</div>
+      <div class="button-content">
+        <span class="button-title">{{ item.titulo }}</span>
+        <span class="button-description">{{ item.descripcion }}</span>
+      </div>
+      <div class="button-badge" *ngIf="item.badge">
+        <span class="badge-text">{{ item.badge.texto }}</span>
+      </div>
+      <div class="button-indicator" *ngIf="tabActiva === item.id">
+        <div class="indicator-dot"></div>
+      </div>
+    </button>
+  </div>
+  
+  <!-- ========== SEPARADOR VISUAL ========== -->
+  <div class="section-separator" *ngIf="tabActiva"></div>
+  
+  <!-- ========== CONTENIDO PRINCIPAL ========== -->
+  <div class="main-content" *ngIf="tabActiva">
+    
+    <!-- ========== HEADER DEL CONTENIDO ========== -->
+    <div class="content-header">
+      <div class="header-info">
+        <h1 class="content-title">
+          <span class="title-icon">{{ obtenerIconoTabActiva() }}</span>
+          {{ obtenerTituloTabActiva() }}
+        </h1>
+        <p class="content-description">{{ obtenerDescripcionTabActiva() }}</p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="action-btn logs-btn" (click)="abrirModalLogs()">
+          <span class="btn-icon">📋</span>
+          <span class="btn-text">Logs</span>
+        </button>
+        <button class="action-btn backup-btn" (click)="crearRespaldo()">
+          <span class="btn-icon">💾</span>
+          <span class="btn-text">Respaldo</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- ========== CONTENIDO DEL DASHBOARD ========== -->
+    <div class="content-body" *ngIf="tabActiva === 'dashboard'">
+      
+      <!-- ========== ESTADÍSTICAS PRINCIPALES ========== -->
+      <div class="stats-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-info">
+              <h3>4</h3>
+              <p>Usuarios Totales</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+              <h3>1</h3>
+              <p>Usuarios Activos</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+              <h3>9</h3>
+              <p>Registros Totales</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-info">
+              <h3>0</h3>
+              <p>Errores Hoy</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ========== MÉTRICAS DE RENDIMIENTO ========== -->
+      <div class="metrics-section">
+        <h2 class="section-title">
+          <span class="section-icon">📈</span>
+          Métricas de Rendimiento
+        </h2>
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <span class="metric-label">Tiempo de Respuesta</span>
+            <span class="metric-value">120ms</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Uso de Memoria</span>
+            <span class="metric-value">45.2%</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Uso de CPU</span>
+            <span class="metric-value">23.1%</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Uptime</span>
+            <span class="metric-value">99.8%</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ========== ESTADO DE SERVICIOS ========== -->
+      <div class="services-section">
+        <h2 class="section-title">
+          <span class="section-icon">🔧</span>
+          Estado de Servicios
+        </h2>
+        <div class="services-grid">
+          <div class="service-item">
+            <div class="service-info">
+              <h3>API REST</h3>
+              <p>1.0.0 - 120ms</p>
+            </div>
+            <div class="service-status online">Online</div>
+          </div>
+          <div class="service-item">
+            <div class="service-info">
+              <h3>Base de Datos</h3>
+              <p>SQL Server - 45ms</p>
+            </div>
+            <div class="service-status online">Online</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ========== CONTENIDO DE OTRAS SECCIONES ========== -->
+    <div class="content-body" *ngIf="tabActiva !== 'dashboard'">
+      <div class="section-placeholder">
+        <div class="placeholder-icon">{{ obtenerIconoTabActiva() }}</div>
+        <h2>{{ obtenerTituloTabActiva() }}</h2>
+        <p>{{ obtenerDescripcionTabActiva() }}</p>
+        <div class="placeholder-actions">
+          <button class="btn btn--primary">Configurar</button>
+          <button class="btn btn--secondary">Ver Detalles</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ========== FOOTER ========== -->
+    <div class="content-footer">
+      <div class="footer-info">
+        <span>Última modificación: 15/10/2025</span>
+      </div>
+      <div class="footer-actions">
+        <button class="btn btn--secondary">Cancelar</button>
+        <button class="btn btn--secondary">Exportar</button>
+        <button class="btn btn--primary">Guardar Configuración</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ========== MODAL DE LOGS PROFESIONAL ========== -->
+  <div class="logs-modal-overlay" *ngIf="mostrarModalLogs" (click)="cerrarModalLogs()">
+    <div class="logs-modal" (click)="$event.stopPropagation()">
+      
+      <!-- Header del Modal -->
+      <div class="logs-modal-header">
+        <div class="header-left">
+          <div class="header-icon">📋</div>
+          <div class="header-info">
+            <h2 class="header-title">Logs del Sistema</h2>
+            <p class="header-subtitle">Monitoreo y seguimiento de eventos</p>
+          </div>
+        </div>
+        <button class="close-button" (click)="cerrarModalLogs()">
+          <span class="close-icon">✕</span>
+        </button>
+      </div>
+      
+      <!-- Filtros y Búsqueda -->
+      <div class="logs-filters">
+        <div class="filter-group">
+          <label class="filter-label">Filtrar por nivel:</label>
+          <select class="filter-select">
+            <option value="all">Todos los niveles</option>
+            <option value="error">Errores</option>
+            <option value="warn">Advertencias</option>
+            <option value="info">Información</option>
+            <option value="debug">Debug</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Buscar:</label>
+          <input type="text" class="filter-input" placeholder="Buscar en logs...">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Fecha:</label>
+          <input type="date" class="filter-date">
+        </div>
+      </div>
+      
+      <!-- Contenido de Logs -->
+      <div class="logs-content">
+        <div class="logs-stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ obtenerTotalLogs() }}</span>
+            <span class="stat-label">Total Logs</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ obtenerLogsError() }}</span>
+            <span class="stat-label">Errores</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ obtenerLogsWarning() }}</span>
+            <span class="stat-label">Advertencias</span>
+          </div>
+        </div>
+        
+        <div class="logs-list">
+          <div class="log-entry" 
+               *ngFor="let log of logs; let i = index" 
+               [class]="'log-' + log.nivel.toLowerCase()">
+            
+            <div class="log-main">
+              <div class="log-level-badge" [class]="'badge-' + log.nivel.toLowerCase()">
+                {{ log.nivel }}
+              </div>
+              <div class="log-content">
+                <div class="log-message">{{ log.mensaje }}</div>
+                <div class="log-meta">
+                  <span class="log-time">{{ formatearFecha(log.timestamp) }}</span>
+                  <span class="log-module">{{ log.modulo }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="log-details" *ngIf="log.usuario || log.ip || log.duracion">
+              <div class="detail-item" *ngIf="log.usuario">
+                <span class="detail-icon">👤</span>
+                <span class="detail-label">Usuario:</span>
+                <span class="detail-value">{{ log.usuario }}</span>
+              </div>
+              <div class="detail-item" *ngIf="log.ip">
+                <span class="detail-icon">🌐</span>
+                <span class="detail-label">IP:</span>
+                <span class="detail-value">{{ log.ip }}</span>
+              </div>
+              <div class="detail-item" *ngIf="log.duracion">
+                <span class="detail-icon">⏱️</span>
+                <span class="detail-label">Duración:</span>
+                <span class="detail-value">{{ log.duracion }}ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer del Modal -->
+      <div class="logs-modal-footer">
+        <div class="footer-left">
+          <span class="footer-info">Mostrando {{ obtenerTotalLogs() }} logs</span>
+        </div>
+        <div class="footer-actions">
+          <button class="action-btn export-btn" (click)="exportarLogs()">
+            <span class="btn-icon">📤</span>
+            <span class="btn-text">Exportar</span>
+          </button>
+          <button class="action-btn clear-btn" (click)="limpiarLogs()">
+            <span class="btn-icon">🗑️</span>
+            <span class="btn-text">Limpiar</span>
+          </button>
+          <button class="action-btn close-btn" (click)="cerrarModalLogs()">
+            <span class="btn-icon">✕</span>
+            <span class="btn-text">Cerrar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

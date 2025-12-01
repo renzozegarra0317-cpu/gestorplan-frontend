@@ -1,0 +1,448 @@
+<div class="importar-datos">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <div class="page-header__title-wrap">
+        <h1 class="page-title">
+          <span class="page-title__icon">📤</span>
+          Importar Trabajadores
+        </h1>
+        <p class="page-subtitle">
+          <span class="subtitle-dots">
+            <span class="subtitle-dot subtitle-dot--1"></span>
+            <span class="subtitle-dot subtitle-dot--2"></span>
+            <span class="subtitle-dot subtitle-dot--3"></span>
+          </span>
+          Carga masiva de personal desde Excel o CSV
+        </p>
+      </div>
+    </div>
+    <div class="page-header__right">
+      <button class="btn-back" (click)="volverLista()">
+        <span class="btn-back__icon">←</span>
+        Volver a Lista
+      </button>
+      <button class="btn btn--outline" (click)="descargarPlantilla()">
+        <span class="btn__icon">📥</span>
+        Descargar Plantilla
+      </button>
+    </div>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="progress-bar">
+    <div class="progress-bar__steps">
+      <div class="progress-step" [class.active]="paso >= 1" [class.completed]="paso > 1">
+        <div class="progress-step__circle">1</div>
+        <span class="progress-step__label">Cargar Archivo</span>
+      </div>
+      
+      <div class="progress-step" [class.active]="paso >= 2" [class.completed]="paso > 2">
+        <div class="progress-step__circle">2</div>
+        <span class="progress-step__label">Vista Previa</span>
+      </div>
+      
+      <div class="progress-step" [class.active]="paso >= 3" [class.completed]="paso > 3">
+        <div class="progress-step__circle">3</div>
+        <span class="progress-step__label">Validacion</span>
+      </div>
+      
+      <div class="progress-step" [class.active]="paso >= 4" [class.completed]="paso > 4">
+        <div class="progress-step__circle">4</div>
+        <span class="progress-step__label">Confirmacion</span>
+      </div>
+    </div>
+    <div class="progress-bar__line">
+      <div class="progress-bar__fill" [style.width]="((paso - 1) / (totalPasos - 1) * 100) + '%'"></div>
+    </div>
+  </div>
+
+  <!-- PASO 1: CARGAR ARCHIVO -->
+  <div class="step-content" *ngIf="paso === 1">
+    <div class="upload-section">
+      <div class="upload-instructions">
+        <h2 class="upload-instructions__title">📋 Instrucciones de Importacion</h2>
+        <ul class="upload-instructions__list">
+          <li>✅ Use la plantilla oficial para asegurar compatibilidad</li>
+          <li>✅ Complete todas las columnas obligatorias</li>
+          <li>✅ Formato de archivo: Excel (.xlsx, .xls) o CSV (.csv)</li>
+          <li>✅ Tamaño maximo: 10 MB</li>
+          <li>✅ Maximo 1000 trabajadores por archivo</li>
+          <li>⚠️ Verifique que los DNI sean unicos y validos</li>
+          <li>⚠️ Formato de fecha: AAAA-MM-DD (ej: 2025-01-15)</li>
+          <li>⚠️ Email debe ser corporativo (@munilima.gob.pe)</li>
+        </ul>
+      </div>
+
+      <div 
+        class="dropzone"
+        [class.dragging]="arrastrando"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
+        <div class="dropzone__content" *ngIf="!archivoSeleccionado">
+          <div class="dropzone__icon">📁</div>
+          <h3 class="dropzone__title">Arrastra tu archivo aqui</h3>
+          <p class="dropzone__subtitle">o haz clic para seleccionar</p>
+          <input 
+            type="file" 
+            id="fileInput" 
+            class="dropzone__input"
+            accept=".xlsx,.xls,.csv"
+            (change)="onFileSelected($event)"
+          />
+          <label for="fileInput" class="btn btn--primary">
+            <span class="btn__icon">📂</span>
+            Seleccionar Archivo
+          </label>
+          <p class="dropzone__formats">Formatos: .xlsx, .xls, .csv</p>
+        </div>
+
+        <div class="file-selected" *ngIf="archivoSeleccionado && !procesando">
+          <div class="file-selected__icon">📄</div>
+          <div class="file-selected__info">
+            <h4 class="file-selected__name">{{ archivoSeleccionado.nombre }}</h4>
+            <p class="file-selected__details">
+              {{ formatearTamano(archivoSeleccionado.tamano) }} • 
+              Ultima modificacion: {{ archivoSeleccionado.ultimaModificacion.toLocaleString() }}
+            </p>
+          </div>
+          <button class="btn-remove" (click)="eliminarArchivo()">
+            <span>🗑️</span>
+          </button>
+        </div>
+
+        <div class="loading" *ngIf="procesando">
+          <div class="loading-spinner"></div>
+          <p class="loading-text">Procesando archivo...</p>
+        </div>
+      </div>
+
+      <div class="columnas-info" *ngIf="archivoSeleccionado && columnasDetectadas.length > 0 && !procesando">
+        <div class="columnas-info__box">
+          <h3 class="columnas-info__title">📊 Columnas Detectadas</h3>
+          <div class="columnas-grid">
+            <div class="columna-item" *ngFor="let col of columnasDetectadas">
+              <span class="columna-item__icon">✓</span>
+              <span class="columna-item__name">{{ col }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="columnas-info__box columnas-info__box--error" *ngIf="columnasFaltantes.length > 0">
+          <h3 class="columnas-info__title">⚠️ Columnas Faltantes</h3>
+          <div class="columnas-grid">
+            <div class="columna-item columna-item--error" *ngFor="let col of columnasFaltantes">
+              <span class="columna-item__icon">✗</span>
+              <span class="columna-item__name">{{ col }}</span>
+            </div>
+          </div>
+          <p class="columnas-info__warning">
+            ⚠️ Faltan columnas obligatorias. Por favor, use la plantilla oficial.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 2: VISTA PREVIA -->
+  <div class="step-content" *ngIf="paso === 2">
+    <div class="preview-section">
+      <div class="preview-header">
+        <h2 class="preview-header__title">👁️ Vista Previa de Datos</h2>
+        <p class="preview-header__subtitle">
+          Se encontraron <strong>{{ datosImportados.length }}</strong> registros
+        </p>
+      </div>
+
+      <div class="preview-table-container">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th>Fila</th>
+              <th>DNI</th>
+              <th>Apellidos y Nombres</th>
+              <th>Email</th>
+              <th>Cargo</th>
+              <th>Area</th>
+              <th>Remuneracion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let registro of datosImportados.slice(0, 10)">
+              <td>{{ registro._fila }}</td>
+              <td>{{ registro['DNI'] }}</td>
+              <td>{{ registro['Apellido Paterno'] }} {{ registro['Apellido Materno'] }}, {{ registro['Nombres'] }}</td>
+              <td>{{ registro['Email'] }}</td>
+              <td>{{ registro['Cargo'] }}</td>
+              <td>{{ registro['Area'] }}</td>
+              <td>S/. {{ registro['Remuneracion Basica'] }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="preview-note" *ngIf="datosImportados.length > 10">
+        <p>📌 Mostrando los primeros 10 registros de {{ datosImportados.length }}</p>
+      </div>
+
+      <div class="configuracion-section">
+        <h3 class="configuracion-section__title">⚙️ Configuracion de Importacion</h3>
+        <div class="configuracion-grid">
+          <div class="config-item">
+            <input 
+              type="checkbox" 
+              id="omitirDuplicados" 
+              [(ngModel)]="configuracion.omitirDuplicados"
+            />
+            <label for="omitirDuplicados">Omitir registros duplicados (por DNI)</label>
+          </div>
+
+          <div class="config-item">
+            <input 
+              type="checkbox" 
+              id="actualizarExistentes" 
+              [(ngModel)]="configuracion.actualizarExistentes"
+            />
+            <label for="actualizarExistentes">Actualizar trabajadores existentes</label>
+          </div>
+
+          <div class="config-item">
+            <input 
+              type="checkbox" 
+              id="validarReniec" 
+              [(ngModel)]="configuracion.validarReniec"
+            />
+            <label for="validarReniec">Validar DNI con RENIEC</label>
+          </div>
+
+          <div class="config-item">
+            <input 
+              type="checkbox" 
+              id="enviarNotificaciones" 
+              [(ngModel)]="configuracion.enviarNotificaciones"
+            />
+            <label for="enviarNotificaciones">Enviar notificaciones por email</label>
+          </div>
+
+          <div class="config-item">
+            <input 
+              type="checkbox" 
+              id="crearUsuarios" 
+              [(ngModel)]="configuracion.crearUsuarios"
+            />
+            <label for="crearUsuarios">Crear usuarios del sistema automaticamente</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 3: VALIDACION -->
+  <div class="step-content" *ngIf="paso === 3">
+    <div class="validacion-section">
+      <div class="validacion-header">
+        <h2 class="validacion-header__title">✅ Resultados de Validacion</h2>
+        
+        <div class="validacion-resumen" *ngIf="resumen">
+          <div class="resumen-card resumen-card--total">
+            <div class="resumen-card__icon">📊</div>
+            <div class="resumen-card__content">
+              <span class="resumen-card__label">Total</span>
+              <span class="resumen-card__value">{{ resumen.totalRegistros }}</span>
+            </div>
+          </div>
+
+          <div class="resumen-card resumen-card--valido">
+            <div class="resumen-card__icon">✓</div>
+            <div class="resumen-card__content">
+              <span class="resumen-card__label">Validos</span>
+              <span class="resumen-card__value">{{ resumen.registrosValidos }}</span>
+            </div>
+          </div>
+
+          <div class="resumen-card resumen-card--advertencia">
+            <div class="resumen-card__icon">⚠️</div>
+            <div class="resumen-card__content">
+              <span class="resumen-card__label">Advertencias</span>
+              <span class="resumen-card__value">{{ resumen.registrosConAdvertencia }}</span>
+            </div>
+          </div>
+
+          <div class="resumen-card resumen-card--error">
+            <div class="resumen-card__icon">✗</div>
+            <div class="resumen-card__content">
+              <span class="resumen-card__label">Errores</span>
+              <span class="resumen-card__value">{{ resumen.registrosConError }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="validacion-filtros">
+        <button 
+          class="filtro-btn"
+          [class.active]="filtroEstado === 'Todos'"
+          (click)="filtroEstado = 'Todos'"
+        >
+          Todos ({{ resultadosValidacion.length }})
+        </button>
+        <button 
+          class="filtro-btn filtro-btn--valido"
+          [class.active]="filtroEstado === 'Valido'"
+          (click)="filtroEstado = 'Valido'"
+        >
+          Validos ({{ resumen?.registrosValidos || 0 }})
+        </button>
+        <button 
+          class="filtro-btn filtro-btn--advertencia"
+          [class.active]="filtroEstado === 'Advertencia'"
+          (click)="filtroEstado = 'Advertencia'"
+        >
+          Advertencias ({{ resumen?.registrosConAdvertencia || 0 }})
+        </button>
+        <button 
+          class="filtro-btn filtro-btn--error"
+          [class.active]="filtroEstado === 'Error'"
+          (click)="filtroEstado = 'Error'"
+        >
+          Errores ({{ resumen?.registrosConError || 0 }})
+        </button>
+
+        <button class="btn btn--sm btn--outline" (click)="descargarReporte()" style="margin-left: auto;">
+          📄 Descargar Reporte
+        </button>
+      </div>
+
+      <div class="validacion-tabla-container">
+        <table class="validacion-tabla">
+          <thead>
+            <tr>
+              <th>Fila</th>
+              <th>Estado</th>
+              <th>DNI</th>
+              <th>Nombre Completo</th>
+              <th>Problemas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let resultado of resultadosFiltrados">
+              <td>{{ resultado.fila }}</td>
+              <td>
+                <span class="badge" [ngClass]="getEstadoBadgeClass(resultado.estado)">
+                  {{ resultado.estado }}
+                </span>
+              </td>
+              <td>{{ resultado.dni }}</td>
+              <td>{{ resultado.nombreCompleto }}</td>
+              <td>
+                <div class="problemas-list">
+                  <div class="problema problema--error" *ngFor="let error of resultado.errores">
+                    <span class="problema__icon">✗</span>
+                    <span class="problema__text">{{ error }}</span>
+                  </div>
+                  <div class="problema problema--warning" *ngFor="let advertencia of resultado.advertencias">
+                    <span class="problema__icon">⚠️</span>
+                    <span class="problema__text">{{ advertencia }}</span>
+                  </div>
+                  <div class="problema problema--success" *ngIf="resultado.errores.length === 0 && resultado.advertencias.length === 0">
+                    <span class="problema__icon">✓</span>
+                    <span class="problema__text">Sin problemas</span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="validacion-nota" *ngIf="resumen && resumen.registrosConError > 0">
+        <p class="validacion-nota__text">
+          ⚠️ <strong>{{ resumen.registrosConError }}</strong> registros con errores no seran importados. 
+          Corrija los errores en el archivo Excel y vuelva a importar.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 4: CONFIRMACION -->
+  <div class="step-content" *ngIf="paso === 4">
+    <div class="confirmacion-section">
+      <div class="confirmacion-icon">✅</div>
+      <h2 class="confirmacion-title">¡Importacion Completada!</h2>
+      <p class="confirmacion-subtitle">Los trabajadores han sido importados exitosamente</p>
+
+      <div class="confirmacion-resumen" *ngIf="resumen">
+        <div class="confirmacion-stat">
+          <span class="confirmacion-stat__label">Registros importados:</span>
+          <span class="confirmacion-stat__value">{{ resumen.registrosValidos }}</span>
+        </div>
+        <div class="confirmacion-stat">
+          <span class="confirmacion-stat__label">Archivo:</span>
+          <span class="confirmacion-stat__value">{{ resumen.archivoNombre }}</span>
+        </div>
+        <div class="confirmacion-stat">
+          <span class="confirmacion-stat__label">Fecha:</span>
+          <span class="confirmacion-stat__value">{{ resumen.fechaImportacion.toLocaleString() }}</span>
+        </div>
+      </div>
+
+      <div class="confirmacion-acciones">
+        <button class="btn btn--outline" (click)="volverInicio()">
+          📤 Importar Otro Archivo
+        </button>
+        <button class="btn btn--primary" (click)="volverLista()">
+          👁️ Ver Lista de Trabajadores
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTONES DE NAVEGACION -->
+  <div class="form-actions" *ngIf="paso < 4">
+    <button
+      type="button"
+      class="btn btn--outline"
+      (click)="pasoAnterior()"
+      *ngIf="paso > 1 && !procesando && !importando"
+    >
+      ← Anterior
+    </button>
+
+    <button
+      type="button"
+      class="btn btn--ghost"
+      (click)="volverLista()"
+      *ngIf="!procesando && !importando"
+    >
+      Cancelar
+    </button>
+
+    <button
+      type="button"
+      class="btn btn--primary"
+      (click)="siguientePaso()"
+      *ngIf="paso === 2 && !procesando"
+      [disabled]="columnasFaltantes.length > 0"
+    >
+      Validar Datos →
+    </button>
+
+    <button
+      type="button"
+      class="btn btn--accent"
+      (click)="importarDatos()"
+      *ngIf="paso === 3 && !importando"
+      [disabled]="!resumen || resumen.registrosValidos === 0"
+    >
+      <span *ngIf="!importando">✓ Importar {{ resumen?.registrosValidos || 0 }} Trabajadores</span>
+      <span *ngIf="importando">⏳ Importando...</span>
+    </button>
+
+    <div class="loading-overlay" *ngIf="procesando || importando">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">{{ procesando ? 'Validando datos...' : 'Importando trabajadores...' }}</p>
+    </div>
+  </div>
+</div>

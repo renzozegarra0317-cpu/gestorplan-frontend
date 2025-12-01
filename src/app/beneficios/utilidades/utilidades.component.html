@@ -1,0 +1,636 @@
+<div class="utilidades-container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">💼</span>
+        Utilidades
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Distribucion de utilidades anuales a trabajadores
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--outline" (click)="exportarExcel()">
+        📊 Exportar Excel
+      </button>
+      <button class="btn btn--sm btn--primary" (click)="abrirCalculoMasivo()">
+        ➕ Calcular Utilidades
+      </button>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="resumen-utilidades" *ngIf="resumen">
+    <div class="resumen-card resumen-card--total">
+      <div class="resumen-card__icon">📋</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Registros</span>
+        <span class="resumen-card__value">{{ resumen.totalRegistros }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--empresa">
+      <div class="resumen-card__icon">🏢</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Utilidad Empresa</span>
+        <span class="resumen-card__value">S/. {{ resumen.utilidadEmpresaTotal.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--calculadas">
+      <div class="resumen-card__icon">🧮</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Calculado</span>
+        <span class="resumen-card__value">S/. {{ resumen.totalUtilidadesCalculadas.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--descuentos">
+      <div class="resumen-card__icon">➖</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Descuentos</span>
+        <span class="resumen-card__value">S/. {{ resumen.totalDescuentos.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--neto">
+      <div class="resumen-card__icon">💰</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Neto Pagado</span>
+        <span class="resumen-card__value">S/. {{ resumen.totalNetoPagado.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--promedio">
+      <div class="resumen-card__icon">📊</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Promedio</span>
+        <span class="resumen-card__value">S/. {{ resumen.promedioUtilidades.toFixed(2) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-section">
+    <div class="filtros-header">
+      <div class="filtros-header__left">
+        <h3 class="filtros-title">🔍 Filtros de Busqueda</h3>
+      </div>
+      <div class="filtros-header__right">
+        <button class="btn btn--ghost btn--sm" (click)="limpiarFiltros()">
+          ✖️ Limpiar
+        </button>
+      </div>
+    </div>
+
+    <div class="filtros-grid">
+      <div class="filtro-item">
+        <label class="filtro-label">Periodo Fiscal:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.periodoFiscal" (change)="aplicarFiltros()">
+          <option *ngFor="let periodo of periodosFiscales" [value]="periodo">{{ periodo }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Estado:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.estado" (change)="aplicarFiltros()">
+          <option *ngFor="let estado of estadosUtilidades" [value]="estado">{{ estado }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Area:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.area" (change)="aplicarFiltros()">
+          <option *ngFor="let area of areas" [value]="area">{{ area }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item filtro-item--search">
+        <div class="search-box-wrapper">
+          <div class="search-box">
+            <label class="filtro-label">Buscar:</label>
+            <div class="search-box__input-wrapper">
+              <span class="search-box__icon">🔍</span>
+              <input
+                type="text"
+                class="search-box__input"
+                placeholder="Buscar por DNI, nombre, codigo..."
+                [(ngModel)]="filtros.busqueda"
+                (input)="aplicarFiltros()"
+              />
+            </div>
+          </div>
+        </div>
+        <span class="resultado-texto">
+          Mostrando <strong>{{ registrosFiltrados.length }}</strong> registros
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE REGISTROS -->
+  <div class="tabla-container">
+    <div class="tabla-scroll">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Codigo</th>
+            <th>Trabajador</th>
+            <th>DNI</th>
+            <th>Area</th>
+            <th>Periodo Fiscal</th>
+            <th>Dias Trab.</th>
+            <th>Por Dias</th>
+            <th>Por Remun.</th>
+            <th>Total Util.</th>
+            <th>Descuentos</th>
+            <th>Neto</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="cargando">
+            <td colspan="13" class="td-loading">
+              <div class="loading-spinner">Cargando...</div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!cargando && registrosPaginados.length === 0">
+            <td colspan="13" class="td-empty">
+              <div class="empty-state">
+                <span class="empty-state__icon">📭</span>
+                <p class="empty-state__text">No se encontraron registros de utilidades</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let registro of registrosPaginados">
+            <td class="td-codigo">
+              <span class="codigo-badge">{{ registro.codigo }}</span>
+            </td>
+            <td class="td-trabajador">
+              <div class="trabajador-info">
+                <span class="trabajador-info__nombre">{{ registro.trabajadorNombre }}</span>
+                <span class="trabajador-info__cargo">{{ registro.trabajadorCargo }}</span>
+              </div>
+            </td>
+            <td class="td-dni">{{ registro.trabajadorDni }}</td>
+            <td class="td-area">{{ registro.trabajadorArea }}</td>
+            <td class="td-periodo">
+              <div class="periodo-fiscal">
+                <span class="periodo-fiscal__anio">{{ registro.periodoFiscal }}</span>
+                <span class="periodo-fiscal__porcentaje">{{ registro.porcentajeDias.toFixed(1) }}%</span>
+              </div>
+            </td>
+            <td class="td-dias">{{ registro.diasTrabajados }}</td>
+            <td class="td-monto">S/. {{ registro.montoPorDias.toFixed(2) }}</td>
+            <td class="td-monto">S/. {{ registro.montoPorRemuneracion.toFixed(2) }}</td>
+            <td class="td-monto td-monto--total">
+              <strong>S/. {{ registro.totalUtilidades.toFixed(2) }}</strong>
+            </td>
+            <td class="td-monto td-monto--descuento">S/. {{ registro.totalDescuentos.toFixed(2) }}</td>
+            <td class="td-monto td-monto--neto">
+              <strong>S/. {{ registro.netoAPagar.toFixed(2) }}</strong>
+            </td>
+            <td class="td-estado">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(registro.estado)">
+                {{ registro.estado }}
+              </span>
+            </td>
+            <td class="td-acciones">
+              <div class="acciones-menu">
+                <button 
+                  class="btn-icon" 
+                  title="Ver Detalle"
+                  (click)="verDetalle(registro)"
+                >
+                  👁️
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Aprobar"
+                  (click)="aprobarRegistro(registro)"
+                  *ngIf="registro.estado === 'Calculado'"
+                >
+                  ✅
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Pagar"
+                  (click)="abrirPago(registro)"
+                  *ngIf="registro.estado === 'Aprobado'"
+                >
+                  💳
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Descargar Constancia"
+                  (click)="descargarConstancia(registro)"
+                  *ngIf="registro.estado === 'Pagado'"
+                >
+                  📥
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINACION -->
+    <div class="paginacion" *ngIf="totalPaginas > 1">
+      <button 
+        class="paginacion-btn" 
+        (click)="cambiarPagina(paginaActual - 1)"
+        [disabled]="paginaActual === 1"
+      >
+        ← Anterior
+      </button>
+
+      <div class="paginacion-numeros">
+        <button
+          *ngFor="let p of [].constructor(totalPaginas); let i = index"
+          class="paginacion-numero"
+          [class.active]="paginaActual === i + 1"
+          (click)="cambiarPagina(i + 1)"
+        >
+          {{ i + 1 }}
+        </button>
+      </div>
+
+      <button 
+        class="paginacion-btn" 
+        (click)="cambiarPagina(paginaActual + 1)"
+        [disabled]="paginaActual === totalPaginas"
+      >
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: CALCULO MASIVO -->
+  <div class="modal" *ngIf="mostrarModalCalculo" (click)="mostrarModalCalculo = false">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">🧮 Calculo Masivo de Utilidades</h3>
+        <button class="modal__close" (click)="mostrarModalCalculo = false">✖️</button>
+      </div>
+      <div class="modal__body">
+        <div class="calculo-info">
+          <div class="calculo-info__icon">💼</div>
+          <div class="calculo-info__content">
+            <h4>Configuracion del Calculo</h4>
+            <p>Ingrese la utilidad de la empresa y seleccione los trabajadores beneficiarios</p>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4 class="form-section__title">🏢 Datos de la Empresa</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Periodo Fiscal *</label>
+              <select class="form-select" [(ngModel)]="periodoCalculoMasivo">
+                <option *ngFor="let periodo of periodosFiscales" [value]="periodo">{{ periodo }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Utilidad de la Empresa (S/.) *</label>
+              <input 
+                type="number" 
+                class="form-input"
+                [(ngModel)]="utilidadEmpresa"
+                placeholder="0.00"
+                step="0.01"
+              />
+            </div>
+          </div>
+
+          <div class="utilidad-info">
+            <div class="utilidad-info__item">
+              <span class="utilidad-info__icon">📊</span>
+              <div class="utilidad-info__content">
+                <span class="utilidad-info__label">% Distribucion a Trabajadores:</span>
+                <span class="utilidad-info__valor">{{ config.porcentajeDistribucionTrabajadores }}%</span>
+              </div>
+            </div>
+            <div class="utilidad-info__item">
+              <span class="utilidad-info__icon">💰</span>
+              <div class="utilidad-info__content">
+                <span class="utilidad-info__label">Monto a Distribuir:</span>
+                <span class="utilidad-info__valor">S/. {{ (utilidadEmpresa * config.porcentajeDistribucionTrabajadores / 100).toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="formula-info">
+            <h5>📐 Formula de Calculo:</h5>
+            <div class="formula-item">
+              <span class="formula-label">50% Por Dias:</span>
+              <span class="formula-valor">(Dias Trabajados / Total Dias) × 50% del Monto</span>
+            </div>
+            <div class="formula-item">
+              <span class="formula-label">50% Por Remuneracion:</span>
+              <span class="formula-valor">(Remuneracion Anual / Total Remuneraciones) × 50% del Monto</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4 class="form-section__title">👥 Seleccion de Trabajadores</h4>
+          <div class="trabajadores-seleccion">
+            <div class="seleccion-header">
+              <span class="seleccion-count">
+                {{ trabajadoresSeleccionados.length }} de {{ trabajadoresDisponibles.length }} seleccionados
+              </span>
+            </div>
+
+            <div class="trabajadores-grid">
+              <div 
+                class="trabajador-card" 
+                *ngFor="let trabajador of trabajadoresDisponibles"
+                [class.selected]="estaTrabajadorSeleccionado(trabajador)"
+                (click)="toggleSeleccionTrabajador(trabajador)"
+              >
+                <div class="trabajador-card__header">
+                  <div class="checkbox-indicator">
+                    <span class="checkmark" *ngIf="estaTrabajadorSeleccionado(trabajador)">✓</span>
+                  </div>
+                  <div class="trabajador-card__info">
+                    <h5 class="trabajador-nombre">{{ trabajador.nombre }}</h5>
+                    <p class="trabajador-dni">DNI: {{ trabajador.dni }}</p>
+                    <p class="trabajador-cargo">{{ trabajador.cargo }}</p>
+                  </div>
+                </div>
+                <div class="trabajador-card__body">
+                  <div class="dato-item">
+                    <span class="dato-label">Area:</span>
+                    <span class="dato-value">{{ trabajador.area }}</span>
+                  </div>
+                  <div class="dato-item">
+                    <span class="dato-label">Dias Trabajados:</span>
+                    <span class="dato-value">{{ trabajador.diasTrabajados }} días</span>
+                  </div>
+                  <div class="dato-item">
+                    <span class="dato-label">Rem. Promedio:</span>
+                    <span class="dato-value">S/. {{ trabajador.remuneracionPromedio.toFixed(2) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalCalculo = false">Cancelar</button>
+        <button 
+          class="btn btn--primary" 
+          (click)="confirmarCalculoMasivo()"
+          [disabled]="trabajadoresSeleccionados.length === 0 || !utilidadEmpresa"
+        >
+          🧮 Calcular Utilidades ({{ trabajadoresSeleccionados.length }})
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE UTILIDADES -->
+  <div class="modal" *ngIf="mostrarModalDetalle" (click)="mostrarModalDetalle = false">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">📊 Detalle de Utilidades</h3>
+        <button class="modal__close" (click)="mostrarModalDetalle = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="detalle-utilidades">
+          <!-- INFORMACION GENERAL -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">👤 Informacion del Trabajador</h4>
+            <div class="datos-grid">
+              <div class="dato-item">
+                <span class="dato-label">Codigo:</span>
+                <span class="dato-value">{{ registroSeleccionado.codigo }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Nombre:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorNombre }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">DNI:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorDni }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Cargo:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorCargo }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Area:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorArea }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PERIODO FISCAL -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">📅 Periodo Fiscal</h4>
+            <div class="periodo-banner-util">
+              <span class="periodo-banner-util__icon">💼</span>
+              <div class="periodo-banner-util__content">
+                <span class="periodo-banner-util__titulo">Periodo Fiscal {{ registroSeleccionado.periodoFiscal }}</span>
+                <span class="periodo-banner-util__fecha">{{ formatearFecha(registroSeleccionado.fechaInicio) }} - {{ formatearFecha(registroSeleccionado.fechaFin) }}</span>
+              </div>
+            </div>
+            <div class="datos-grid">
+              <div class="dato-item">
+                <span class="dato-label">Dias Trabajados:</span>
+                <span class="dato-value">{{ registroSeleccionado.diasTrabajados }} de {{ registroSeleccionado.diasHabiles }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Porcentaje:</span>
+                <span class="dato-value">{{ registroSeleccionado.porcentajeDias.toFixed(2) }}%</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Rem. Promedio:</span>
+                <span class="dato-value">S/. {{ registroSeleccionado.remuneracionPromedio.toFixed(2) }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Total Rem. Anual:</span>
+                <span class="dato-value">S/. {{ registroSeleccionado.totalRemuneracionAnual.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- UTILIDAD EMPRESA -->
+          <div class="detalle-seccion detalle-seccion--empresa">
+            <h4 class="seccion-titulo">🏢 Utilidad de la Empresa</h4>
+            <div class="empresa-info">
+              <div class="empresa-row">
+                <span class="empresa-label">Utilidad Total:</span>
+                <span class="empresa-valor">S/. {{ registroSeleccionado.utilidadEmpresa.toFixed(2) }}</span>
+              </div>
+              <div class="empresa-row">
+                <span class="empresa-label">% Distribucion:</span>
+                <span class="empresa-valor">{{ registroSeleccionado.porcentajeDistribucion }}%</span>
+              </div>
+              <div class="empresa-row empresa-row--total">
+                <span class="empresa-label">Monto Distribuible:</span>
+                <span class="empresa-valor">S/. {{ (registroSeleccionado.utilidadEmpresa * registroSeleccionado.porcentajeDistribucion / 100).toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CALCULO UTILIDADES -->
+          <div class="detalle-seccion detalle-seccion--resultado">
+            <h4 class="seccion-titulo">🧮 Calculo de Utilidades</h4>
+            <div class="resultado-calculo">
+              <div class="resultado-fila">
+                <span class="resultado-label">Por Dias Trabajados (50%):</span>
+                <span class="resultado-valor">S/. {{ registroSeleccionado.montoPorDias.toFixed(2) }}</span>
+              </div>
+              <div class="resultado-fila">
+                <span class="resultado-label">Por Remuneracion (50%):</span>
+                <span class="resultado-valor">S/. {{ registroSeleccionado.montoPorRemuneracion.toFixed(2) }}</span>
+              </div>
+              <div class="resultado-fila resultado-fila--total">
+                <span class="resultado-label">TOTAL UTILIDADES:</span>
+                <span class="resultado-valor">S/. {{ registroSeleccionado.totalUtilidades.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DESCUENTOS -->
+          <div class="detalle-seccion" *ngIf="registroSeleccionado.descuentos.length > 0">
+            <h4 class="seccion-titulo">➖ Descuentos</h4>
+            <div class="conceptos-lista">
+              <div class="concepto-fila" *ngFor="let descuento of registroSeleccionado.descuentos">
+                <span class="concepto-nombre">{{ descuento.nombre }}:</span>
+                <span class="concepto-monto concepto-monto--descuento">S/. {{ descuento.monto.toFixed(2) }}</span>
+              </div>
+              <div class="concepto-fila concepto-fila--total">
+                <span class="concepto-nombre"><strong>Total Descuentos:</strong></span>
+                <span class="concepto-monto concepto-monto--descuento"><strong>S/. {{ registroSeleccionado.totalDescuentos.toFixed(2) }}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- NETO A PAGAR -->
+          <div class="detalle-seccion detalle-seccion--neto">
+            <div class="neto-pagar">
+              <span class="neto-pagar__label">NETO A PAGAR:</span>
+              <span class="neto-pagar__monto">S/. {{ registroSeleccionado.netoAPagar.toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <!-- DATOS BANCARIOS -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">🏦 Datos de Pago</h4>
+            <div class="datos-grid">
+              <div class="dato-item">
+                <span class="dato-label">Banco:</span>
+                <span class="dato-value">{{ registroSeleccionado.banco }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Numero Cuenta:</span>
+                <span class="dato-value">{{ registroSeleccionado.numeroCuenta }}</span>
+              </div>
+              <div class="dato-item" *ngIf="registroSeleccionado.fechaPago">
+                <span class="dato-label">Fecha Pago:</span>
+                <span class="dato-value">{{ formatearFecha(registroSeleccionado.fechaPago) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ESTADO -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">📊 Estado del Registro</h4>
+            <div class="estado-info">
+              <span class="badge badge--large" [ngClass]="getEstadoBadgeClass(registroSeleccionado.estado)">
+                {{ registroSeleccionado.estado }}
+              </span>
+              <div class="estado-fechas">
+                <p *ngIf="registroSeleccionado.fechaCalculo">
+                  Calculado: {{ formatearFecha(registroSeleccionado.fechaCalculo) }} por {{ registroSeleccionado.calculadoPor }}
+                </p>
+                <p *ngIf="registroSeleccionado.fechaAprobacion">
+                  Aprobado: {{ formatearFecha(registroSeleccionado.fechaAprobacion) }} por {{ registroSeleccionado.aprobadoPor }}
+                </p>
+                <p *ngIf="registroSeleccionado.fechaPago">
+                  Pagado: {{ formatearFecha(registroSeleccionado.fechaPago) }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalDetalle = false">Cerrar</button>
+        <button class="btn btn--primary" (click)="descargarConstancia(registroSeleccionado!)">
+          📥 Descargar Constancia
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PAGO -->
+  <div class="modal" *ngIf="mostrarModalPago" (click)="mostrarModalPago = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">💳 Confirmar Pago de Utilidades</h3>
+        <button class="modal__close" (click)="mostrarModalPago = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="pago-info-util">
+          <div class="pago-info-util__icon">💼</div>
+          <div class="pago-info-util__content">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p class="pago-periodo-util">Periodo Fiscal {{ registroSeleccionado.periodoFiscal }}</p>
+            <p class="pago-monto-util">S/. {{ registroSeleccionado.netoAPagar.toFixed(2) }}</p>
+          </div>
+        </div>
+
+        <div class="pago-detalle-util">
+          <div class="detalle-row">
+            <span class="detalle-label">Total Utilidades:</span>
+            <span class="detalle-value">S/. {{ registroSeleccionado.totalUtilidades.toFixed(2) }}</span>
+          </div>
+          <div class="detalle-row">
+            <span class="detalle-label">Descuentos:</span>
+            <span class="detalle-value detalle-value--descuento">- S/. {{ registroSeleccionado.totalDescuentos.toFixed(2) }}</span>
+          </div>
+          <div class="detalle-row detalle-row--total">
+            <span class="detalle-label">Neto a Pagar:</span>
+            <span class="detalle-value">S/. {{ registroSeleccionado.netoAPagar.toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="pago-banco-util">
+          <div class="banco-row-util">
+            <span class="banco-label-util">Banco:</span>
+            <span class="banco-value-util">{{ registroSeleccionado.banco }}</span>
+          </div>
+          <div class="banco-row-util">
+            <span class="banco-label-util">Cuenta:</span>
+            <span class="banco-value-util">{{ registroSeleccionado.numeroCuenta }}</span>
+          </div>
+        </div>
+
+        <div class="pago-warning-util">
+          <p>⚠️ Esta accion registrara el pago de las utilidades. Asegurese de haber realizado la transferencia bancaria.</p>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalPago = false">Cancelar</button>
+        <button class="btn btn--success" (click)="confirmarPago()">
+          💳 Confirmar Pago
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

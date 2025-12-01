@@ -1,0 +1,1222 @@
+<div class="prestamos-lista">
+  <!-- ==================== PAGE HEADER ==================== -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">💳</span>
+        Gestión de Préstamos
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Administración de préstamos bancarios, cooperativas y cajas municipales - {{ prestamosFiltrados.length }} préstamos
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--primary" (click)="mostrarNuevo()">
+        <span class="btn__icon">➕</span>
+        Nuevo Préstamo
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== BARRA DE ACCIONES ==================== -->
+  <div class="filtros-section">
+    <div class="filtros-header">
+      <div class="filtros-header__left">
+        <h3 class="filtros-title">🔍 Filtros de Búsqueda</h3>
+      </div>
+      <div class="filtros-header__right">
+        <button 
+          class="btn btn--ghost btn--sm" 
+          (click)="limpiarFiltros()"
+          *ngIf="filtroBusqueda || filtroEstado || filtroEntidad"
+        >
+          ✖️ Limpiar
+        </button>
+      </div>
+    </div>
+
+    <div class="filtros-grid">
+      <div class="filtro-item">
+        <label class="filtro-label">Estado:</label>
+        <select class="filtro-select" [(ngModel)]="filtroEstado" (change)="cargarPrestamos()">
+          <option value="">Todos</option>
+          <option value="Activo">Activos</option>
+          <option value="Cancelado">Cancelados</option>
+          <option value="Liquidado">Liquidados</option>
+          <option value="Suspendido">Suspendidos</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Entidad:</label>
+        <select class="filtro-select" [(ngModel)]="filtroEntidad" (change)="cargarPrestamos()">
+          <option value="">Todas</option>
+          <option *ngFor="let entidad of entidades" [value]="entidad.EntidadID">
+            {{ entidad.Nombre }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filtro-item filtro-item--search">
+        <div class="search-box-wrapper">
+          <div class="search-box">
+            <label class="filtro-label">Buscar:</label>
+            <div class="search-box__input-wrapper">
+              <span class="search-box__icon">🔍</span>
+              <input
+                type="text"
+                class="search-box__input"
+                placeholder="Buscar por DNI, nombre o número de contrato..."
+                [(ngModel)]="filtroBusqueda"
+                (input)="cargarPrestamos()"
+              />
+            </div>
+          </div>
+        </div>
+        <span class="resultado-texto">
+          Mostrando <strong>{{ prestamosFiltrados.length }}</strong> préstamos
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TABLA DE PRÉSTAMOS ==================== -->
+  <div class="tabla-container" *ngIf="!cargando">
+    <div class="tabla-scroll">
+      <table class="tabla">
+        <thead>
+        <tr>
+          <th>Trabajador</th>
+          <th>DNI</th>
+          <th>Entidad</th>
+          <th>N° Contrato</th>
+          <th>Tipo</th>
+          <th class="text-right">Monto Total</th>
+          <th class="text-right">Cuota</th>
+          <th class="text-center">Cuotas</th>
+          <th class="text-right">Saldo</th>
+          <th>Estado</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let prestamo of prestamosPaginados">
+          <td>
+            <div class="trabajador-info">
+              <strong>{{ prestamo.NombreCompleto }}</strong>
+            </div>
+          </td>
+          <td>{{ prestamo.NumeroDocumento }}</td>
+          <td>
+            <div class="entidad-info">
+              <div class="entidad-info__nombre">{{ prestamo.EntidadFinanciera }}</div>
+              <div class="entidad-info__tipo">{{ prestamo.TipoEntidad }}</div>
+            </div>
+          </td>
+          <td><span class="codigo">{{ prestamo.NumeroContrato }}</span></td>
+          <td>{{ prestamo.TipoPrestamo }}</td>
+          <td class="text-right"><strong>{{ formatearMonto(prestamo.MontoTotal) }}</strong></td>
+          <td class="text-right">{{ formatearMonto(prestamo.MontoCuota) }}</td>
+          <td class="text-center">
+            <span class="cuotas-badge">
+              {{ prestamo.CuotasPagadas }}/{{ prestamo.NumeroCuotas }}
+            </span>
+          </td>
+          <td class="text-right">
+            <strong class="saldo">{{ formatearMonto(prestamo.SaldoPendiente) }}</strong>
+          </td>
+          <td>
+            <span [class]="'badge ' + getEstadoClass(prestamo.Estado)">
+              {{ prestamo.Estado }}
+            </span>
+          </td>
+          <td>
+            <div class="table-actions">
+              <button 
+                class="btn-icon" 
+                (click)="verDetalle(prestamo)"
+                title="Ver detalle"
+              >
+                👁️
+              </button>
+              <button 
+                class="btn-icon btn-icon--primary" 
+                (click)="editarPrestamo(prestamo)"
+                *ngIf="prestamo.Estado === 'Activo'"
+                title="Editar préstamo"
+              >
+                ✏️
+              </button>
+              <button 
+                class="btn-icon btn-icon--warning" 
+                (click)="liquidarPrestamo(prestamo)"
+                *ngIf="prestamo.Estado === 'Activo'"
+                title="Liquidar préstamo"
+              >
+                💰
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- Mensaje vacío -->
+    <div class="empty-state" *ngIf="prestamosFiltrados.length === 0">
+      <div class="empty-state__icon">💳</div>
+      <h3 class="empty-state__title">No se encontraron préstamos</h3>
+      <p class="empty-state__message">
+        {{ filtroBusqueda || filtroEstado || filtroEntidad 
+           ? 'Intenta ajustar los filtros de búsqueda' 
+           : 'Comienza registrando un nuevo préstamo' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="loading-state" *ngIf="cargando">
+    <div class="spinner"></div>
+    <p>Cargando préstamos...</p>
+  </div>
+
+  <!-- ==================== PAGINACIÓN ==================== -->
+  <div class="pagination" *ngIf="prestamosFiltrados.length > itemsPorPagina">
+    <button 
+      class="pagination__btn" 
+      [disabled]="paginaActual === 1"
+      (click)="cambiarPagina(paginaActual - 1)"
+    >
+      ‹ Anterior
+    </button>
+    
+    <div class="pagination__info">
+      Página {{ paginaActual }} de {{ totalPaginas }}
+    </div>
+    
+    <button 
+      class="pagination__btn" 
+      [disabled]="paginaActual === totalPaginas"
+      (click)="cambiarPagina(paginaActual + 1)"
+    >
+      Siguiente ›
+    </button>
+  </div>
+</div>
+
+<!-- ==================== MODAL: NUEVO PRÉSTAMO ==================== -->
+<div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cerrarFormulario()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h2 class="modal__title">
+        <span class="modal__icon">{{ esModoEdicion ? '✏️' : '➕' }}</span>
+        {{ esModoEdicion ? 'Editar Préstamo' : 'Registrar Nuevo Préstamo' }}
+      </h2>
+      <button class="modal__close" (click)="cerrarFormulario()">✖</button>
+    </div>
+
+    <div class="modal__body">
+      <form class="form">
+        <!-- Trabajador -->
+        <div class="form-group">
+          <label class="form-label">
+            <span class="required">*</span> Trabajador
+          </label>
+          <select class="form-input" [(ngModel)]="nuevoPrestamo.trabajadorID" name="trabajador" [disabled]="esModoEdicion" required>
+            <option [value]="''">Seleccionar trabajador...</option>
+            <option *ngFor="let t of trabajadores" [value]="t.TrabajadorID">
+              {{ t.ApellidoPaterno }} {{ t.ApellidoMaterno }}, {{ t.Nombres }} - DNI: {{ t.NumeroDocumento }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Tipo de Entidad -->
+        <div class="form-group">
+          <label class="form-label">
+            <span class="required">*</span> Tipo de Entidad
+          </label>
+          <select 
+            class="form-input" 
+            [(ngModel)]="tipoEntidadSeleccionada" 
+            name="tipoEntidad"
+            (change)="filtrarEntidadesPorTipo()"
+            [disabled]="esModoEdicion"
+            required
+          >
+            <option value="">Seleccionar...</option>
+            <option value="Banco">Banco</option>
+            <option value="Caja Municipal">Caja Municipal</option>
+            <option value="Cooperativa">Cooperativa</option>
+            <option value="Financiera">Financiera</option>
+          </select>
+        </div>
+
+        <!-- Entidad Financiera -->
+        <div class="form-group">
+          <label class="form-label">
+            <span class="required">*</span> Entidad Financiera
+          </label>
+          <select class="form-input" [(ngModel)]="nuevoPrestamo.entidadID" name="entidad" [disabled]="esModoEdicion" required>
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let e of obtenerEntidadesPorTipo(tipoEntidadSeleccionada)" [value]="e.EntidadID">
+              {{ e.Nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Tipo de Préstamo -->
+        <div class="form-group">
+          <label class="form-label">
+            <span class="required">*</span> Tipo de Préstamo
+          </label>
+          <select class="form-input" [(ngModel)]="nuevoPrestamo.tipoPrestamo" name="tipo" required>
+            <option value="">Seleccionar...</option>
+            <option value="Personal">Personal</option>
+            <option value="Hipotecario">Hipotecario</option>
+            <option value="Vehicular">Vehicular</option>
+            <option value="Consumo">Consumo</option>
+            <option value="Educativo">Educativo</option>
+          </select>
+        </div>
+
+        <!-- Número de Contrato -->
+        <div class="form-group">
+          <label class="form-label">
+            <span class="required">*</span> Número de Contrato
+          </label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="nuevoPrestamo.numeroContrato" 
+            name="contrato"
+            placeholder="Ej: PRES-2024-001"
+            required
+          />
+        </div>
+
+        <div class="form-row">
+          <!-- Monto Total -->
+          <div class="form-group">
+            <label class="form-label">
+              <span class="required">*</span> Monto Total (S/.)
+            </label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input 
+                type="number" 
+                class="form-input" 
+                [(ngModel)]="nuevoPrestamo.montoTotal" 
+                name="monto"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                [disabled]="esModoEdicion && !pinVerificado"
+                required
+                style="flex: 1;"
+              />
+              <button 
+                *ngIf="esModoEdicion && !pinVerificado"
+                type="button"
+                class="btn btn--sm btn--primary"
+                (click)="solicitarPIN('montoTotal')"
+                title="Ingresar PIN para editar"
+              >
+                🔓
+              </button>
+              <span *ngIf="esModoEdicion && pinVerificado" style="color: #4caf50; font-size: 1.2rem;" title="Campo desbloqueado">
+                ✅
+              </span>
+            </div>
+          </div>
+
+          <!-- Número de Cuotas -->
+          <div class="form-group">
+            <label class="form-label">
+              <span class="required">*</span> Número de Cuotas
+            </label>
+            <input 
+              type="number" 
+              class="form-input" 
+              [(ngModel)]="nuevoPrestamo.numeroCuotas" 
+              name="cuotas"
+              placeholder="12"
+              min="1"
+              [disabled]="esModoEdicion"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Fecha de Inicio -->
+        <div class="form-group">
+          <label class="form-label">
+            <span class="required">*</span> Fecha de Inicio de Pagos
+          </label>
+          <input 
+            type="date" 
+            class="form-input" 
+            [(ngModel)]="nuevoPrestamo.fechaInicio" 
+            name="fechaInicio"
+            [disabled]="esModoEdicion"
+            required
+          />
+        </div>
+
+        <!-- SELECTOR DE MODO DE CRONOGRAMA -->
+        <div class="form-group" *ngIf="!esModoEdicion">
+          <label class="form-label">
+            <span class="required">*</span> Tipo de Cronograma
+          </label>
+          <div class="modo-selector modo-selector--triple">
+            <button 
+              type="button"
+              class="modo-btn" 
+              [class.modo-btn--active]="modoCronograma === 'automatico'"
+              (click)="cambiarModoCronograma('automatico')"
+            >
+              <span class="modo-btn__icon">⚡</span>
+              <div class="modo-btn__content">
+                <strong>Automático</strong>
+                <small>Cuotas iguales</small>
+              </div>
+            </button>
+            
+            <button 
+              type="button"
+              class="modo-btn" 
+              [class.modo-btn--active]="modoCronograma === 'manual'"
+              (click)="cambiarModoCronograma('manual')"
+            >
+              <span class="modo-btn__icon">✏️</span>
+              <div class="modo-btn__content">
+                <strong>Manual</strong>
+                <small>Editar cada cuota</small>
+              </div>
+            </button>
+
+            <button 
+              type="button"
+              class="modo-btn" 
+              [class.modo-btn--active]="modoCronograma === 'importar'"
+              (click)="cambiarModoCronograma('importar')"
+            >
+              <span class="modo-btn__icon">📤</span>
+              <div class="modo-btn__content">
+                <strong>Importar</strong>
+                <small>Subir Excel/CSV</small>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- MODO AUTOMÁTICO: MONTO POR CUOTA -->
+        <div class="form-group" *ngIf="modoCronograma === 'automatico'">
+          <label class="form-label">
+            <span class="required">*</span> Monto por Cuota (S/.)
+          </label>
+          <input 
+            type="number" 
+            class="form-input" 
+            [(ngModel)]="nuevoPrestamo.montoCuota" 
+            name="montoCuota"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            [disabled]="esModoEdicion"
+            required
+          />
+          <small class="form-help">
+            Se generarán {{ nuevoPrestamo.numeroCuotas || 0 }} cuotas iguales de S/. {{ nuevoPrestamo.montoCuota || 0 }}
+          </small>
+        </div>
+
+        <!-- MODO MANUAL: TABLA DE CUOTAS -->
+        <div class="cronograma-manual" *ngIf="modoCronograma === 'manual' && !esModoEdicion">
+          <div class="cronograma-manual__header">
+            <h4>📋 Cronograma Personalizado</h4>
+            <button 
+              type="button" 
+              class="btn btn--sm btn--secondary" 
+              (click)="generarCuotasManuales()"
+              [disabled]="!nuevoPrestamo.numeroCuotas"
+            >
+              🔄 Generar Cuotas
+            </button>
+          </div>
+
+          <div class="alert alert--info" *ngIf="cuotasManuales.length === 0">
+            <span class="alert__icon">💡</span>
+            <div>
+              <strong>Paso 1:</strong> Ingresa el número de cuotas y haz clic en "Generar Cuotas"<br>
+              <strong>Paso 2:</strong> Edita los montos de cada cuota según el cronograma real
+            </div>
+          </div>
+
+          <div class="cuotas-table-wrapper" *ngIf="cuotasManuales.length > 0">
+            <div class="cuotas-stats">
+              <div class="stat">
+                <label>Total Cronograma:</label>
+                <strong>S/. {{ calcularTotalCuotasManuales().toFixed(2) }}</strong>
+              </div>
+              <div class="stat">
+                <label>Monto Préstamo:</label>
+                <strong>S/. {{ nuevoPrestamo.montoTotal || 0 }}</strong>
+              </div>
+              <div class="stat" [class.stat--warning]="Math.abs(calcularTotalCuotasManuales() - nuevoPrestamo.montoTotal) > 0.50">
+                <label>Diferencia:</label>
+                <strong>S/. {{ Math.abs(calcularTotalCuotasManuales() - nuevoPrestamo.montoTotal).toFixed(2) }}</strong>
+              </div>
+            </div>
+
+            <div class="cuotas-table">
+              <table class="table table--sm">
+                <thead>
+                  <tr>
+                    <th class="text-center" style="width: 80px;">N° Cuota</th>
+                    <th style="width: 180px;">Monto (S/.)</th>
+                    <th>Fecha Vencimiento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let cuota of cuotasManuales; let i = index">
+                    <td class="text-center"><strong>#{{ cuota.numeroCuota }}</strong></td>
+                    <td>
+                      <input 
+                        type="number" 
+                        class="form-input form-input--sm" 
+                        [(ngModel)]="cuota.montoCuota"
+                        [name]="'cuota_monto_' + i"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        required
+                      />
+                    </td>
+                    <td>
+                      <input 
+                        type="date" 
+                        class="form-input form-input--sm" 
+                        [(ngModel)]="cuota.fechaVencimiento"
+                        [name]="'cuota_fecha_' + i"
+                        required
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODO IMPORTAR: SUBIR ARCHIVO -->
+        <div class="importar-section" *ngIf="modoCronograma === 'importar' && !esModoEdicion">
+          <div class="importar-section__header">
+            <h4>📤 Importar Cronograma desde Excel/CSV</h4>
+          </div>
+
+          <div class="alert alert--info">
+            <span class="alert__icon">💡</span>
+            <div>
+              <strong>Formatos aceptados:</strong><br>
+              📊 <strong>Excel/CSV:</strong> .xlsx, .xls, .csv<br>
+              📄 <strong>PDF:</strong> Cronogramas del banco en PDF<br>
+              📷 <strong>Fotos/Escaneados:</strong> .jpg, .png (usamos OCR)<br>
+              <small>Tamaño máximo: 10 MB</small>
+            </div>
+          </div>
+
+          <div class="file-upload-area">
+            <input 
+              type="file" 
+              id="archivoImportar" 
+              accept=".xlsx,.xls,.csv,.pdf,.jpg,.jpeg,.png"
+              (change)="onFileSelected($event)"
+              style="display: none;"
+            />
+            
+            <label for="archivoImportar" class="file-upload-label">
+              <span class="file-upload-icon">📁</span>
+              <div class="file-upload-text">
+                <strong>{{ nombreArchivoImportar || 'Seleccionar archivo' }}</strong>
+                <small>Excel, CSV, PDF o Foto/Escaneado del cronograma</small>
+              </div>
+            </label>
+
+            <div class="file-upload-actions" *ngIf="archivoImportar">
+              <button 
+                type="button" 
+                class="btn btn--primary" 
+                (click)="importarCronograma()"
+                [disabled]="importando"
+              >
+                <span class="btn__icon">{{ importando ? '⏳' : '📤' }}</span>
+                {{ importando ? 'Procesando...' : 'Importar Cronograma' }}
+              </button>
+              
+              <button 
+                type="button" 
+                class="btn btn--ghost" 
+                (click)="limpiarArchivo()"
+                [disabled]="importando"
+              >
+                <span class="btn__icon">🗑️</span>
+                Limpiar
+              </button>
+            </div>
+          </div>
+
+          <!-- Mostrar cuotas importadas -->
+          <div class="cuotas-table-wrapper" *ngIf="cuotasManuales.length > 0">
+            <div class="cuotas-stats">
+              <div class="stat">
+                <label>Cuotas Importadas:</label>
+                <strong>{{ cuotasManuales.length }}</strong>
+              </div>
+              <div class="stat">
+                <label>Total Cronograma:</label>
+                <strong>S/. {{ calcularTotalCuotasManuales().toFixed(2) }}</strong>
+              </div>
+              <div class="stat">
+                <label>Monto Préstamo:</label>
+                <strong>S/. {{ nuevoPrestamo.montoTotal || 0 }}</strong>
+              </div>
+            </div>
+
+            <div class="cuotas-table">
+              <table class="table table--sm">
+                <thead>
+                  <tr>
+                    <th class="text-center" style="width: 80px;">N° Cuota</th>
+                    <th style="width: 180px;">Monto (S/.)</th>
+                    <th>Fecha Vencimiento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let cuota of cuotasManuales.slice(0, 10)">
+                    <td class="text-center"><strong>#{{ cuota.numeroCuota }}</strong></td>
+                    <td>S/. {{ cuota.montoCuota }}</td>
+                    <td>{{ cuota.fechaVencimiento }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              
+              <div class="table-footer" *ngIf="cuotasManuales.length > 10">
+                <small>Mostrando las primeras 10 de {{ cuotasManuales.length }} cuotas...</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Código de Descuento -->
+        <div class="form-group">
+          <label class="form-label">Código de Descuento (Opcional)</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="nuevoPrestamo.codigoDescuento" 
+            name="codigoDescuento"
+            placeholder="Ej: DESC-BCP-001"
+          />
+        </div>
+
+        <!-- PIN de Seguridad -->
+        <div class="form-group" *ngIf="!esModoEdicion">
+          <label class="form-label">
+            <span class="required">*</span> PIN de Seguridad
+          </label>
+          <input 
+            type="password" 
+            class="form-input" 
+            [(ngModel)]="nuevoPrestamo.pin" 
+            name="pin"
+            placeholder="Ingrese un PIN de 4-6 dígitos"
+            maxlength="6"
+            minlength="4"
+            required
+          />
+          <small class="form-help">
+            🔒 Este PIN protegerá la edición del monto total y las cuotas. Guárdelo de forma segura.
+          </small>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="form-group">
+          <label class="form-label">Observaciones</label>
+          <textarea 
+            class="form-input" 
+            [(ngModel)]="nuevoPrestamo.observaciones" 
+            name="observaciones"
+            rows="3"
+            placeholder="Notas adicionales sobre el préstamo..."
+          ></textarea>
+        </div>
+
+        <!-- SECCIÓN: VER Y EDITAR TODAS LAS CUOTAS (MODO EDICIÓN) -->
+        <div class="form-group form-group--full" *ngIf="esModoEdicion && cronograma.length > 0">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <label class="form-label" style="margin: 0;">
+              📋 Cronograma de Cuotas ({{ cronograma.length }} cuotas)
+            </label>
+            <button 
+              *ngIf="!pinVerificado"
+              type="button"
+              class="btn btn--sm btn--primary"
+              (click)="solicitarPIN('cuotas')"
+              title="Ingresar PIN para editar cuotas"
+            >
+              🔓 Desbloquear para Editar
+            </button>
+            <span *ngIf="pinVerificado" style="color: #4caf50; font-weight: 600;">
+              ✅ Modo Edición Activado
+            </span>
+          </div>
+          
+          <div class="alert alert--info" style="margin-bottom: 1rem;">
+            <span class="alert__icon">💡</span>
+            <div>
+              <strong>Instrucciones:</strong> Puede editar el monto de cada cuota individualmente. 
+              Algunas cuotas pueden variar por centavos debido a redondeos o ajustes de la entidad financiera.
+            </div>
+          </div>
+
+          <div class="cronograma-editable" style="max-height: 500px; overflow-y: auto; overflow-x: auto; border: 1px solid #333; border-radius: 8px; padding: 1rem;">
+            <table class="table" style="width: 100%; min-width: 750px; font-size: 0.9rem; table-layout: auto;">
+              <thead>
+                <tr>
+                  <th class="text-center" style="width: 80px;">N° Cuota</th>
+                  <th style="width: 180px;">Monto Original (S/.)</th>
+                  <th style="width: 180px; min-width: 180px;">Monto Editado (S/.)</th>
+                  <th style="min-width: 150px;">Fecha Vencimiento</th>
+                  <th class="text-center" style="width: 120px;">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let cuota of cronograma" [class.row-edited]="cuota.editada">
+                  <td class="text-center"><strong>#{{ cuota.NumeroCuota }}</strong></td>
+                  <td>
+                    <span [style.color]="cuota.editada ? '#888' : '#fff'">
+                      S/. {{ (cuota.montoOriginal || cuota.MontoCuota).toFixed(2) }}
+                    </span>
+                  </td>
+                  <td style="padding: 8px; min-width: 180px;">
+                    <input 
+                      type="number" 
+                      class="form-input form-input--sm cuota-monto-input" 
+                      [(ngModel)]="cuota.MontoCuota"
+                      [name]="'cuota_' + cuota.CuotaID"
+                      step="0.01"
+                      min="0"
+                      [disabled]="!pinVerificado || cuota.Estado !== 'Pendiente'"
+                      (blur)="marcarCuotaComoEditada(cuota, cuota.MontoCuota)"
+                      style="width: 100%; min-width: 160px; padding: 8px 12px; font-size: 14px; box-sizing: border-box;"
+                      placeholder="0.00"
+                    />
+                  </td>
+                  <td style="padding: 8px; min-width: 150px;">
+                    <input 
+                      type="date" 
+                      class="form-input form-input--sm" 
+                      [value]="cuota.FechaVencimiento ? (cuota.FechaVencimiento.split('T')[0] || cuota.FechaVencimiento) : ''"
+                      (change)="cuota.FechaVencimiento = $any($event.target).value; cuota.editada = true;"
+                      [disabled]="!pinVerificado || cuota.Estado !== 'Pendiente'"
+                      style="width: 100%; min-width: 140px; padding: 8px 12px; font-size: 14px; box-sizing: border-box;"
+                    />
+                  </td>
+                  <td class="text-center">
+                    <span [class]="'badge ' + (cuota.Estado === 'Pagada' ? 'badge--success' : cuota.Estado === 'Vencida' ? 'badge--danger' : 'badge--warning')">
+                      {{ cuota.Estado }}
+                    </span>
+                    <span *ngIf="cuota.editada" style="color: #4caf50; margin-left: 0.5rem;" title="Cuota editada">
+                      ✏️
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="cerrarFormulario()">Cancelar</button>
+      <button class="btn btn--primary" (click)="guardarPrestamo()">
+        <span class="btn__icon">💾</span>
+        {{ esModoEdicion ? 'Actualizar Préstamo' : 'Guardar Préstamo' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: DETALLE PRÉSTAMO ==================== -->
+<div class="modal-overlay" *ngIf="prestamoSeleccionado" (click)="cerrarDetalle()">
+  <div class="modal modal--large" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h2 class="modal__title">
+        <span class="modal__icon">📋</span>
+        Detalle del Préstamo
+      </h2>
+      <button class="modal__close" (click)="cerrarDetalle()">✖</button>
+    </div>
+
+    <div class="modal__body">
+      <!-- Info del Préstamo -->
+      <div class="detalle-grid">
+        <div class="detalle-item">
+          <label>Trabajador:</label>
+          <strong>{{ prestamoSeleccionado.NombreCompleto }}</strong>
+        </div>
+        <div class="detalle-item">
+          <label>DNI:</label>
+          <strong>{{ prestamoSeleccionado.NumeroDocumento }}</strong>
+        </div>
+        <div class="detalle-item">
+          <label>Entidad:</label>
+          <strong>{{ prestamoSeleccionado.EntidadFinanciera }}</strong>
+        </div>
+        <div class="detalle-item">
+          <label>Tipo:</label>
+          <strong>{{ prestamoSeleccionado.TipoEntidad }}</strong>
+        </div>
+        <div class="detalle-item">
+          <label>N° Contrato:</label>
+          <strong>{{ prestamoSeleccionado.NumeroContrato }}</strong>
+        </div>
+        <div class="detalle-item">
+          <label>Tipo Préstamo:</label>
+          <strong>{{ prestamoSeleccionado.TipoPrestamo }}</strong>
+        </div>
+        <div class="detalle-item">
+          <label>Monto Total:</label>
+          <strong class="text-primary">{{ formatearMonto(prestamoSeleccionado.MontoTotal) }}</strong>
+        </div>
+        <div class="detalle-item">
+          <label>Cuota Mensual:</label>
+          <strong>{{ formatearMonto(prestamoSeleccionado.MontoCuota) }}</strong>
+        </div>
+        <div class="detalle-item">
+          <label>Saldo Pendiente:</label>
+          <strong class="text-danger">{{ formatearMonto(prestamoSeleccionado.SaldoPendiente) }}</strong>
+        </div>
+        <div class="detalle-item">
+          <label>Estado:</label>
+          <span [class]="'badge ' + getEstadoClass(prestamoSeleccionado.Estado)">
+            {{ prestamoSeleccionado.Estado }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Cronograma de Pagos -->
+      <div class="cronograma-section">
+        <h3 class="section-title">📅 Cronograma de Pagos</h3>
+        
+        <div class="cronograma-table-wrapper">
+          <table class="table table--sm">
+            <thead>
+              <tr>
+                <th class="text-center">N° Cuota</th>
+                <th>Fecha Vencimiento</th>
+                <th class="text-right">Monto</th>
+                <th class="text-center">Estado</th>
+                <th>Fecha Pago</th>
+                <th>Planilla</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let cuota of cronograma">
+                <td class="text-center"><strong>#{{ cuota.NumeroCuota }}</strong></td>
+                <td>{{ formatearFecha(cuota.FechaVencimiento) }}</td>
+                <td class="text-right">{{ formatearMonto(cuota.MontoCuota) }}</td>
+                <td class="text-center">
+                  <span [class]="'badge ' + getEstadoCuotaClass(cuota.Estado)">
+                    {{ cuota.Estado || 'Pendiente' }}
+                  </span>
+                </td>
+                <td>{{ cuota.FechaPago ? formatearFecha(cuota.FechaPago) : '-' }}</td>
+                <td>{{ cuota.CodigoPlanilla || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="cerrarDetalle()">Cerrar</button>
+      <button 
+        class="btn btn--warning" 
+        (click)="liquidarPrestamo(prestamoSeleccionado)"
+        *ngIf="prestamoSeleccionado.Estado === 'Activo'"
+      >
+        <span class="btn__icon">💰</span>
+        Liquidar Préstamo
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: LIQUIDACIÓN ==================== -->
+<div class="modal-overlay" *ngIf="mostrarModalLiquidacion" (click)="cerrarModalLiquidacion()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h2 class="modal__title">
+        <span class="modal__icon">💰</span>
+        Liquidar Préstamo
+      </h2>
+      <button class="modal__close" (click)="cerrarModalLiquidacion()">✖</button>
+    </div>
+
+    <div class="modal__body">
+      <div class="alert alert--warning">
+        <span class="alert__icon">⚠️</span>
+        <div>
+          <strong>¿Está seguro de liquidar este préstamo?</strong>
+          <p>Esta acción cancelará todas las cuotas pendientes y marcará el préstamo como liquidado.</p>
+        </div>
+      </div>
+
+      <div class="liquidacion-info">
+        <div class="liquidacion-item">
+          <label>Saldo Pendiente:</label>
+          <strong class="text-danger">{{ formatearMonto(prestamoALiquidar?.SaldoPendiente || 0) }}</strong>
+        </div>
+        <div class="liquidacion-item">
+          <label>Cuotas Pendientes:</label>
+          <strong>{{ (prestamoALiquidar?.NumeroCuotas || 0) - (prestamoALiquidar?.CuotasPagadas || 0) }}</strong>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          <span class="required">*</span> Monto de Liquidación (S/.)
+        </label>
+        <input 
+          type="number" 
+          class="form-input" 
+          [(ngModel)]="montoLiquidacion" 
+          step="0.01"
+          min="0"
+          [placeholder]="formatearMonto(prestamoALiquidar?.SaldoPendiente || 0)"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Observaciones</label>
+        <textarea 
+          class="form-input" 
+          [(ngModel)]="observacionesLiquidacion" 
+          rows="3"
+          placeholder="Motivo de la liquidación anticipada..."
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="cerrarModalLiquidacion()">Cancelar</button>
+      <button class="btn btn--warning" (click)="confirmarLiquidacion()">
+        <span class="btn__icon">💰</span>
+        Confirmar Liquidación
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: INGRESAR PIN ==================== -->
+<div class="modal-overlay" *ngIf="mostrarModalPIN" (click)="cerrarModalPIN()">
+  <div class="modal modal--small" (click)="$event.stopPropagation()" [class.modal--shake]="nivelAlertaPIN === 'critica' && mostrarAlertaPIN">
+    <div class="modal__header" [class.modal__header--danger]="nivelAlertaPIN === 'critica'">
+      <h2 class="modal__title">
+        <span class="modal__icon">{{ nivelAlertaPIN === 'critica' ? '🚨' : nivelAlertaPIN === 'media' ? '⚠️' : '🔒' }}</span>
+        Ingresar PIN de Seguridad
+      </h2>
+      <button class="modal__close" (click)="cerrarModalPIN()">✖</button>
+    </div>
+
+    <div class="modal__body">
+      <div class="alert alert--warning" style="margin-bottom: 1.5rem;">
+        <span class="alert__icon">⚠️</span>
+        <div>
+          <strong>Acceso Restringido</strong><br>
+          Para editar {{ campoProtegidoEditando === 'montoTotal' ? 'el monto total' : 'las cuotas' }}, 
+          debe ingresar el PIN de seguridad configurado para este préstamo.
+        </div>
+      </div>
+
+      <!-- ALERTA NORMAL (1-3 intentos) -->
+      <div 
+        *ngIf="mostrarAlertaPIN && nivelAlertaPIN === 'normal'" 
+        class="alerta-pin alerta-pin--normal"
+        style="margin-bottom: 1rem; padding: 1rem; border-radius: 8px; background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border: 2px solid #ffc107; box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3); animation: slideDown 0.3s ease-out;"
+      >
+        <div style="display: flex; align-items: flex-start; gap: 1rem;">
+          <div style="font-size: 2rem; line-height: 1;">⚠️</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; color: #856404; margin-bottom: 0.5rem; font-size: 1.1rem;">
+              PIN Incorrecto
+            </div>
+            <div style="color: #856404; font-size: 0.95rem;">
+              El PIN ingresado no es correcto. Por favor, intente nuevamente.
+              <br>
+              <strong>Intentos fallidos: {{ intentosPINFallidos }} de 3</strong>
+            </div>
+          </div>
+          <button 
+            (click)="cerrarAlertaPIN()" 
+            style="background: none; border: none; color: #856404; font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1; opacity: 0.7; transition: opacity 0.2s;"
+            onmouseover="this.style.opacity='1'"
+            onmouseout="this.style.opacity='0.7'"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- ALERTA MEDIA (4-5 intentos) -->
+      <div 
+        *ngIf="mostrarAlertaPIN && nivelAlertaPIN === 'media'" 
+        class="alerta-pin alerta-pin--media"
+        style="margin-bottom: 1rem; padding: 1.25rem; border-radius: 8px; background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); border: 2px solid #dc3545; box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4); animation: slideDownShake 0.4s ease-out;"
+      >
+        <div style="display: flex; align-items: flex-start; gap: 1rem;">
+          <div style="font-size: 2.5rem; line-height: 1; animation: pulse 1s infinite;">⚠️</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 700; color: #721c24; margin-bottom: 0.5rem; font-size: 1.2rem;">
+              ⚠️ Múltiples Intentos Fallidos
+            </div>
+            <div style="color: #721c24; font-size: 1rem; line-height: 1.5;">
+              Ha ingresado un PIN incorrecto en varias ocasiones. Por favor, verifique el PIN antes de continuar.
+              <br><br>
+              <strong style="font-size: 1.1rem;">Intentos fallidos: {{ intentosPINFallidos }} de 5</strong>
+              <br>
+              <span style="font-size: 0.9rem; opacity: 0.9;">Le quedan {{ 6 - intentosPINFallidos }} intentos antes de que se active el modo de seguridad crítico.</span>
+            </div>
+          </div>
+          <button 
+            (click)="cerrarAlertaPIN()" 
+            style="background: none; border: none; color: #721c24; font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1; opacity: 0.7; transition: opacity 0.2s;"
+            onmouseover="this.style.opacity='1'"
+            onmouseout="this.style.opacity='0.7'"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- ALERTA CRÍTICA (6+ intentos) -->
+      <div 
+        *ngIf="mostrarAlertaPIN && nivelAlertaPIN === 'critica'" 
+        class="alerta-pin alerta-pin--critica"
+        style="margin-bottom: 1rem; padding: 1.5rem; border-radius: 10px; background: linear-gradient(135deg, #721c24 0%, #c82333 100%); border: 3px solid #dc3545; box-shadow: 0 8px 30px rgba(220, 53, 69, 0.6), 0 0 0 4px rgba(220, 53, 69, 0.2); animation: criticalAlert 0.5s ease-out; position: relative; overflow: hidden;"
+      >
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%); animation: shimmer 2s infinite;"></div>
+        <div style="display: flex; align-items: flex-start; gap: 1.25rem; position: relative; z-index: 1;">
+          <div style="font-size: 3rem; line-height: 1; animation: rotate 1s ease-in-out infinite, pulseCritical 0.8s infinite;">🚨</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 800; color: #ffffff; margin-bottom: 0.75rem; font-size: 1.4rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); letter-spacing: 0.5px;">
+              🚨 ALERTA DE SEGURIDAD CRÍTICA 🚨
+            </div>
+            <div style="color: #ffffff; font-size: 1.05rem; line-height: 1.6; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
+              <strong>Múltiples intentos fallidos detectados.</strong>
+              <br><br>
+              Ha intentado ingresar un PIN incorrecto <strong style="font-size: 1.2rem;">{{ intentosPINFallidos }} veces</strong>.
+              <br><br>
+              Por seguridad, se recomienda verificar el PIN correcto antes de continuar. 
+              Si continúa fallando, puede que el préstamo tenga un PIN diferente al que está intentando.
+              <br><br>
+              <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem; border-left: 4px solid #ffc107;">
+                <strong style="color: #ffc107;">💡 Consejo:</strong> Verifique que está ingresando el PIN correcto del préstamo. 
+                Si olvidó el PIN, puede necesitar contactar al administrador del sistema.
+              </div>
+            </div>
+          </div>
+          <button 
+            (click)="cerrarAlertaPIN()" 
+            style="background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); color: #ffffff; font-size: 1.5rem; cursor: pointer; padding: 0.25rem 0.5rem; line-height: 1; border-radius: 4px; transition: all 0.2s;"
+            onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.borderColor='rgba(255,255,255,0.8)'"
+            onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.borderColor='rgba(255,255,255,0.5)'"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          <span class="required">*</span> PIN de Seguridad
+          <span *ngIf="intentosPINFallidos > 0" style="margin-left: 0.5rem; color: #dc3545; font-weight: 600;">
+            ({{ intentosPINFallidos }} intento{{ intentosPINFallidos > 1 ? 's' : '' }} fallido{{ intentosPINFallidos > 1 ? 's' : '' }})
+          </span>
+        </label>
+        <input 
+          type="password" 
+          class="form-input" 
+          [class.form-input--error]="mostrarAlertaPIN"
+          [class.form-input--error-critical]="nivelAlertaPIN === 'critica'"
+          [(ngModel)]="pinIngresado"
+          placeholder="Ingrese el PIN"
+          maxlength="6"
+          (keyup.enter)="verificarPIN()"
+          #pinInput
+          autofocus
+          style="transition: all 0.3s ease;"
+        />
+        <div *ngIf="errorPIN && !mostrarAlertaPIN" class="alert alert--danger" style="margin-top: 0.5rem;">
+          <span class="alert__icon">❌</span>
+          {{ errorPIN }}
+        </div>
+      </div>
+    </div>
+
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="cerrarModalPIN()">Cancelar</button>
+      <button 
+        class="btn" 
+        [class.btn--primary]="nivelAlertaPIN !== 'critica'"
+        [class.btn--danger]="nivelAlertaPIN === 'critica'"
+        (click)="verificarPIN()" 
+        [disabled]="!pinIngresado || cargando"
+        style="transition: all 0.3s ease;"
+      >
+        <span class="btn__icon">{{ nivelAlertaPIN === 'critica' ? '🚨' : '🔓' }}</span>
+        {{ cargando ? 'Verificando...' : nivelAlertaPIN === 'critica' ? 'Verificar (Alerta)' : 'Verificar PIN' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDownShake {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes criticalAlert {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-30px);
+  }
+  50% {
+    transform: scale(1.02) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulseCritical {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.15) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  75% {
+    transform: scale(1.15) rotate(-5deg);
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.modal--shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-10px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(10px);
+  }
+}
+
+.modal__header--danger {
+  background: linear-gradient(135deg, #721c24 0%, #c82333 100%);
+  color: #ffffff;
+}
+
+.form-input--error {
+  border-color: #ffc107 !important;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2) !important;
+}
+
+.form-input--error-critical {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.3) !important;
+  animation: inputPulse 1s infinite;
+}
+
+@keyframes inputPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(220, 53, 69, 0.1);
+  }
+}
+</style>

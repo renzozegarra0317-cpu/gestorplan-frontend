@@ -1,0 +1,17 @@
+<div class="stat-card">
+  <div class="stat-content">
+    <p class="stat-label">{{ label }}</p>
+    <h2 class="stat-value" [ngClass]="'value-' + type">
+      <span *ngIf="prefix">{{ prefix }}</span>
+      <span>{{ formatValue(value) }}</span>
+      <span *ngIf="suffix">{{ suffix }}</span>
+    </h2>
+  </div>
+  
+  <div class="stat-icon" *ngIf="icon">
+    <i [class]="icon"></i>
+  </div>
+
+  <!-- Efecto de brillo al hover -->
+  <div class="shine-effect"></div>
+</div>

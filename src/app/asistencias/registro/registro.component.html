@@ -1,0 +1,887 @@
+<div class="registro-asistencia">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">📋</span>
+        <span class="page-title__text">Registro de Asistencias</span>
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Control diario de asistencia del personal municipal
+      </p>
+    </div>
+    <div class="page-header__right">
+      <div class="reloj-digital">
+        <div class="reloj-digital__time">
+          <span class="reloj-digital__hora">{{ horaCompleta }}</span>
+          <span class="reloj-digital__separador">:</span>
+          <span class="reloj-digital__minutos">{{ minutos }}</span>
+          <span class="reloj-digital__separador">:</span>
+          <span class="reloj-digital__segundos">{{ segundos }}</span>
+          <span class="reloj-digital__ampm">{{ ampm }}</span>
+        </div>
+        <div class="reloj-digital__date">
+          <span class="reloj-digital__dia-semana">{{ diaSemana }}</span>
+          <span class="reloj-digital__fecha-completa">{{ diaMes }} de {{ mesNombre }}, {{ anio }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESUMEN DIARIO -->
+  <div class="resumen-diario" *ngIf="resumenDiario">
+    <div class="resumen-card resumen-card--total">
+      <div class="resumen-card__icon">👥</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Trabajadores</span>
+        <span class="resumen-card__value">{{ resumenDiario.totalTrabajadores }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--presente">
+      <div class="resumen-card__icon">✅</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Presentes</span>
+        <span class="resumen-card__value">{{ resumenDiario.presentes }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--tardanza">
+      <div class="resumen-card__icon">⏰</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Tardanzas</span>
+        <span class="resumen-card__value">{{ resumenDiario.tardanzas }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--falta">
+      <div class="resumen-card__icon">❌</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Faltas</span>
+        <span class="resumen-card__value">{{ resumenDiario.faltas }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--permiso">
+      <div class="resumen-card__icon">📄</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Permisos</span>
+        <span class="resumen-card__value">{{ resumenDiario.permisos }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--licencia">
+      <div class="resumen-card__icon">🏥</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Licencias</span>
+        <span class="resumen-card__value">{{ resumenDiario.licencias }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--asistencia">
+      <div class="resumen-card__icon">📊</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">% Asistencia</span>
+        <span class="resumen-card__value">{{ resumenDiario.porcentajeAsistencia }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE NAVEGACIÓN DE FECHA -->
+  <div class="fecha-navigation">
+    <div class="fecha-navigation__controls">
+      <button class="btn-nav" (click)="cambiarFecha(-1)" title="Día anterior">
+        <span>◀️</span>
+      </button>
+      
+      <div class="fecha-selector">
+        <input 
+          type="date" 
+          class="fecha-input"
+          [(ngModel)]="fechaSeleccionada"
+          (change)="cargarAsistencias()"
+        />
+        <button class="btn btn--sm btn--accent" (click)="irHoy()">
+          📅 Hoy
+        </button>
+      </div>
+      
+      <button class="btn-nav" (click)="cambiarFecha(1)" title="Día siguiente">
+        <span>▶️</span>
+      </button>
+    </div>
+
+    <div class="fecha-navigation__actions">
+      <button class="btn btn--sm btn--outline" (click)="vistaActual = 'lista'" [class.active]="vistaActual === 'lista'">
+        📋 Lista
+      </button>
+      <button class="btn btn--sm btn--outline" (click)="vistaActual = 'tarjetas'" [class.active]="vistaActual === 'tarjetas'">
+        🎴 Tarjetas
+      </button>
+      <button 
+        class="btn btn--sm" 
+        [class.btn--success]="!todosEstanPresentes()"
+        [class.btn--danger]="todosEstanPresentes()"
+        (click)="todosEstanPresentes() ? marcarTodosFalta() : marcarTodosPresentes()" 
+        [title]="todosEstanPresentes() ? 'Marcar a todos los trabajadores como falta' : 'Marcar a todos los trabajadores como presentes'">
+        <span *ngIf="!todosEstanPresentes()">✅ Marcar Todos Presentes</span>
+        <span *ngIf="todosEstanPresentes()">❌ Marcar Todos como Falta</span>
+      </button>
+      <button class="btn btn--sm btn--accent" (click)="abrirModalHorariosMasivos()" title="Asignar horarios masivamente">
+        ⏰ Asignar Horarios
+      </button>
+      <button class="btn btn--sm btn--primary" (click)="abrirModalRegistro()">
+        ➕ Registro Manual
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-bar">
+    <div class="filtros-bar__left">
+      <div class="search-box">
+        <span class="search-box__icon">🔍</span>
+        <input
+          type="text"
+          class="search-box__input"
+          placeholder="Buscar por DNI, nombre, área..."
+          [(ngModel)]="filtros.busqueda"
+          (input)="aplicarFiltros()"
+        />
+      </div>
+
+      <select class="select" [(ngModel)]="filtros.estado" (change)="aplicarFiltros()">
+        <option value="">Todos los estados</option>
+        <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+      </select>
+
+      <select class="select" [(ngModel)]="filtros.regimenLaboral" (change)="aplicarFiltros()">
+        <option value="">Todos los regímenes</option>
+        <option *ngFor="let regimen of regimenesLaborales" [value]="regimen.Nombre">{{ regimen.Nombre }}</option>
+      </select>
+
+      <button class="btn btn--ghost btn--sm" (click)="limpiarFiltros()" *ngIf="filtros.busqueda || filtros.estado || filtros.regimenLaboral">
+        ✖️ Limpiar
+      </button>
+    </div>
+
+    <div class="filtros-bar__right">
+      <button class="btn-icon-export" (click)="exportarExcel()">
+        <img src="assets/excel.png" alt="Excel" class="btn-icon-export__icon" />
+        <span class="btn-icon-export__text">Excel</span>
+      </button>
+      <button class="btn-icon-export" (click)="exportarPDF()">
+        <img src="assets/pdf.png" alt="PDF" class="btn-icon-export__icon" />
+        <span class="btn-icon-export__text">PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- VISTA LISTA -->
+  <div class="tabla-container" *ngIf="vistaActual === 'lista'">
+    <div class="tabla-scroll">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>DNI</th>
+            <th>Trabajador</th>
+            <th>Área</th>
+            <th>Entrada Mañana</th>
+            <th>Salida Mañana</th>
+            <th>Entrada Tarde</th>
+            <th>Salida Tarde</th>
+            <th>Estado</th>
+            <th>Tiempo Trabajado</th>
+            <th>Justificación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="cargando">
+            <td colspan="11" class="td-loading">
+              <div class="loading-spinner">Cargando...</div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!cargando && registrosFiltrados.length === 0">
+            <td colspan="11" class="td-empty">
+              <div class="empty-state">
+                <span class="empty-state__icon">📭</span>
+                <p class="empty-state__text">No se encontraron registros</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let registro of registrosFiltrados" 
+              [class.highlight]="registro.estado === 'Falta'"
+              [class.dia-no-habil]="esDiaNoHabil()">
+            <td class="td-dni">{{ registro.trabajadorDni }}</td>
+            <td class="td-trabajador">
+              <div class="trabajador-info">
+                <span class="trabajador-info__nombre">{{ registro.trabajadorNombre }}</span>
+                <span class="trabajador-info__cargo">{{ registro.trabajadorCargo }}</span>
+              </div>
+            </td>
+            <td class="td-area">{{ registro.trabajadorArea }}</td>
+            <td class="td-hora" [class.td-hora--retraso]="registro.minutosTardanza > 0">
+              {{ (registro.horaEntradaManana && registro.horaEntradaManana !== '---' && registro.horaEntradaManana !== '--:--') ? registro.horaEntradaManana : (registro.horarioAsignadoEntradaManana || '---') }}
+              <span class="retraso-badge" *ngIf="registro.minutosTardanza > 0">
+                +{{ registro.minutosTardanza }}min
+              </span>
+            </td>
+            <td class="td-hora">{{ (registro.horaSalidaManana && registro.horaSalidaManana !== '---' && registro.horaSalidaManana !== '--:--') ? registro.horaSalidaManana : (registro.horarioAsignadoSalidaManana || '---') }}</td>
+            <td class="td-hora">{{ (registro.horaEntradaTarde && registro.horaEntradaTarde !== '---' && registro.horaEntradaTarde !== '--:--') ? registro.horaEntradaTarde : (registro.horarioAsignadoEntradaTarde || '---') }}</td>
+            <td class="td-hora">{{ (registro.horaSalidaTarde && registro.horaSalidaTarde !== '---' && registro.horaSalidaTarde !== '--:--') ? registro.horaSalidaTarde : (registro.horarioAsignadoSalidaTarde || '---') }}</td>
+            <td class="td-estado">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(registro.estado)">
+                {{ registro.estado }}
+              </span>
+            </td>
+            <td class="td-tiempo">
+              <span class="tiempo-trabajado">{{ registro.tiempoTrabajado }}</span>
+              <span class="horas-extras" *ngIf="registro.horasExtras && registro.horasExtras !== '0h'">+{{ registro.horasExtras }} extra</span>
+            </td>
+            <td class="td-justificacion">
+              <span class="justificacion-icon" *ngIf="registro.tieneJustificacion" title="Tiene justificación">
+                ✅
+              </span>
+              <span class="justificacion-icon justificacion-icon--no" *ngIf="!registro.tieneJustificacion && registro.estado !== 'Presente'" title="Sin justificación">
+                ⚠️
+              </span>
+            </td>
+            <td class="td-actions">
+              <div class="actions-menu">
+                <!-- BOTÓN: MARCAR PRESENTE -->
+                <button 
+                  class="btn-icon btn-icon--success" 
+                  title="Marcar Presente" 
+                  (click)="marcarPresente(registro); $event.stopPropagation()"
+                  *ngIf="registro.estado === 'Falta' || registro.tipoMarcacion === 'Falta'"
+                  type="button">
+                  ✅
+                </button>
+                
+                <!-- BOTÓN: MARCAR FALTA -->
+                <button 
+                  class="btn-icon btn-icon--danger" 
+                  title="Marcar Falta" 
+                  (click)="marcarFalta(registro); $event.stopPropagation()"
+                  *ngIf="registro.tipoMarcacion !== 'Falta' && registro.tipoMarcacion !== 'Permiso' && registro.tipoMarcacion !== 'Licencia'"
+                  type="button">
+                  ❌
+                </button>
+                
+                <!-- BOTÓN: MARCAR TARDANZA -->
+                <button 
+                  class="btn-icon btn-icon--warning" 
+                  title="Marcar Tardanza" 
+                  (click)="abrirModalTardanza(registro); $event.stopPropagation()"
+                  *ngIf="registro.tipoMarcacion !== 'Tardanza'"
+                  type="button">
+                  ⏰
+                </button>
+                
+                <!-- BOTÓN: MARCAR PERMISO -->
+                <button 
+                  class="btn-icon btn-icon--info" 
+                  title="Marcar Permiso" 
+                  (click)="abrirModalPermiso(registro); $event.stopPropagation()"
+                  *ngIf="registro.tipoMarcacion !== 'Permiso'"
+                  type="button">
+                  📋
+                </button>
+                
+                <!-- BOTÓN: MARCAR LICENCIA -->
+                <button 
+                  class="btn-icon btn-icon--info" 
+                  title="Marcar Licencia" 
+                  (click)="abrirModalLicencia(registro); $event.stopPropagation()"
+                  *ngIf="registro.tipoMarcacion !== 'Licencia'"
+                  type="button">
+                  🏥
+                </button>
+                
+                <!-- BOTÓN: EDITAR HORARIOS -->
+                <button 
+                  class="btn-icon btn-icon--primary" 
+                  title="Editar Horarios" 
+                  (click)="abrirModalEdicion(registro); $event.stopPropagation()"
+                  type="button">
+                  ⚙️
+                </button>
+                
+                <!-- BOTÓN: JUSTIFICAR -->
+                <button 
+                  class="btn-icon btn-icon--primary" 
+                  title="Justificar" 
+                  (click)="abrirModalJustificacion(registro); $event.stopPropagation()"
+                  type="button">
+                  📝
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- VISTA TARJETAS -->
+  <div class="tarjetas-container" *ngIf="vistaActual === 'tarjetas'">
+    <div class="tarjeta-asistencia" *ngFor="let registro of registrosFiltrados" [class.tarjeta-asistencia--falta]="registro.estado === 'Falta'">
+      <div class="tarjeta-asistencia__header">
+        <div class="tarjeta-asistencia__trabajador">
+          <div class="avatar">{{ registro.trabajadorNombre.charAt(0) }}</div>
+          <div class="info">
+            <h4 class="nombre">{{ registro.trabajadorNombre }}</h4>
+            <p class="cargo">{{ registro.trabajadorCargo }}</p>
+            <p class="area">{{ registro.trabajadorArea }}</p>
+          </div>
+        </div>
+        <span class="badge" [ngClass]="getEstadoBadgeClass(registro.estado)">
+          {{ registro.estado }}
+        </span>
+      </div>
+
+      <div class="tarjeta-asistencia__body">
+        <div class="marcacion-grid">
+          <div class="marcacion-item">
+            <span class="marcacion-item__label">🌅 Entrada Mañana</span>
+            <span class="marcacion-item__hora">{{ registro.horaEntradaManana || '---' }}</span>
+          </div>
+          <div class="marcacion-item">
+            <span class="marcacion-item__label">🌄 Salida Mañana</span>
+            <span class="marcacion-item__hora">{{ registro.horaSalidaManana || '---' }}</span>
+          </div>
+          <div class="marcacion-item">
+            <span class="marcacion-item__label">🌆 Entrada Tarde</span>
+            <span class="marcacion-item__hora">{{ registro.horaEntradaTarde || '---' }}</span>
+          </div>
+          <div class="marcacion-item">
+            <span class="marcacion-item__label">🌃 Salida Tarde</span>
+            <span class="marcacion-item__hora">{{ registro.horaSalidaTarde || '---' }}</span>
+          </div>
+        </div>
+
+        <div class="estadisticas-grid">
+          <div class="stat-item">
+            <span class="stat-item__icon">⏱️</span>
+            <div class="stat-item__content">
+              <span class="stat-item__label">Horas Trabajadas</span>
+              <span class="stat-item__value">{{ registro.tiempoTrabajado }}</span>
+            </div>
+          </div>
+          <div class="stat-item" *ngIf="registro.minutosTardanza > 0">
+            <span class="stat-item__icon">⏰</span>
+            <div class="stat-item__content">
+              <span class="stat-item__label">Retraso</span>
+              <span class="stat-item__value">{{ registro.minutosTardanza }}min</span>
+            </div>
+          </div>
+          <div class="stat-item" *ngIf="registro.horasExtras && registro.horasExtras !== '0h'">
+            <span class="stat-item__icon">⭐</span>
+            <div class="stat-item__content">
+              <span class="stat-item__label">Horas Extra</span>
+              <span class="stat-item__value">{{ registro.horasExtras }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="justificacion-info" *ngIf="registro.tieneJustificacion">
+          <span class="justificacion-info__icon">📋</span>
+          <div class="justificacion-info__content">
+            <span class="justificacion-info__label">Justificación:</span>
+            <span class="justificacion-info__texto">{{ registro.motivoJustificacion }}</span>
+          </div>
+        </div>
+
+        <div class="observaciones-info" *ngIf="registro.observaciones">
+          <span class="observaciones-info__icon">💬</span>
+          <span class="observaciones-info__texto">{{ registro.observaciones }}</span>
+        </div>
+      </div>
+
+      <div class="tarjeta-asistencia__footer">
+        <div class="footer-actions">
+          <button class="btn btn--sm btn--success" (click)="marcarPresente(registro)" *ngIf="registro.estado === 'Falta'">
+            ✅ Marcar Presente
+          </button>
+          <button class="btn btn--sm btn--danger" (click)="marcarFalta(registro)" *ngIf="registro.estado !== 'Falta'">
+            ❌ Marcar Falta
+          </button>
+          <button class="btn btn--sm btn--outline" (click)="abrirModalEdicion(registro)">
+            ⏰ Editar
+          </button>
+          <button class="btn btn--sm btn--warning" (click)="abrirModalJustificacion(registro)">
+            📝 Justificar
+          </button>
+        </div>
+        <span class="tipo-marcacion">{{ registro.tipoMarcacion }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRO MANUAL -->
+  <div class="modal" *ngIf="mostrarModalRegistro" (click)="mostrarModalRegistro = false; restaurarTopbarSidebar()">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">📝 Registro Manual de Asistencia</h3>
+        <button class="modal__close" (click)="mostrarModalRegistro = false; restaurarTopbarSidebar()">✖️</button>
+      </div>
+      <div class="modal__body">
+        <p class="modal__info">Registrar asistencia manualmente para trabajadores sin marcación biométrica</p>
+        
+        <div class="form-grid">
+          <div class="form-group form-group--full">
+            <label class="form-label">Trabajador *</label>
+            <select class="form-select" [(ngModel)]="formularioRegistro.trabajadorId" required>
+              <option value="">Seleccione un trabajador</option>
+              <option *ngFor="let trabajador of trabajadoresActivos" [value]="trabajador.id">
+                {{ trabajador.nombreCompleto }} - {{ trabajador.dni }} ({{ trabajador.area }})
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hora Entrada Mañana</label>
+            <input type="time" class="form-input" [(ngModel)]="formularioRegistro.horaEntradaManana">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hora Salida Mañana</label>
+            <input type="time" class="form-input" [(ngModel)]="formularioRegistro.horaSalidaManana">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hora Entrada Tarde</label>
+            <input type="time" class="form-input" [(ngModel)]="formularioRegistro.horaEntradaTarde">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hora Salida Tarde</label>
+            <input type="time" class="form-input" [(ngModel)]="formularioRegistro.horaSalidaTarde">
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Tipo de Marcación *</label>
+            <select class="form-select" [(ngModel)]="formularioRegistro.tipoMarcacion" required>
+              <option value="Presente">Presente</option>
+              <option value="Tardanza">Tardanza</option>
+              <option value="Falta">Falta</option>
+              <option value="Permiso">Permiso</option>
+              <option value="Licencia">Licencia</option>
+              <option value="Vacaciones">Vacaciones</option>
+              <option value="Comision">Comisión de Servicio</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Justificación</label>
+            <textarea class="form-textarea" [(ngModel)]="formularioRegistro.justificacion" 
+              placeholder="Motivo de la ausencia o tardanza..."></textarea>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-textarea" rows="3" placeholder="Ingrese observaciones..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalRegistro = false; restaurarTopbarSidebar()">Cancelar</button>
+        <button class="btn btn--primary" (click)="registrarAsistenciaManual()">💾 Guardar Registro</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR HORARIOS -->
+  <div class="modal" *ngIf="mostrarModalEdicion" (click)="mostrarModalEdicion = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">⏰ Editar Horarios de Asistencia</h3>
+        <button class="modal__close" (click)="mostrarModalEdicion = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="trabajador-selected">
+          <div class="avatar">{{ registroSeleccionado.trabajadorNombre.charAt(0) }}</div>
+          <div class="info">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p>{{ registroSeleccionado.trabajadorArea }}</p>
+          </div>
+          <span class="badge" [ngClass]="getEstadoBadgeClass(registroSeleccionado.estado)">
+            {{ registroSeleccionado.estado }}
+          </span>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">🌅 Entrada Mañana</label>
+            <input 
+              type="time" 
+              class="form-input" 
+              [(ngModel)]="registroSeleccionado.horaEntradaManana"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🌄 Salida Mañana</label>
+            <input 
+              type="time" 
+              class="form-input" 
+              [(ngModel)]="registroSeleccionado.horaSalidaManana"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🌆 Entrada Tarde</label>
+            <input 
+              type="time" 
+              class="form-input" 
+              [(ngModel)]="registroSeleccionado.horaEntradaTarde"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🌃 Salida Tarde</label>
+            <input 
+              type="time" 
+              class="form-input" 
+              [(ngModel)]="registroSeleccionado.horaSalidaTarde"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Estado</label>
+            <select class="form-select" [(ngModel)]="registroSeleccionado.estado">
+              <option value="Presente">✅ Presente</option>
+              <option value="Tardanza">⏰ Tardanza</option>
+              <option value="Falta">❌ Falta</option>
+              <option value="Permiso">📄 Permiso</option>
+              <option value="Licencia">🏥 Licencia</option>
+              <option value="Vacaciones">🏖️ Vacaciones</option>
+              <option value="Comision">🚗 Comisión</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Observaciones</label>
+            <textarea 
+              class="form-textarea" 
+              rows="3" 
+              [(ngModel)]="registroSeleccionado.observaciones"
+              placeholder="Observaciones adicionales..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalEdicion = false">Cancelar</button>
+        <button class="btn btn--primary" (click)="guardarEdicion()">💾 Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: JUSTIFICACIÓN -->
+  <div class="modal" *ngIf="mostrarModalJustificacion" (click)="mostrarModalJustificacion = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">📋 Justificación de Asistencia</h3>
+        <button class="modal__close" (click)="mostrarModalJustificacion = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="trabajador-selected">
+          <div class="avatar">{{ registroSeleccionado.trabajadorNombre.charAt(0) }}</div>
+          <div class="info">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p>{{ registroSeleccionado.trabajadorArea }}</p>
+          </div>
+          <span class="badge" [ngClass]="getEstadoBadgeClass(registroSeleccionado.estado)">
+            {{ registroSeleccionado.estado }}
+          </span>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group form-group--full">
+            <label class="form-label">Tipo de Justificación</label>
+            <select class="form-select" [(ngModel)]="registroSeleccionado.motivoJustificacion">
+              <option value="">Seleccione un motivo</option>
+              <option *ngFor="let tipo of tiposJustificacion" [value]="tipo">{{ tipo }}</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Documento de Sustento</label>
+            <input type="file" class="form-input" accept=".pdf,.jpg,.png">
+            <span class="form-hint">Adjunte certificado médico, papeleta de permiso, etc.</span>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-textarea" rows="4" placeholder="Detalles adicionales..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalJustificacion = false">Cancelar</button>
+        <button class="btn btn--accent" (click)="guardarJustificacion()">✅ Guardar Justificación</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TARDANZA -->
+  <div class="modal" *ngIf="mostrarModalTardanza" (click)="mostrarModalTardanza = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">⏰ Registrar Tardanza</h3>
+        <button class="modal__close" (click)="mostrarModalTardanza = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="trabajador-selected">
+          <div class="avatar">{{ registroSeleccionado.trabajadorNombre.charAt(0) }}</div>
+          <div class="info">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p>{{ registroSeleccionado.trabajadorCargo }}</p>
+            <p>{{ registroSeleccionado.trabajadorArea }}</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Hora de Entrada Real</label>
+            <input type="time" class="form-input" [(ngModel)]="formTardanza.horaEntradaManana" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Minutos de Retraso</label>
+            <input type="number" class="form-input" [(ngModel)]="formTardanza.minutosRetraso" min="0" placeholder="Minutos">
+          </div>
+          <div class="form-group form-group--full">
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-textarea" rows="3" [(ngModel)]="formTardanza.observaciones" placeholder="Motivo de la tardanza..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalTardanza = false">Cancelar</button>
+        <button class="btn btn--orange" (click)="guardarTardanza()">⏰ Guardar Tardanza</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PERMISO -->
+  <div class="modal" *ngIf="mostrarModalPermiso" (click)="mostrarModalPermiso = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">📋 Registrar Permiso</h3>
+        <button class="modal__close" (click)="mostrarModalPermiso = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="trabajador-selected">
+          <div class="avatar">{{ registroSeleccionado.trabajadorNombre.charAt(0) }}</div>
+          <div class="info">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p>{{ registroSeleccionado.trabajadorCargo }}</p>
+            <p>{{ registroSeleccionado.trabajadorArea }}</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tipo de Permiso</label>
+            <select class="form-select" [(ngModel)]="formPermiso.tipoPermiso">
+              <option value="Medio día">Medio día</option>
+              <option value="Todo el día">Todo el día</option>
+              <option value="Horas específicas">Horas específicas</option>
+            </select>
+          </div>
+          <div class="form-group" *ngIf="formPermiso.tipoPermiso === 'Horas específicas'">
+            <label class="form-label">Horas de Permiso</label>
+            <input type="number" class="form-input" [(ngModel)]="formPermiso.horas" min="1" max="8" placeholder="Horas">
+          </div>
+          <div class="form-group form-group--full">
+            <label class="form-label">Motivo del Permiso *</label>
+            <input type="text" class="form-input" [(ngModel)]="formPermiso.motivo" placeholder="Ej: Trámite personal, Emergencia familiar..." required>
+          </div>
+          <div class="form-group form-group--full">
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-textarea" rows="3" [(ngModel)]="formPermiso.observaciones" placeholder="Detalles adicionales..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalPermiso = false">Cancelar</button>
+        <button class="btn btn--purple" (click)="guardarPermiso()">📋 Guardar Permiso</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LICENCIA -->
+  <div class="modal" *ngIf="mostrarModalLicencia" (click)="mostrarModalLicencia = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">🏥 Registrar Licencia</h3>
+        <button class="modal__close" (click)="mostrarModalLicencia = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="trabajador-selected">
+          <div class="avatar">{{ registroSeleccionado.trabajadorNombre.charAt(0) }}</div>
+          <div class="info">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p>{{ registroSeleccionado.trabajadorCargo }}</p>
+            <p>{{ registroSeleccionado.trabajadorArea }}</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tipo de Licencia</label>
+            <select class="form-select" [(ngModel)]="formLicencia.tipoLicencia">
+              <option value="Con goce de haber">Con goce de haber</option>
+              <option value="Sin goce de haber">Sin goce de haber</option>
+              <option value="Licencia médica">Licencia médica</option>
+              <option value="Licencia por maternidad">Licencia por maternidad</option>
+              <option value="Licencia por paternidad">Licencia por paternidad</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Días de Licencia</label>
+            <input type="number" class="form-input" [(ngModel)]="formLicencia.dias" min="1" max="365" required>
+          </div>
+          <div class="form-group form-group--full">
+            <label class="form-label">Motivo de la Licencia *</label>
+            <input type="text" class="form-input" [(ngModel)]="formLicencia.motivo" placeholder="Ej: Enfermedad, Maternidad, Paternidad..." required>
+          </div>
+          <div class="form-group form-group--full">
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-textarea" rows="3" [(ngModel)]="formLicencia.observaciones" placeholder="Detalles adicionales, número de documento médico si aplica..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalLicencia = false">Cancelar</button>
+        <button class="btn btn--cyan" (click)="guardarLicencia()">🏥 Guardar Licencia</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== NOTIFICACIONES ==================== -->
+  <div class="notificacion-container" *ngIf="notificacion.mostrar" [@slideInOut]>
+    <div class="notificacion" [ngClass]="'notificacion--' + notificacion.tipo">
+      <div class="notificacion__icon">
+        <span *ngIf="notificacion.tipo === 'success'">✅</span>
+        <span *ngIf="notificacion.tipo === 'error'">❌</span>
+        <span *ngIf="notificacion.tipo === 'warning'">⚠️</span>
+        <span *ngIf="notificacion.tipo === 'info'">ℹ️</span>
+        <div class="spinner" *ngIf="notificacion.tipo === 'loading'">
+          <div class="spinner__circle"></div>
+        </div>
+      </div>
+      <div class="notificacion__content">
+        <div class="notificacion__titulo">{{ notificacion.titulo }}</div>
+        <div class="notificacion__mensaje" [innerHTML]="formatearMensajeNotificacion(notificacion.mensaje)"></div>
+      </div>
+      <button class="notificacion__close" (click)="cerrarNotificacion()" *ngIf="notificacion.tipo !== 'loading'">✖️</button>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE CONFIRMACIÓN ==================== -->
+  <div class="modal-overlay modal-confirmacion" *ngIf="confirmacion.mostrar" (click)="cancelarAccion()">
+    <div class="modal-confirmacion__content" (click)="$event.stopPropagation()" [@scaleInOut]>
+      <div class="modal-confirmacion__header" [ngClass]="'modal-confirmacion__header--' + confirmacion.tipo">
+        <div class="modal-confirmacion__icon">
+          <span *ngIf="confirmacion.tipo === 'success'">✅</span>
+          <span *ngIf="confirmacion.tipo === 'danger'">⚠️</span>
+          <span *ngIf="confirmacion.tipo === 'warning'">⚠️</span>
+          <span *ngIf="confirmacion.tipo === 'info'">ℹ️</span>
+        </div>
+        <h3 class="modal-confirmacion__titulo">{{ confirmacion.titulo }}</h3>
+      </div>
+      <div class="modal-confirmacion__body">
+        <p class="modal-confirmacion__mensaje" [innerHTML]="confirmacion.mensaje"></p>
+      </div>
+      <div class="modal-confirmacion__footer">
+        <button class="btn btn--ghost" (click)="cancelarAccion()">Cancelar</button>
+        <button class="btn" [ngClass]="'btn--' + (confirmacion.tipo === 'danger' ? 'danger' : confirmacion.tipo === 'warning' ? 'warning' : 'primary')" (click)="confirmarAccion()">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ASIGNAR HORARIOS MASIVAMENTE -->
+  <div class="modal" *ngIf="mostrarModalHorariosMasivos" (click)="mostrarModalHorariosMasivos = false">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">⏰ Asignar Horarios Masivamente</h3>
+        <button class="modal__close" (click)="mostrarModalHorariosMasivos = false">✖️</button>
+      </div>
+      <div class="modal__body">
+        <div class="form-group form-group--full">
+          <label class="form-label">Tipo de Asignación *</label>
+          <select class="form-select" [(ngModel)]="formHorariosMasivos.tipoAsignacion" (change)="formHorariosMasivos.regimenLaboralId = null">
+            <option value="todos">👥 Todos los Trabajadores</option>
+            <option value="regimen">📋 Por Régimen Laboral</option>
+          </select>
+        </div>
+
+        <div class="form-group form-group--full" *ngIf="formHorariosMasivos.tipoAsignacion === 'regimen'">
+          <label class="form-label">Régimen Laboral *</label>
+          <select class="form-select" [(ngModel)]="formHorariosMasivos.regimenLaboralId" required>
+            <option value="">Seleccione un régimen laboral</option>
+            <option *ngFor="let regimen of regimenesLaborales" [value]="regimen.RegimenID || regimen.regimenID || regimen.id">
+              {{ regimen.Nombre || regimen.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <h4 class="form-section-title">🕐 Horarios a Asignar</h4>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">🌅 Entrada Mañana</label>
+            <input type="time" class="form-input" [(ngModel)]="formHorariosMasivos.horaEntradaManana" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🌄 Salida Mañana</label>
+            <input type="time" class="form-input" [(ngModel)]="formHorariosMasivos.horaSalidaManana" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🌆 Entrada Tarde</label>
+            <input type="time" class="form-input" [(ngModel)]="formHorariosMasivos.horaEntradaTarde" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🌃 Salida Tarde</label>
+            <input type="time" class="form-input" [(ngModel)]="formHorariosMasivos.horaSalidaTarde" required>
+          </div>
+        </div>
+
+        <div class="alert alert--info" style="margin-top: 20px;">
+          <strong>ℹ️ Información:</strong>
+          <p *ngIf="formHorariosMasivos.tipoAsignacion === 'todos'">
+            Se asignará este horario a <strong>TODOS</strong> los trabajadores activos del sistema.
+          </p>
+          <p *ngIf="formHorariosMasivos.tipoAsignacion === 'regimen' && formHorariosMasivos.regimenLaboralId">
+            Se asignará este horario a todos los trabajadores del régimen laboral seleccionado.
+          </p>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalHorariosMasivos = false">Cancelar</button>
+        <button 
+          class="btn btn--primary" 
+          (click)="guardarHorariosMasivos()"
+          [disabled]="!formHorariosMasivos.horaEntradaManana || !formHorariosMasivos.horaSalidaManana || (formHorariosMasivos.tipoAsignacion === 'regimen' && !formHorariosMasivos.regimenLaboralId)">
+          💾 Guardar Horarios
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

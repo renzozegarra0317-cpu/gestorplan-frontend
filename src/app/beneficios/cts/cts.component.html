@@ -1,0 +1,618 @@
+<div class="cts-container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">💰</span>
+        CTS - Compensacion por Tiempo de Servicios
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Calculo y gestion de depositos semestrales de CTS
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--outline" (click)="exportarExcel()">
+        📊 Exportar Excel
+      </button>
+      <button class="btn btn--sm btn--primary" (click)="abrirCalculoMasivo()">
+        ➕ Calcular CTS
+      </button>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="resumen-cts" *ngIf="resumen">
+    <div class="resumen-card resumen-card--total">
+      <div class="resumen-card__icon">📋</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Registros</span>
+        <span class="resumen-card__value">{{ resumen.totalRegistros }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--trabajadores">
+      <div class="resumen-card__icon">👥</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Trabajadores</span>
+        <span class="resumen-card__value">{{ resumen.totalTrabajadores }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--calculado">
+      <div class="resumen-card__icon">🧮</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">CTS Calculado</span>
+        <span class="resumen-card__value">S/. {{ resumen.totalCTSCalculado.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--depositado">
+      <div class="resumen-card__icon">✅</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">CTS Depositado</span>
+        <span class="resumen-card__value">S/. {{ resumen.totalCTSDepositado.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--promedio">
+      <div class="resumen-card__icon">📊</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Promedio CTS</span>
+        <span class="resumen-card__value">S/. {{ resumen.promedioMontoCTS.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--meses">
+      <div class="resumen-card__icon">📅</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Promedio Meses</span>
+        <span class="resumen-card__value">{{ resumen.promedioMesesServicio.toFixed(1) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-section">
+    <div class="filtros-header">
+      <div class="filtros-header__left">
+        <h3 class="filtros-title">🔍 Filtros de Busqueda</h3>
+      </div>
+      <div class="filtros-header__right">
+        <button class="btn btn--ghost btn--sm" (click)="limpiarFiltros()">
+          ✖️ Limpiar
+        </button>
+      </div>
+    </div>
+
+    <div class="filtros-grid">
+      <div class="filtro-item">
+        <label class="filtro-label">Año:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.anio" (change)="aplicarFiltros()">
+          <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Periodo:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.periodo" (change)="aplicarFiltros()">
+          <option *ngFor="let periodo of periodosCTS" [value]="periodo">{{ periodo }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Estado:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.estado" (change)="aplicarFiltros()">
+          <option *ngFor="let estado of estadosCTS" [value]="estado">{{ estado }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Area:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.area" (change)="aplicarFiltros()">
+          <option *ngFor="let area of areas" [value]="area">{{ area }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item filtro-item--search">
+        <div class="search-box-wrapper">
+          <div class="search-box">
+            <label class="filtro-label">Buscar:</label>
+            <div class="search-box__input-wrapper">
+              <span class="search-box__icon">🔍</span>
+              <input
+                type="text"
+                class="search-box__input"
+                placeholder="Buscar por DNI, nombre, codigo..."
+                [(ngModel)]="filtros.busqueda"
+                (input)="aplicarFiltros()"
+              />
+            </div>
+          </div>
+        </div>
+        <span class="resultado-texto">
+          Mostrando <strong>{{ registrosFiltrados.length }}</strong> registros
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE REGISTROS -->
+  <div class="tabla-container">
+    <div class="tabla-scroll">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Codigo</th>
+            <th>Trabajador</th>
+            <th>DNI</th>
+            <th>Area</th>
+            <th>Periodo</th>
+            <th>Meses</th>
+            <th>Rem. Computable</th>
+            <th>1/6 Gratif.</th>
+            <th>Base Calculo</th>
+            <th>Monto CTS</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="cargando">
+            <td colspan="12" class="td-loading">
+              <div class="loading-spinner">Cargando...</div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!cargando && registrosPaginados.length === 0">
+            <td colspan="12" class="td-empty">
+              <div class="empty-state">
+                <span class="empty-state__icon">📭</span>
+                <p class="empty-state__text">No se encontraron registros de CTS</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let registro of registrosPaginados">
+            <td class="td-codigo">
+              <span class="codigo-badge">{{ registro.codigo }}</span>
+            </td>
+            <td class="td-trabajador">
+              <div class="trabajador-info">
+                <span class="trabajador-info__nombre">{{ registro.trabajadorNombre }}</span>
+                <span class="trabajador-info__cargo">{{ registro.trabajadorCargo }}</span>
+              </div>
+            </td>
+            <td class="td-dni">{{ registro.trabajadorDni }}</td>
+            <td class="td-area">{{ registro.trabajadorArea }}</td>
+            <td class="td-periodo">
+              <div class="periodo-info">
+                <span class="periodo-info__nombre">{{ registro.periodo }} {{ registro.anio }}</span>
+                <span class="periodo-info__fecha">{{ formatearFecha(registro.fechaInicio) }} - {{ formatearFecha(registro.fechaFin) }}</span>
+              </div>
+            </td>
+            <td class="td-meses">{{ registro.mesesCompletos }}m {{ registro.diasAdicionales }}d</td>
+            <td class="td-monto">S/. {{ registro.totalRemuneracionComputable.toFixed(2) }}</td>
+            <td class="td-monto">S/. {{ registro.sextoGratificacion.toFixed(2) }}</td>
+            <td class="td-monto td-monto--base">S/. {{ registro.baseCalculo.toFixed(2) }}</td>
+            <td class="td-monto td-monto--cts">
+              <strong>S/. {{ registro.montoCTS.toFixed(2) }}</strong>
+            </td>
+            <td class="td-estado">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(registro.estado)">
+                {{ registro.estado }}
+              </span>
+            </td>
+            <td class="td-acciones">
+              <div class="acciones-menu">
+                <button 
+                  class="btn-icon" 
+                  title="Ver Detalle"
+                  (click)="verDetalle(registro)"
+                >
+                  👁️
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Aprobar"
+                  (click)="aprobarRegistro(registro)"
+                  *ngIf="registro.estado === 'Calculado'"
+                >
+                  ✅
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Depositar"
+                  (click)="abrirDeposito(registro)"
+                  *ngIf="registro.estado === 'Aprobado'"
+                >
+                  💳
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Descargar Constancia"
+                  (click)="descargarConstancia(registro)"
+                  *ngIf="registro.estado === 'Depositado'"
+                >
+                  📥
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINACION -->
+    <div class="paginacion" *ngIf="totalPaginas > 1">
+      <button 
+        class="paginacion-btn" 
+        (click)="cambiarPagina(paginaActual - 1)"
+        [disabled]="paginaActual === 1"
+      >
+        ← Anterior
+      </button>
+
+      <div class="paginacion-numeros">
+        <button
+          *ngFor="let p of [].constructor(totalPaginas); let i = index"
+          class="paginacion-numero"
+          [class.active]="paginaActual === i + 1"
+          (click)="cambiarPagina(i + 1)"
+        >
+          {{ i + 1 }}
+        </button>
+      </div>
+
+      <button 
+        class="paginacion-btn" 
+        (click)="cambiarPagina(paginaActual + 1)"
+        [disabled]="paginaActual === totalPaginas"
+      >
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: CALCULO MASIVO -->
+  <div class="modal" *ngIf="mostrarModalCalculo" (click)="mostrarModalCalculo = false">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">🧮 Calculo Masivo de CTS</h3>
+        <button class="modal__close" (click)="mostrarModalCalculo = false">✖️</button>
+      </div>
+      <div class="modal__body">
+        <div class="calculo-info">
+          <div class="calculo-info__icon">💰</div>
+          <div class="calculo-info__content">
+            <h4>Configuracion del Calculo</h4>
+            <p>Seleccione el periodo y los trabajadores para calcular el CTS</p>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4 class="form-section__title">📅 Periodo de Calculo</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Periodo *</label>
+              <select class="form-select" [(ngModel)]="periodoCalculoMasivo">
+                <option value="Mayo">Mayo (Nov - Abr)</option>
+                <option value="Noviembre">Noviembre (May - Oct)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ano *</label>
+              <select class="form-select" [(ngModel)]="anioCalculoMasivo">
+                <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="periodo-detalle">
+            <span class="periodo-detalle__label">Periodo a calcular:</span>
+            <span class="periodo-detalle__value">
+              {{ periodoCalculoMasivo }} {{ anioCalculoMasivo }}
+              <ng-container *ngIf="periodoCalculoMasivo === 'Mayo'">
+                (01/11/{{ anioCalculoMasivo - 1 }} - 30/04/{{ anioCalculoMasivo }})
+              </ng-container>
+              <ng-container *ngIf="periodoCalculoMasivo === 'Noviembre'">
+                (01/05/{{ anioCalculoMasivo }} - 31/10/{{ anioCalculoMasivo }})
+              </ng-container>
+            </span>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4 class="form-section__title">👥 Seleccion de Trabajadores</h4>
+          <div class="trabajadores-seleccion">
+            <div class="seleccion-header">
+              <span class="seleccion-count">
+                {{ trabajadoresSeleccionados.length }} de {{ trabajadoresDisponibles.length }} seleccionados
+              </span>
+            </div>
+
+            <div class="trabajadores-grid">
+              <div 
+                class="trabajador-card" 
+                *ngFor="let trabajador of trabajadoresDisponibles"
+                [class.selected]="estaTrabajadorSeleccionado(trabajador)"
+                (click)="toggleSeleccionTrabajador(trabajador)"
+              >
+                <div class="trabajador-card__header">
+                  <div class="checkbox-indicator">
+                    <span class="checkmark" *ngIf="estaTrabajadorSeleccionado(trabajador)">✓</span>
+                  </div>
+                  <div class="trabajador-card__info">
+                    <h5 class="trabajador-nombre">{{ trabajador.nombre }}</h5>
+                    <p class="trabajador-dni">DNI: {{ trabajador.dni }}</p>
+                    <p class="trabajador-cargo">{{ trabajador.cargo }}</p>
+                  </div>
+                </div>
+                <div class="trabajador-card__body">
+                  <div class="dato-item">
+                    <span class="dato-label">Area:</span>
+                    <span class="dato-value">{{ trabajador.area }}</span>
+                  </div>
+                  <div class="dato-item">
+                    <span class="dato-label">Rem. Basica:</span>
+                    <span class="dato-value">S/. {{ trabajador.remuneracionBasica.toFixed(2) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalCalculo = false">Cancelar</button>
+        <button 
+          class="btn btn--primary" 
+          (click)="confirmarCalculoMasivo()"
+          [disabled]="trabajadoresSeleccionados.length === 0"
+        >
+          🧮 Calcular CTS ({{ trabajadoresSeleccionados.length }})
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE CTS -->
+  <div class="modal" *ngIf="mostrarModalDetalle" (click)="mostrarModalDetalle = false">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">📊 Detalle de CTS</h3>
+        <button class="modal__close" (click)="mostrarModalDetalle = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="detalle-cts">
+          <!-- INFORMACION GENERAL -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">👤 Informacion del Trabajador</h4>
+            <div class="datos-grid">
+              <div class="dato-item">
+                <span class="dato-label">Codigo CTS:</span>
+                <span class="dato-value">{{ registroSeleccionado.codigo }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Nombre:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorNombre }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">DNI:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorDni }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Cargo:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorCargo }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Area:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorArea }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PERIODO DE CALCULO -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">📅 Periodo de Calculo</h4>
+            <div class="datos-grid">
+              <div class="dato-item">
+                <span class="dato-label">Periodo:</span>
+                <span class="dato-value">{{ registroSeleccionado.periodo }} {{ registroSeleccionado.anio }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Fecha Inicio:</span>
+                <span class="dato-value">{{ formatearFecha(registroSeleccionado.fechaInicio) }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Fecha Fin:</span>
+                <span class="dato-value">{{ formatearFecha(registroSeleccionado.fechaFin) }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Meses Completos:</span>
+                <span class="dato-value">{{ registroSeleccionado.mesesCompletos }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Dias Adicionales:</span>
+                <span class="dato-value">{{ registroSeleccionado.diasAdicionales }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Total Dias:</span>
+                <span class="dato-value">{{ registroSeleccionado.totalDias }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- REMUNERACION COMPUTABLE -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">💰 Remuneracion Computable</h4>
+            <div class="conceptos-lista">
+              <div class="concepto-fila">
+                <span class="concepto-nombre">Remuneracion Basica:</span>
+                <span class="concepto-monto">S/. {{ registroSeleccionado.remuneracionBasica.toFixed(2) }}</span>
+              </div>
+              <div class="concepto-fila" *ngIf="registroSeleccionado.asignacionFamiliar > 0">
+                <span class="concepto-nombre">Asignacion Familiar:</span>
+                <span class="concepto-monto">S/. {{ registroSeleccionado.asignacionFamiliar.toFixed(2) }}</span>
+              </div>
+              <div class="concepto-fila" *ngIf="registroSeleccionado.promedioHorasExtras > 0">
+                <span class="concepto-nombre">Promedio Horas Extras:</span>
+                <span class="concepto-monto">S/. {{ registroSeleccionado.promedioHorasExtras.toFixed(2) }}</span>
+              </div>
+              <div class="concepto-fila concepto-fila--total">
+                <span class="concepto-nombre"><strong>Total Remuneracion Computable:</strong></span>
+                <span class="concepto-monto"><strong>S/. {{ registroSeleccionado.totalRemuneracionComputable.toFixed(2) }}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- GRATIFICACIONES -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">🎁 1/6 de Gratificaciones</h4>
+            <div class="conceptos-lista">
+              <div class="concepto-fila" *ngIf="registroSeleccionado.gratificacionJulio > 0">
+                <span class="concepto-nombre">Gratificacion Julio:</span>
+                <span class="concepto-monto">S/. {{ registroSeleccionado.gratificacionJulio.toFixed(2) }}</span>
+              </div>
+              <div class="concepto-fila" *ngIf="registroSeleccionado.gratificacionDiciembre > 0">
+                <span class="concepto-nombre">Gratificacion Diciembre:</span>
+                <span class="concepto-monto">S/. {{ registroSeleccionado.gratificacionDiciembre.toFixed(2) }}</span>
+              </div>
+              <div class="concepto-fila">
+                <span class="concepto-nombre">Promedio Gratificaciones:</span>
+                <span class="concepto-monto">S/. {{ registroSeleccionado.promedioGratificaciones.toFixed(2) }}</span>
+              </div>
+              <div class="concepto-fila concepto-fila--total">
+                <span class="concepto-nombre"><strong>1/6 Gratificacion:</strong></span>
+                <span class="concepto-monto"><strong>S/. {{ registroSeleccionado.sextoGratificacion.toFixed(2) }}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CALCULO CTS -->
+          <div class="detalle-seccion detalle-seccion--resultado">
+            <h4 class="seccion-titulo">🧮 Calculo de CTS</h4>
+            <div class="resultado-calculo">
+              <div class="resultado-fila">
+                <span class="resultado-label">Base de Calculo:</span>
+                <span class="resultado-valor">S/. {{ registroSeleccionado.baseCalculo.toFixed(2) }}</span>
+              </div>
+              <div class="resultado-fila">
+                <span class="resultado-label">Meses:</span>
+                <span class="resultado-valor">{{ registroSeleccionado.mesesCompletos }}</span>
+              </div>
+              <div class="resultado-fila resultado-fila--total">
+                <span class="resultado-label">MONTO CTS:</span>
+                <span class="resultado-valor">S/. {{ registroSeleccionado.montoCTS.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DATOS BANCARIOS -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">🏦 Datos de Deposito</h4>
+            <div class="datos-grid">
+              <div class="dato-item">
+                <span class="dato-label">Banco:</span>
+                <span class="dato-value">{{ registroSeleccionado.banco }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Tipo Cuenta:</span>
+                <span class="dato-value">{{ registroSeleccionado.tipoCuenta }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Numero Cuenta:</span>
+                <span class="dato-value">{{ registroSeleccionado.numeroCuenta }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Moneda:</span>
+                <span class="dato-value">{{ registroSeleccionado.moneda }}</span>
+              </div>
+              <div class="dato-item" *ngIf="registroSeleccionado.fechaDeposito">
+                <span class="dato-label">Fecha Deposito:</span>
+                <span class="dato-value">{{ formatearFecha(registroSeleccionado.fechaDeposito) }}</span>
+              </div>
+              <div class="dato-item" *ngIf="registroSeleccionado.numeroComprobante">
+                <span class="dato-label">Comprobante:</span>
+                <span class="dato-value">{{ registroSeleccionado.numeroComprobante }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ESTADO -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">📊 Estado del Registro</h4>
+            <div class="estado-info">
+              <span class="badge badge--large" [ngClass]="getEstadoBadgeClass(registroSeleccionado.estado)">
+                {{ registroSeleccionado.estado }}
+              </span>
+              <div class="estado-fechas">
+                <p *ngIf="registroSeleccionado.fechaCalculo">
+                  Calculado: {{ formatearFecha(registroSeleccionado.fechaCalculo) }} por {{ registroSeleccionado.calculadoPor }}
+                </p>
+                <p *ngIf="registroSeleccionado.fechaDeposito">
+                  Depositado: {{ formatearFecha(registroSeleccionado.fechaDeposito) }} por {{ registroSeleccionado.depositadoPor }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalDetalle = false">Cerrar</button>
+        <button class="btn btn--primary" (click)="descargarConstancia(registroSeleccionado!)">
+          📥 Descargar Constancia
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DEPOSITO -->
+  <div class="modal" *ngIf="mostrarModalDeposito" (click)="mostrarModalDeposito = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">💳 Confirmar Deposito de CTS</h3>
+        <button class="modal__close" (click)="mostrarModalDeposito = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="deposito-info">
+          <div class="deposito-info__icon">💰</div>
+          <div class="deposito-info__content">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p class="monto-deposito">S/. {{ registroSeleccionado.montoCTS.toFixed(2) }}</p>
+          </div>
+        </div>
+
+        <div class="deposito-detalle">
+          <div class="detalle-row">
+            <span class="detalle-label">Banco:</span>
+            <span class="detalle-value">{{ registroSeleccionado.banco }}</span>
+          </div>
+          <div class="detalle-row">
+            <span class="detalle-label">Cuenta:</span>
+            <span class="detalle-value">{{ registroSeleccionado.numeroCuenta }}</span>
+          </div>
+          <div class="detalle-row">
+            <span class="detalle-label">Tipo:</span>
+            <span class="detalle-value">{{ registroSeleccionado.tipoCuenta }}</span>
+          </div>
+        </div>
+
+        <div class="deposito-warning">
+          <p>⚠️ Esta accion registrara el deposito del CTS. Asegurese de haber realizado la transferencia bancaria.</p>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalDeposito = false">Cancelar</button>
+        <button class="btn btn--success" (click)="confirmarDeposito()">
+          💳 Confirmar Deposito
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

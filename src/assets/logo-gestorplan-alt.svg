@@ -1,0 +1,33 @@
+<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradiente verde corporativo -->
+    <linearGradient id="corporateGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16a34a;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Sombra profesional -->
+    <filter id="professionalShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#16a34a" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  
+  <!-- Fondo circular elegante -->
+  <circle cx="30" cy="30" r="26" fill="url(#corporateGreen)" filter="url(#professionalShadow)"/>
+  
+  <!-- Letra G estilizada -->
+  <g transform="translate(30, 30)">
+    <!-- Círculo exterior de la G -->
+    <circle cx="0" cy="0" r="12" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Línea horizontal de la G -->
+    <line x1="-6" y1="0" x2="6" y2="0" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Checkmark integrado -->
+    <path d="M4 -4 L8 0 L4 4" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  
+  <!-- Puntos decorativos sutiles -->
+  <circle cx="45" cy="15" r="1.5" fill="white" opacity="0.4"/>
+  <circle cx="15" cy="45" r="1" fill="white" opacity="0.3"/>
+</svg>

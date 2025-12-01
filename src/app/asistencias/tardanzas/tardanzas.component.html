@@ -1,0 +1,714 @@
+<div class="tardanzas-faltas">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">⚠️</span>
+        Control de Tardanzas y Faltas
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Gestión de incidencias y acciones disciplinarias
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--outline btn-export btn-export--excel" (click)="exportarExcel()">
+        <img src="assets/excel.png" alt="Excel" class="btn-export__icon btn-export__icon--excel" />
+        <span class="btn-export__text">Excel</span>
+      </button>
+      <button class="btn btn--sm btn--outline btn-export btn-export--pdf" (click)="exportarPDF()">
+        <img src="assets/pdf.png" alt="PDF" class="btn-export__icon btn-export__icon--pdf" />
+        <span class="btn-export__text">PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- RESUMEN GENERAL -->
+  <div class="resumen-general" *ngIf="resumen">
+    <div class="resumen-card resumen-card--total">
+      <div class="resumen-card__icon">📊</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Incidencias</span>
+        <span class="resumen-card__value">{{ resumen.totalIncidencias }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--tardanza">
+      <div class="resumen-card__icon">⏰</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Tardanzas</span>
+        <span class="resumen-card__value">{{ resumen.totalTardanzas }}</span>
+        <span class="resumen-card__detalle">{{ resumen.minutosRetrasoProm }}min promedio</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--falta">
+      <div class="resumen-card__icon">❌</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Faltas</span>
+        <span class="resumen-card__value">{{ resumen.totalFaltas }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--pendiente">
+      <div class="resumen-card__icon">⏳</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Pendientes</span>
+        <span class="resumen-card__value">{{ resumen.tardanzasPendientes + resumen.faltasPendientes }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--justificada">
+      <div class="resumen-card__icon">✅</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Justificadas</span>
+        <span class="resumen-card__value">{{ resumen.tardanzasJustificadas + resumen.faltasJustificadas }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--no-justificada">
+      <div class="resumen-card__icon">⛔</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">No Justificadas</span>
+        <span class="resumen-card__value">{{ resumen.tardanzasNoJustificadas + resumen.faltasNoJustificadas }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--trabajadores">
+      <div class="resumen-card__icon">👥</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Trabajadores Afectados</span>
+        <span class="resumen-card__value">{{ resumen.trabajadoresConIncidencias }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--reincidentes">
+      <div class="resumen-card__icon">🚨</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Reincidentes</span>
+        <span class="resumen-card__value">{{ resumen.trabajadoresReincidentes }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SELECTOR DE PERÍODO Y FILTROS -->
+  <div class="periodo-selector">
+    <div class="periodo-selector__top">
+      <div class="periodo-selector__controls">
+        <div class="fecha-range">
+          <label class="fecha-label">Desde:</label>
+          <input 
+            type="date" 
+            class="fecha-input"
+            [(ngModel)]="filtros.fechaInicio"
+            (change)="cargarDatos()"
+          />
+        </div>
+        
+        <div class="fecha-range">
+          <label class="fecha-label">Hasta:</label>
+          <input 
+            type="date" 
+            class="fecha-input"
+            [(ngModel)]="filtros.fechaFin"
+            (change)="cargarDatos()"
+          />
+        </div>
+      </div>
+
+      <div class="vista-toggle">
+        <button 
+          class="btn btn--sm btn--outline" 
+          [class.active]="vistaActual === 'lista'"
+          (click)="vistaActual = 'lista'"
+        >
+          📋 Lista
+        </button>
+        <button 
+          class="btn btn--sm btn--outline" 
+          [class.active]="vistaActual === 'estadisticas'"
+          (click)="vistaActual = 'estadisticas'"
+        >
+          📊 Estadísticas
+        </button>
+        <button 
+          class="btn btn--sm btn--outline" 
+          [class.active]="vistaActual === 'reincidentes'"
+          (click)="vistaActual = 'reincidentes'"
+        >
+          🚨 Reincidentes
+        </button>
+      </div>
+    </div>
+
+    <div class="periodo-selector__filtros">
+    <div class="filtros-bar__left">
+      <div class="search-box">
+        <span class="search-box__icon">🔍</span>
+        <input
+          type="text"
+          class="search-box__input"
+          placeholder="Buscar por DNI o nombre..."
+          [(ngModel)]="filtros.busqueda"
+          (input)="aplicarFiltros()"
+        />
+      </div>
+
+      <select class="select" [(ngModel)]="filtros.tipo" (change)="aplicarFiltros()">
+        <option value="Todas">Todos los tipos</option>
+          <option value="Tardanza">Tardanza</option>
+          <option value="Falta">Falta</option>
+      </select>
+
+      <select class="select" [(ngModel)]="filtros.estado" (change)="aplicarFiltros()">
+        <option value="Todos">Todos los estados</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="Justificada">Justificada</option>
+          <option value="No Justificada">No Justificada</option>
+      </select>
+
+      <select class="select" [(ngModel)]="filtros.area" (change)="aplicarFiltros()">
+        <option value="">Todas las áreas</option>
+        <option *ngFor="let area of areas" [value]="area">{{ area }}</option>
+      </select>
+    </div>
+
+    <div class="filtros-bar__right">
+      <span class="resultados-count">{{ registrosFiltrados.length }} incidencias</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA LISTA -->
+  <div class="tabla-container" *ngIf="vistaActual === 'lista'">
+    <div class="tabla-scroll">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>DNI</th>
+            <th>Trabajador</th>
+            <th>Área</th>
+            <th>Detalle</th>
+            <th>Estado</th>
+            <th>Justificación</th>
+            <th>Acción</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="cargando">
+            <td colspan="10" class="td-loading">
+              <div class="loading-spinner">Cargando...</div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!cargando && registrosFiltrados.length === 0">
+            <td colspan="10" class="td-empty">
+              <div class="empty-state">
+                <span class="empty-state__icon">📭</span>
+                <p class="empty-state__text">No se encontraron incidencias</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let registro of registrosFiltrados">
+            <td class="td-fecha">{{ registro.fecha }}</td>
+            <td class="td-tipo">
+              <span class="badge" [ngClass]="getTipoBadgeClass(registro.tipo)">
+                {{ registro.tipo }}
+              </span>
+            </td>
+            <td class="td-dni">{{ registro.trabajadorDni }}</td>
+            <td class="td-trabajador">
+              <div class="trabajador-info">
+                <span class="trabajador-info__nombre">{{ registro.trabajadorNombre }}</span>
+                <span class="trabajador-info__cargo">{{ registro.trabajadorCargo }}</span>
+              </div>
+            </td>
+            <td class="td-area">{{ registro.trabajadorArea }}</td>
+            <td class="td-detalle">
+              <div class="detalle-incidencia" *ngIf="registro.tipo === 'Tardanza'">
+                <span class="detalle-hora">{{ registro.horaLlegada || '---' }}</span>
+                <span class="detalle-retraso" *ngIf="registro.minutosRetraso && registro.minutosRetraso > 0">+{{ registro.minutosRetraso }}min</span>
+                <span class="detalle-retraso" *ngIf="!registro.minutosRetraso || registro.minutosRetraso === 0">Sin retraso</span>
+              </div>
+              <div class="detalle-incidencia" *ngIf="registro.tipo === 'Falta'">
+                <span class="detalle-texto">Ausencia total</span>
+              </div>
+            </td>
+            <td class="td-estado">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(registro.estado)">
+                {{ registro.estado === 'NoJustificada' ? 'No Justificada' : registro.estado }}
+              </span>
+            </td>
+            <td class="td-justificacion">
+              <div class="justificacion-info" *ngIf="registro.tieneJustificacion">
+                <span class="justificacion-icon">✅</span>
+                <span class="justificacion-tipo">{{ registro.tipoJustificacion }}</span>
+              </div>
+              <span class="no-justificacion" *ngIf="!registro.tieneJustificacion">-</span>
+            </td>
+            <td class="td-accion">
+              <div class="accion-info" *ngIf="registro.requiereAccion && registro.tipoAccion">
+                <span class="accion-tipo">{{ registro.tipoAccion }}</span>
+                <span class="accion-monto" *ngIf="registro.tipoAccion === 'Descuento'">
+                  S/. {{ registro.montoDescuento }}
+                </span>
+              </div>
+              <span class="no-accion" *ngIf="!registro.requiereAccion">Sin acción</span>
+            </td>
+            <td class="td-actions">
+              <div class="actions-menu">
+                <button 
+                  class="btn-icon" 
+                  title="Justificar" 
+                  (click)="abrirModalJustificacion(registro)"
+                  *ngIf="registro.estado === 'Pendiente'"
+                >
+                  📝
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Acción disciplinaria" 
+                  (click)="abrirModalAccion(registro)"
+                >
+                  ⚖️
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Ver detalles" 
+                  (click)="abrirModalDetalles(registro); $event.stopPropagation()"
+                  type="button"
+                >
+                  👁️
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- VISTA ESTADÍSTICAS -->
+  <div class="estadisticas-container" *ngIf="vistaActual === 'estadisticas' && resumen">
+    <div class="estadisticas-grid">
+      <!-- Gráfico por Área -->
+      <div class="estadistica-panel">
+        <h3 class="panel__title">📊 Incidencias por Área</h3>
+        <div class="area-stats">
+          <div class="area-stat-item" *ngFor="let area of resumen.incidenciasPorArea">
+            <div class="area-stat-item__header">
+              <span class="area-stat-item__nombre">{{ area.area }}</span>
+              <span class="area-stat-item__total">{{ area.total }}</span>
+            </div>
+            <div class="area-stat-item__detalle">
+              <span class="stat-detalle stat-detalle--tardanza">{{ area.tardanzas }} tardanzas</span>
+              <span class="stat-detalle stat-detalle--falta">{{ area.faltas }} faltas</span>
+            </div>
+            <div class="area-stat-item__bar">
+              <div 
+                class="bar bar--tardanza" 
+                [style.width]="(area.tardanzas / area.total * 100) + '%'"
+              ></div>
+              <div 
+                class="bar bar--falta" 
+                [style.width]="(area.faltas / area.total * 100) + '%'"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Distribución de Estados -->
+      <div class="estadistica-panel">
+        <h3 class="panel__title">📈 Distribución de Estados</h3>
+        <div class="estado-stats">
+          <div class="estado-stat-item">
+            <div class="estado-stat-item__icon estado-stat-item__icon--pendiente">⏳</div>
+            <div class="estado-stat-item__content">
+              <span class="estado-stat-item__label">Pendientes</span>
+              <span class="estado-stat-item__value">{{ resumen.tardanzasPendientes + resumen.faltasPendientes }}</span>
+            </div>
+          </div>
+          
+          <div class="estado-stat-item">
+            <div class="estado-stat-item__icon estado-stat-item__icon--justificada">✅</div>
+            <div class="estado-stat-item__content">
+              <span class="estado-stat-item__label">Justificadas</span>
+              <span class="estado-stat-item__value">{{ resumen.tardanzasJustificadas + resumen.faltasJustificadas }}</span>
+            </div>
+          </div>
+          
+          <div class="estado-stat-item">
+            <div class="estado-stat-item__icon estado-stat-item__icon--no-justificada">⛔</div>
+            <div class="estado-stat-item__content">
+              <span class="estado-stat-item__label">No Justificadas</span>
+              <span class="estado-stat-item__value">{{ resumen.tardanzasNoJustificadas + resumen.faltasNoJustificadas }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA REINCIDENTES -->
+  <div class="reincidentes-container" *ngIf="vistaActual === 'reincidentes'">
+    <div class="reincidentes-header">
+      <h3 class="panel__title">🚨 Trabajadores Reincidentes</h3>
+      <p class="panel__subtitle">Trabajadores con 2 o más incidencias en el período</p>
+    </div>
+
+    <div class="reincidentes-grid">
+      <div class="reincidente-card" *ngFor="let trabajador of trabajadoresReincidentes">
+        <div class="reincidente-card__header">
+          <div class="avatar">{{ trabajador.trabajadorNombre.charAt(0) }}</div>
+          <div class="info">
+            <h4 class="nombre">{{ trabajador.trabajadorNombre }}</h4>
+            <p class="dni">DNI: {{ trabajador.trabajadorDni }}</p>
+            <p class="area">{{ trabajador.trabajadorArea }}</p>
+          </div>
+          <span class="badge" [ngClass]="getNivelRiesgoBadgeClass(trabajador.nivelRiesgo)">
+            {{ trabajador.nivelRiesgo }}
+          </span>
+        </div>
+
+        <div class="reincidente-card__body">
+          <div class="stat-grid">
+            <div class="stat-item">
+              <span class="stat-item__icon">⏰</span>
+              <div class="stat-item__content">
+                <span class="stat-item__label">Tardanzas</span>
+                <span class="stat-item__value">{{ trabajador.cantidadTardanzas }}</span>
+              </div>
+            </div>
+            
+            <div class="stat-item">
+              <span class="stat-item__icon">❌</span>
+              <div class="stat-item__content">
+                <span class="stat-item__label">Faltas</span>
+                <span class="stat-item__value">{{ trabajador.cantidadFaltas }}</span>
+              </div>
+            </div>
+            
+            <div class="stat-item">
+              <span class="stat-item__icon">📊</span>
+              <div class="stat-item__content">
+                <span class="stat-item__label">Total</span>
+                <span class="stat-item__value">{{ trabajador.totalIncidencias }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ultima-incidencia">
+            <span class="ultima-incidencia__label">Última incidencia:</span>
+            <span class="ultima-incidencia__fecha">{{ trabajador.ultimaIncidencia }}</span>
+          </div>
+        </div>
+
+        <div class="reincidente-card__footer">
+          <button class="btn btn--sm btn--outline">📄 Ver Historial</button>
+          <button class="btn btn--sm btn--danger">⚖️ Acción Disciplinaria</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="trabajadoresReincidentes.length === 0">
+      <span class="empty-state__icon">✅</span>
+      <p class="empty-state__text">No hay trabajadores reincidentes en este período</p>
+    </div>
+  </div>
+
+  <!-- MODAL: JUSTIFICACIÓN -->
+  <div class="modal" *ngIf="mostrarModalJustificacion" (click)="mostrarModalJustificacion = false; restaurarTopbarSidebar()">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">📝 Registrar Justificación</h3>
+        <button class="modal__close" (click)="mostrarModalJustificacion = false; restaurarTopbarSidebar()">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="trabajador-selected">
+          <div class="avatar">{{ registroSeleccionado.trabajadorNombre.charAt(0) }}</div>
+          <div class="info">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p>{{ registroSeleccionado.trabajadorArea }}</p>
+            <p><strong>Fecha:</strong> {{ registroSeleccionado.fecha }}</p>
+            <p>
+              <span class="badge" [ngClass]="getTipoBadgeClass(registroSeleccionado.tipo)">
+                {{ registroSeleccionado.tipo }}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group form-group--full">
+            <label class="form-label">Tipo de Justificación *</label>
+            <select class="form-select" [(ngModel)]="justificacionForm.tipoJustificacion">
+              <option value="">Seleccione un tipo</option>
+              <option *ngFor="let tipo of tiposJustificacionActuales" [value]="tipo">{{ tipo }}</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Motivo Detallado *</label>
+            <textarea 
+              class="form-textarea" 
+              rows="4" 
+              placeholder="Describa el motivo de la incidencia..."
+              [(ngModel)]="justificacionForm.motivo"
+            ></textarea>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Documento de Sustento</label>
+            <input 
+  type="file" 
+  class="form-input" 
+  accept=".pdf,.jpg,.png,.jpeg"
+  (change)="onFileSelected($event)"
+/>
+            <span class="form-hint">Adjunte certificado médico, papeleta, etc. (PDF, JPG, PNG)</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalJustificacion = false; restaurarTopbarSidebar()">Cancelar</button>
+        <button class="btn btn--accent" (click)="guardarJustificacion()" [disabled]="!justificacionForm.tipoJustificacion || !justificacionForm.motivo">
+          ✅ Guardar Justificación
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ACCIÓN DISCIPLINARIA -->
+  <div class="modal" *ngIf="mostrarModalAccion" (click)="mostrarModalAccion = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">⚖️ Acción Disciplinaria</h3>
+        <button class="modal__close" (click)="mostrarModalAccion = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="trabajador-selected">
+          <div class="avatar">{{ registroSeleccionado.trabajadorNombre.charAt(0) }}</div>
+          <div class="info">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p>{{ registroSeleccionado.trabajadorArea }}</p>
+            <p><strong>Fecha:</strong> {{ registroSeleccionado.fecha }}</p>
+            <p>
+              <span class="badge" [ngClass]="getTipoBadgeClass(registroSeleccionado.tipo)">
+                {{ registroSeleccionado.tipo }}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group form-group--full">
+            <label class="form-label">Tipo de Acción *</label>
+            <select class="form-select" [(ngModel)]="accionForm.tipoAccion">
+              <option *ngFor="let accion of tiposAccion" [value]="accion.valor">{{ accion.label }}</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group--full" *ngIf="accionForm.tipoAccion === 'Descuento'">
+            <label class="form-label">Monto de Descuento (S/.)</label>
+            <input 
+              type="number" 
+              class="form-input" 
+              placeholder="0.00"
+              [(ngModel)]="accionForm.montoDescuento"
+              min="0"
+              step="0.01"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Observaciones</label>
+            <textarea 
+              class="form-textarea" 
+              rows="4" 
+              placeholder="Detalles de la acción disciplinaria..."
+              [(ngModel)]="accionForm.observaciones"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalAccion = false">Cancelar</button>
+        <button class="btn btn--danger" (click)="guardarAccion()">
+          ⚖️ Aplicar Acción
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLES DE INCIDENCIA -->
+  <div class="modal" *ngIf="mostrarModalDetalles" (click)="mostrarModalDetalles = false">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">👁️ Detalles de la Incidencia</h3>
+        <button class="modal__close" (click)="mostrarModalDetalles = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <!-- Información del Trabajador -->
+        <div class="detalle-section">
+          <h4 class="detalle-section__title">👤 Información del Trabajador</h4>
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <span class="detalle-item__label">Nombre Completo:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.trabajadorNombre }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-item__label">DNI:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.trabajadorDni }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-item__label">Cargo:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.trabajadorCargo }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-item__label">Área:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.trabajadorArea || 'Sin área' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información de la Incidencia -->
+        <div class="detalle-section">
+          <h4 class="detalle-section__title">📋 Información de la Incidencia</h4>
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <span class="detalle-item__label">Fecha:</span>
+              <span class="detalle-item__value">{{ formatearFecha(registroSeleccionado.fecha) }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-item__label">Tipo:</span>
+              <span class="badge" [ngClass]="getTipoBadgeClass(registroSeleccionado.tipo)">
+                {{ registroSeleccionado.tipo }}
+              </span>
+            </div>
+            <div class="detalle-item" *ngIf="registroSeleccionado.tipo === 'Tardanza'">
+              <span class="detalle-item__label">Hora Esperada:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.horaEsperada || 'N/A' }}</span>
+            </div>
+            <div class="detalle-item" *ngIf="registroSeleccionado.tipo === 'Tardanza'">
+              <span class="detalle-item__label">Hora de Llegada:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.horaLlegada || 'N/A' }}</span>
+            </div>
+            <div class="detalle-item" *ngIf="registroSeleccionado.tipo === 'Tardanza'">
+              <span class="detalle-item__label">Minutos de Retraso:</span>
+              <span class="detalle-item__value detalle-item__value--retraso" *ngIf="registroSeleccionado.minutosRetraso && registroSeleccionado.minutosRetraso > 0">
+                +{{ registroSeleccionado.minutosRetraso }} minutos
+              </span>
+              <span class="detalle-item__value" *ngIf="!registroSeleccionado.minutosRetraso || registroSeleccionado.minutosRetraso === 0">
+                Sin retraso
+              </span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-item__label">Estado:</span>
+              <span class="badge" [ngClass]="getEstadoBadgeClass(registroSeleccionado.estado)">
+                {{ registroSeleccionado.estado === 'NoJustificada' ? 'No Justificada' : registroSeleccionado.estado }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Justificación -->
+        <div class="detalle-section" *ngIf="registroSeleccionado.tieneJustificacion">
+          <h4 class="detalle-section__title">✅ Justificación</h4>
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <span class="detalle-item__label">Tipo de Justificación:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.tipoJustificacion || 'N/A' }}</span>
+            </div>
+            <div class="detalle-item detalle-item--full">
+              <span class="detalle-item__label">Motivo:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.motivoJustificacion || 'N/A' }}</span>
+            </div>
+            <div class="detalle-item" *ngIf="registroSeleccionado.fechaJustificacion">
+              <span class="detalle-item__label">Fecha de Justificación:</span>
+              <span class="detalle-item__value">{{ formatearFechaHora(registroSeleccionado.fechaJustificacion) }}</span>
+            </div>
+            <div class="detalle-item" *ngIf="registroSeleccionado.documentoAdjunto">
+              <span class="detalle-item__label">Documento Adjunto:</span>
+              <span class="detalle-item__value">
+                <a [href]="registroSeleccionado.documentoAdjunto" target="_blank" class="detalle-link">
+                  📄 Ver documento
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acción Disciplinaria -->
+        <div class="detalle-section" *ngIf="registroSeleccionado.requiereAccion && registroSeleccionado.tipoAccion">
+          <h4 class="detalle-section__title">⚖️ Acción Disciplinaria</h4>
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <span class="detalle-item__label">Tipo de Acción:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.tipoAccion }}</span>
+            </div>
+            <div class="detalle-item" *ngIf="registroSeleccionado.tipoAccion === 'Descuento' && registroSeleccionado.montoDescuento">
+              <span class="detalle-item__label">Monto de Descuento:</span>
+              <span class="detalle-item__value detalle-item__value--monto">S/. {{ registroSeleccionado.montoDescuento }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="detalle-section" *ngIf="registroSeleccionado.observaciones">
+          <h4 class="detalle-section__title">📝 Observaciones</h4>
+          <div class="detalle-observaciones">
+            <p class="detalle-observaciones__texto">{{ registroSeleccionado.observaciones }}</p>
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="detalle-section">
+          <h4 class="detalle-section__title">📊 Información del Registro</h4>
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <span class="detalle-item__label">Registrado por:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.registradoPor || 'N/A' }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-item__label">Fecha de Registro:</span>
+              <span class="detalle-item__value">{{ formatearFechaHora(registroSeleccionado.fechaRegistro) }}</span>
+            </div>
+            <div class="detalle-item" *ngIf="registroSeleccionado.revisadoPor">
+              <span class="detalle-item__label">Revisado por:</span>
+              <span class="detalle-item__value">{{ registroSeleccionado.revisadoPor }}</span>
+            </div>
+            <div class="detalle-item" *ngIf="registroSeleccionado.fechaRevision">
+              <span class="detalle-item__label">Fecha de Revisión:</span>
+              <span class="detalle-item__value">{{ formatearFechaHora(registroSeleccionado.fechaRevision) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalDetalles = false">Cerrar</button>
+        <button 
+          class="btn btn--accent" 
+          (click)="abrirModalJustificacion(registroSeleccionado!); mostrarModalDetalles = false"
+          *ngIf="registroSeleccionado.estado === 'Pendiente'"
+        >
+          📝 Justificar
+        </button>
+        <button 
+          class="btn btn--danger" 
+          (click)="abrirModalAccion(registroSeleccionado!); mostrarModalDetalles = false"
+        >
+          ⚖️ Acción Disciplinaria
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

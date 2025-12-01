@@ -1,0 +1,682 @@
+<div class="dashboard-container">
+  <!-- ==================== HEADER CON FILTROS ==================== -->
+  <div class="dashboard-header">
+    <div class="header-top">
+      <div class="header-left">
+        <h1 class="dashboard-title">
+          <img src="assets/dashboard.png" alt="Dashboard" class="title-icon" />
+          Dashboard - Gestión de Planillas
+        </h1>
+        <p class="dashboard-subtitle">
+          <span class="subtitle-dots">
+            <span class="subtitle-dot subtitle-dot--1"></span>
+            <span class="subtitle-dot subtitle-dot--2"></span>
+            <span class="subtitle-dot subtitle-dot--3"></span>
+          </span>
+          Vista completa y análisis en tiempo real
+        </p>
+      </div>
+      <div class="header-right">
+      <button
+        class="btn btn--icon filter-toggle-btn"
+        (click)="toggleFiltrosPanel()"
+        [class.is-active]="mostrarFiltrosPanel"
+        [attr.aria-expanded]="mostrarFiltrosPanel"
+        aria-controls="dashboard-filtros"
+      >
+        <span class="icon">{{ mostrarFiltrosPanel ? '🗂️' : '🎛️' }}</span>
+        {{ mostrarFiltrosPanel ? 'Ocultar filtros' : 'Filtros' }}
+      </button>
+        <button class="btn btn--icon" (click)="cargarDatos()" [disabled]="cargando">
+          <span class="icon">🔄</span>
+          {{ cargando ? 'Actualizando...' : 'Actualizar' }}
+        </button>
+        <button class="btn btn--primary" (click)="exportarDatos()">
+          <span class="icon">📥</span>
+          Exportar
+        </button>
+      </div>
+    </div>
+
+    <!-- FILTROS AVANZADOS -->
+    <div
+      class="filtros-panel"
+      *ngIf="mostrarFiltrosPanel"
+      id="dashboard-filtros"
+    >
+      <div class="filtros-header">
+        <h3 class="filtros-titulo">🔍 Filtros de Búsqueda</h3>
+        <div class="filtros-acciones">
+          <button class="btn btn--sm btn--outline" (click)="limpiarFiltros()">
+            ↩️ Limpiar
+          </button>
+          <button class="btn btn--sm btn--success" (click)="aplicarFiltros()">
+            ✓ Aplicar
+          </button>
+        </div>
+      </div>
+      
+      <div class="filtros-grid">
+        <div class="filtro-group">
+          <label class="filtro-label">📅 Fecha Inicio</label>
+          <input 
+            type="date" 
+            class="filtro-input" 
+            [(ngModel)]="filtros.fechaInicio"
+          />
+        </div>
+
+        <div class="filtro-group">
+          <label class="filtro-label">📅 Fecha Fin</label>
+          <input 
+            type="date" 
+            class="filtro-input" 
+            [(ngModel)]="filtros.fechaFin"
+          />
+        </div>
+
+        <div class="filtro-group">
+          <label class="filtro-label">🏢 Área</label>
+          <select class="filtro-select" [(ngModel)]="filtros.area">
+            <option *ngFor="let area of areas" [value]="area.toLowerCase()">
+              {{ area }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <label class="filtro-label">📄 Tipo de Contrato</label>
+          <select class="filtro-select" [(ngModel)]="filtros.tipoContrato">
+            <option *ngFor="let tipo of tiposContrato" [value]="tipo.toLowerCase()">
+              {{ tipo }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <label class="filtro-label">✅ Estado</label>
+          <select class="filtro-select" [(ngModel)]="filtros.estado">
+            <option *ngFor="let estado of estados" [value]="estado.toLowerCase()">
+              {{ estado }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ALERTAS IMPORTANTES ==================== -->
+  <div class="alertas-container" *ngIf="alertas.length > 0">
+    <div 
+      *ngFor="let alerta of alertas" 
+      class="alerta-card"
+      [class.alerta--warning]="alerta.tipo === 'warning'"
+      [class.alerta--error]="alerta.tipo === 'error'"
+      [class.alerta--info]="alerta.tipo === 'info'"
+      [class.alerta--success]="alerta.tipo === 'success'"
+    >
+      <div class="alerta-icon">
+        <span *ngIf="alerta.tipo === 'warning'">⚠️</span>
+        <span *ngIf="alerta.tipo === 'error'">🚨</span>
+        <span *ngIf="alerta.tipo === 'info'">ℹ️</span>
+        <span *ngIf="alerta.tipo === 'success'">✅</span>
+      </div>
+      <div class="alerta-content">
+        <h4 class="alerta-titulo">{{ alerta.titulo }}</h4>
+        <p class="alerta-mensaje">{{ alerta.mensaje }}</p>
+      </div>
+      <button class="alerta-close">×</button>
+    </div>
+  </div>
+
+  <!-- ==================== CALENDARIO DE EVENTOS ==================== -->
+  <div class="eventos-container">
+    <div class="eventos-header">
+      <h3 class="eventos-titulo">📅 Eventos y Fechas Importantes</h3>
+      <button class="btn btn--sm btn--outline" (click)="abrirCalendarioCompleto()">Ver calendario completo</button>
+    </div>
+    <div class="eventos-grid">
+      <div 
+        *ngFor="let evento of eventosProximos"
+        class="evento-card"
+        [class.evento--planilla]="evento.tipo === 'planilla'"
+        [class.evento--beneficio]="evento.tipo === 'beneficio'"
+        [class.evento--vencimiento]="evento.tipo === 'vencimiento'"
+        [class.evento--reunion]="evento.tipo === 'reunion'"
+      >
+        <div class="evento-fecha">
+          <span class="fecha-dia">{{ evento.fecha.getDate() }}</span>
+          <span class="fecha-mes">{{ obtenerMes(evento.fecha) }}</span>
+        </div>
+        <div class="evento-info">
+          <h4 class="evento-titulo">{{ evento.titulo }}</h4>
+          <p class="evento-descripcion">{{ evento.descripcion }}</p>
+          <span class="evento-dias" [class.evento-dias--sin-reunion]="evento.tipo === 'reunion' && diasHasta(evento.fecha) < 0">
+            {{ obtenerTextoDias(evento) }}
+          </span>
+        </div>
+        <div class="evento-icono">
+          <span *ngIf="evento.tipo === 'planilla'">💰</span>
+          <span *ngIf="evento.tipo === 'beneficio'">🎁</span>
+          <span *ngIf="evento.tipo === 'vencimiento'">⏰</span>
+          <span *ngIf="evento.tipo === 'reunion'">👥</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== INDICADORES CLAVE DE RENDIMIENTO ==================== -->
+  <div class="indicadores-container">
+    <div class="indicadores-header">
+      <div class="indicadores-header-left">
+        <h3 class="indicadores-titulo">
+          <span class="indicadores-icon">📊</span>
+          Indicadores Clave de Rendimiento
+        </h3>
+        <p class="indicadores-subtitulo">Métricas Principales del Sistema en Tiempo Real</p>
+      </div>
+    </div>
+    <div class="kpis-grid">
+    <div 
+      *ngFor="let kpi of kpis" 
+      class="kpi-card"
+      [style.border-color]="kpi.color"
+    >
+      <div class="kpi-header">
+        <span class="kpi-icon">{{ kpi.icono }}</span>
+        <span 
+          class="kpi-badge"
+          [class.badge--up]="kpi.tendencia === 'up'"
+          [class.badge--down]="kpi.tendencia === 'down'"
+        >
+          <span *ngIf="kpi.tendencia === 'up'">↗</span>
+          <span *ngIf="kpi.tendencia === 'down'">↘</span>
+          <span *ngIf="kpi.tendencia === 'neutral'">→</span>
+          {{ kpi.porcentaje > 0 ? kpi.porcentaje + '%' : '' }}
+        </span>
+      </div>
+      <div class="kpi-body">
+        <h3 class="kpi-titulo">{{ kpi.titulo }}</h3>
+        <p class="kpi-valor" [style.color]="kpi.color">{{ kpi.valor }}</p>
+      </div>
+      <div class="kpi-footer">
+        <button class="kpi-link" (click)="verDetalle('kpi', kpi.titulo)">
+          Ver detalle →
+        </button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ==================== TABLAS Y LISTAS ==================== -->
+  <div class="tablas-container">
+    <div class="tablas-header">
+      <div class="tablas-header-left">
+        <h3 class="tablas-titulo">
+          <span class="tablas-icon">📋</span>
+          Información Detallada
+        </h3>
+        <p class="tablas-subtitulo">Movimientos de planilla y ranking de trabajadores</p>
+      </div>
+    </div>
+    <div class="tablas-grid">
+      <!-- TABLA: Últimos movimientos -->
+      <div class="tabla-card">
+        <div class="tabla-header">
+          <h3 class="tabla-titulo">💳 Últimos Movimientos de Planilla</h3>
+          <span class="tabla-badge">{{ mesActual }}</span>
+        </div>
+        <div class="tabla-body">
+          <div class="tabla-scroll">
+            <table class="tabla">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Descripción</th>
+                  <th>Fecha</th>
+                  <th>Monto</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let mov of movimientos" (click)="verDetalle('movimiento', mov.id)">
+                  <td>
+                    <span class="cell-icon">
+                      <span *ngIf="mov.tipo.includes('Pago')">💰</span>
+                      <span *ngIf="mov.tipo.includes('CTS')">🏦</span>
+                      <span *ngIf="mov.tipo.includes('Gratificación')">🎁</span>
+                    </span>
+                    {{ mov.tipo }}
+                  </td>
+                  <td>{{ mov.descripcion }}</td>
+                  <td>{{ formatearFecha(mov.fecha) }}</td>
+                  <td class="cell-monto">
+                    <strong>{{ mov.monto ? formatearMoneda(mov.monto) : '-' }}</strong>
+                  </td>
+                  <td>
+                    <span 
+                      class="estado-badge"
+                      [class.estado--completado]="mov.estado === 'completado'"
+                      [class.estado--pendiente]="mov.estado === 'pendiente'"
+                      [class.estado--proceso]="mov.estado === 'proceso'"
+                    >
+                      {{ mov.estado }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP 5 TRABAJADORES -->
+      <div class="tabla-card">
+        <div class="tabla-header">
+          <h3 class="tabla-titulo">🏆 Top 5 Trabajadores por Salario</h3>
+          <button class="btn btn--sm btn--outline">Ver todos</button>
+        </div>
+      <div class="tabla-body">
+        <div class="trabajadores-list">
+          <div 
+            *ngFor="let trabajador of topTrabajadores; let i = index"
+            class="trabajador-item"
+            (click)="verDetalle('trabajador', trabajador.id)"
+          >
+            <div class="trabajador-rank">{{ i + 1 }}</div>
+            <div class="trabajador-avatar">{{ trabajador.foto }}</div>
+            <div class="trabajador-info">
+              <h4 class="trabajador-nombre">{{ trabajador.nombre }}</h4>
+              <p class="trabajador-cargo">{{ trabajador.cargo }} · {{ trabajador.area }}</p>
+            </div>
+            <div class="trabajador-salario">
+              <strong>{{ formatearMoneda(trabajador.salario) }}</strong>
+              <span>mensual</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ==================== GRÁFICOS PRINCIPALES ==================== -->
+  <div class="graficos-container">
+    <div class="graficos-header">
+      <div class="graficos-header-left">
+        <h3 class="graficos-titulo">
+          <span class="graficos-icon">📊</span>
+          Análisis y Visualización de Datos
+        </h3>
+        <p class="graficos-subtitulo">Gráficos y estadísticas en tiempo real del sistema</p>
+      </div>
+    </div>
+    <div class="graficos-grid">
+    <!-- GRÁFICO: Evolución de planilla mensual -->
+    <div class="grafico-card">
+      <div class="grafico-header">
+        <h3 class="grafico-titulo">📈 Evolución de Planilla Mensual</h3>
+        <button class="btn btn--sm btn--ghost">⚙️</button>
+      </div>
+      <div class="grafico-body">
+        <div class="chart-container">
+          <div class="chart-line">
+            <div class="chart-bars">
+              <div 
+                *ngFor="let valor of datosPlanillaMensual.valores; let i = index"
+                class="chart-bar"
+                [style.height]="(valor / 1300000 * 100) + '%'"
+                [attr.data-label]="datosPlanillaMensual.labels[i]"
+                [attr.data-value]="formatearMoneda(valor)"
+              >
+                <div class="bar-tooltip">
+                  {{ datosPlanillaMensual.labels[i] }}<br>
+                  <strong>{{ formatearMoneda(valor) }}</strong>
+                </div>
+              </div>
+            </div>
+            <div class="chart-labels">
+              <span *ngFor="let label of datosPlanillaMensual.labels">
+                {{ label }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRÁFICO: Distribución por área -->
+    <div class="grafico-card">
+      <div class="grafico-header">
+        <h3 class="grafico-titulo">👥 Distribución por Área</h3>
+        <button class="btn btn--sm btn--ghost">⚙️</button>
+      </div>
+      <div class="grafico-body">
+        <div class="chart-container">
+          <div class="chart-horizontal">
+            <div 
+              *ngFor="let valor of datosDistribucionArea.valores; let i = index"
+              class="chart-row"
+            >
+              <span class="row-label">{{ datosDistribucionArea.labels[i] }}</span>
+              <div class="row-bar-container">
+                <div 
+                  class="row-bar"
+                  [style.width]="(valor / 150 * 100) + '%'"
+                >
+                  <span class="row-value">{{ valor }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRÁFICO: Estado de contratos -->
+    <div class="grafico-card">
+      <div class="grafico-header">
+        <h3 class="grafico-titulo">📊 Estado de Contratos</h3>
+        <button class="btn btn--sm btn--ghost">⚙️</button>
+      </div>
+      <div class="grafico-body">
+        <div class="chart-container">
+          <div class="chart-donut">
+            <div class="donut-legend">
+              <div 
+                *ngFor="let label of datosContratos.labels; let i = index"
+                class="legend-item"
+              >
+                <span class="legend-color" [style.background-color]="obtenerColor(i)"></span>
+                <span class="legend-label">{{ label }}</span>
+                <span class="legend-value">{{ datosContratos.valores[i] }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRÁFICO: Asistencia semanal -->
+    <div class="grafico-card">
+      <div class="grafico-header">
+        <h3 class="grafico-titulo">📅 Asistencia Semanal</h3>
+        <button class="btn btn--sm btn--ghost">⚙️</button>
+      </div>
+      <div class="grafico-body">
+        <div class="chart-container">
+          <div class="chart-area">
+            <div class="area-bars">
+              <div 
+                *ngFor="let valor of datosAsistenciaSemanal.valores; let i = index"
+                class="area-bar"
+                [style.height]="valor + '%'"
+                [attr.data-label]="datosAsistenciaSemanal.labels[i]"
+              >
+                <span class="area-value">{{ valor }}%</span>
+              </div>
+            </div>
+            <div class="area-labels">
+              <span *ngFor="let label of datosAsistenciaSemanal.labels">
+                {{ label }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" *ngIf="cargando">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>Cargando datos del dashboard...</p>
+    </div>
+  </div>
+
+  <!-- MODAL DETALLE KPI -->
+  <div class="modal-overlay" *ngIf="mostrarModalDetalleKPI" (click)="cerrarModalDetalleKPI()">
+    <div class="modal-content modal-detalle-asistencia" (click)="$event.stopPropagation()" *ngIf="detalleKPISeleccionado?.esAsistenciaHoy; else modalKpiNormal">
+      <!-- MODAL ESPECIAL PARA ASISTENCIA HOY -->
+      <div class="modal-header">
+        <div class="modal-header-content">
+          <div class="modal-icon">📅</div>
+          <div>
+            <h2 class="modal-title">Detalle de Asistencia de Hoy</h2>
+            <p class="modal-subtitle" *ngIf="detalleAsistenciaHoy">
+              {{ detalleAsistenciaHoy.fecha }} • {{ detalleAsistenciaHoy.porcentaje }}
+            </p>
+          </div>
+        </div>
+        <button class="modal-close" (click)="cerrarModalDetalleKPI()">×</button>
+      </div>
+      
+      <div class="modal-body modal-body-asistencia">
+        <!-- LOADING -->
+        <div class="loading-detalle" *ngIf="cargandoDetalleAsistencia">
+          <div class="spinner-small"></div>
+          <p>Cargando detalle de asistencia...</p>
+        </div>
+
+        <!-- RESUMEN -->
+        <div class="resumen-asistencia" *ngIf="detalleAsistenciaHoy && !cargandoDetalleAsistencia">
+          <div class="resumen-card resumen-card--total">
+            <div class="resumen-icon">👥</div>
+            <div class="resumen-info">
+              <div class="resumen-label">Total Trabajadores</div>
+              <div class="resumen-value">{{ detalleAsistenciaHoy.totalTrabajadores }}</div>
+            </div>
+          </div>
+          <div class="resumen-card resumen-card--presente">
+            <div class="resumen-icon">✅</div>
+            <div class="resumen-info">
+              <div class="resumen-label">Con Asistencia</div>
+              <div class="resumen-value">{{ detalleAsistenciaHoy.conAsistencia }}</div>
+            </div>
+          </div>
+          <div class="resumen-card resumen-card--falta">
+            <div class="resumen-icon">❌</div>
+            <div class="resumen-info">
+              <div class="resumen-label">Sin Asistencia</div>
+              <div class="resumen-value">{{ detalleAsistenciaHoy.sinAsistencia }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LISTA DE TRABAJADORES -->
+        <div class="lista-trabajadores" *ngIf="detalleAsistenciaHoy && !cargandoDetalleAsistencia && detalleAsistenciaHoy.trabajadores && detalleAsistenciaHoy.trabajadores.length > 0">
+          <div class="trabajador-item" 
+               *ngFor="let trabajador of detalleAsistenciaHoy.trabajadores"
+               [class.trabajador--presente]="trabajador.tieneAsistencia"
+               [class.trabajador--falta]="!trabajador.tieneAsistencia">
+            <div class="trabajador-status">
+              <span class="status-icon" *ngIf="trabajador.tieneAsistencia">✅</span>
+              <span class="status-icon" *ngIf="!trabajador.tieneAsistencia">❌</span>
+            </div>
+            <div class="trabajador-info">
+              <div class="trabajador-nombre">{{ trabajador.nombreCompleto }}</div>
+              <div class="trabajador-detalle">
+                <span class="trabajador-dni">DNI: {{ trabajador.dni }}</span>
+                <span class="trabajador-separador">•</span>
+                <span class="trabajador-cargo">{{ trabajador.cargo }}</span>
+                <span class="trabajador-separador">•</span>
+                <span class="trabajador-area">{{ trabajador.area }}</span>
+              </div>
+            </div>
+            <div class="trabajador-horarios" *ngIf="trabajador.tieneAsistencia">
+              <!-- HORARIOS MAÑANA -->
+              <div class="horario-turno" *ngIf="trabajador.horaEntradaManana || trabajador.horaSalidaManana">
+                <div class="horario-turno-label">🌅 Mañana</div>
+                <div class="horario-turno-items">
+                  <div class="horario-item" *ngIf="trabajador.horaEntradaManana">
+                    <span class="horario-label">Entrada:</span>
+                    <span class="horario-value">{{ trabajador.horaEntradaManana }}</span>
+                  </div>
+                  <div class="horario-item" *ngIf="trabajador.horaSalidaManana">
+                    <span class="horario-label">Salida:</span>
+                    <span class="horario-value">{{ trabajador.horaSalidaManana }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- HORARIOS TARDE -->
+              <div class="horario-turno" *ngIf="trabajador.horaEntradaTarde || trabajador.horaSalidaTarde">
+                <div class="horario-turno-label">🌆 Tarde</div>
+                <div class="horario-turno-items">
+                  <div class="horario-item" *ngIf="trabajador.horaEntradaTarde">
+                    <span class="horario-label">Entrada:</span>
+                    <span class="horario-value">{{ trabajador.horaEntradaTarde }}</span>
+                  </div>
+                  <div class="horario-item" *ngIf="trabajador.horaSalidaTarde">
+                    <span class="horario-label">Salida:</span>
+                    <span class="horario-value">{{ trabajador.horaSalidaTarde }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- BADGE TARDANZA -->
+              <div class="trabajador-tipo" *ngIf="trabajador.tipoMarcacion === 'Tardanza'">
+                <span class="badge-tardanza">⏰ Tardanza</span>
+              </div>
+            </div>
+            <div class="trabajador-sin-asistencia" *ngIf="!trabajador.tieneAsistencia">
+              <span class="badge-falta">Sin registro</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MENSAJE SI NO HAY DATOS -->
+        <div class="sin-datos" *ngIf="!cargandoDetalleAsistencia && (!detalleAsistenciaHoy || !detalleAsistenciaHoy.trabajadores || detalleAsistenciaHoy.trabajadores.length === 0)">
+          <div class="sin-datos-icon">📋</div>
+          <p class="sin-datos-mensaje">No se pudieron cargar los datos de asistencia</p>
+          <button class="btn btn--primary" (click)="cargarDetalleAsistenciaHoy()">
+            🔄 Reintentar
+          </button>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn--outline" (click)="cerrarModalDetalleKPI()">
+          Cerrar
+        </button>
+        <button class="btn btn--primary" (click)="irARuta()" *ngIf="detalleKPISeleccionado?.ruta">
+          {{ detalleKPISeleccionado?.accion }}
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL NORMAL PARA OTROS KPIs -->
+    <ng-template #modalKpiNormal>
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">{{ detalleKPISeleccionado?.titulo }}</h2>
+          <button class="modal-close" (click)="cerrarModalDetalleKPI()">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-mensaje">{{ detalleKPISeleccionado?.mensaje }}</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn--outline" (click)="cerrarModalDetalleKPI()">
+            Cerrar
+          </button>
+          <button class="btn btn--primary" (click)="irARuta()" *ngIf="detalleKPISeleccionado?.ruta">
+            {{ detalleKPISeleccionado?.accion }}
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- MODAL CALENDARIO COMPLETO -->
+  <div class="modal-overlay modal-calendario" *ngIf="mostrarCalendarioCompleto" (click)="cerrarCalendarioCompleto()">
+    <div class="modal-content modal-calendario-content" (click)="$event.stopPropagation()">
+      <div class="modal-header modal-calendario-header">
+        <div class="calendario-header-left">
+          <h2 class="modal-title">📅 Calendario de Eventos</h2>
+          <p class="calendario-subtitle">Vista completa de fechas importantes</p>
+        </div>
+        <button class="modal-close" (click)="cerrarCalendarioCompleto()">×</button>
+      </div>
+      
+      <div class="modal-body modal-calendario-body">
+        <!-- Navegación del calendario -->
+        <div class="calendario-navegacion">
+          <button class="btn btn--icon btn-nav-mes" (click)="mesAnterior()">
+            <span>←</span>
+          </button>
+          <h3 class="calendario-mes-actual">
+            {{ obtenerNombreMesCompleto(mesCalendario) }} {{ mesCalendario.getFullYear() }}
+          </h3>
+          <button class="btn btn--icon btn-nav-mes" (click)="mesSiguiente()">
+            <span>→</span>
+          </button>
+          <button class="btn btn--sm btn--outline btn-hoy" (click)="irAHoy()">
+            Hoy
+          </button>
+        </div>
+
+        <!-- Calendario -->
+        <div class="calendario-grid">
+          <!-- Días de la semana -->
+          <div class="calendario-dias-semana">
+            <div class="dia-semana" *ngFor="let dia of diasSemana">{{ dia }}</div>
+          </div>
+
+          <!-- Días del mes -->
+          <div class="calendario-dias">
+            <div 
+              *ngFor="let dia of obtenerDiasCalendario()"
+              class="calendario-dia"
+              [class.dia-otro-mes]="dia.esOtroMes"
+              [class.dia-hoy]="dia.esHoy"
+              [class.dia-con-evento]="dia.eventos && dia.eventos.length > 0"
+            >
+              <div class="dia-numero">{{ dia.numero }}</div>
+              <div class="dia-eventos">
+                <div 
+                  *ngFor="let evento of dia.eventos"
+                  class="evento-mini"
+                  [class.evento-mini--planilla]="evento.tipo === 'planilla'"
+                  [class.evento-mini--beneficio]="evento.tipo === 'beneficio'"
+                  [class.evento-mini--vencimiento]="evento.tipo === 'vencimiento'"
+                  [class.evento-mini--reunion]="evento.tipo === 'reunion'"
+                  [title]="evento.titulo"
+                >
+                  <span class="evento-mini-icon">
+                    <span *ngIf="evento.tipo === 'planilla'">💰</span>
+                    <span *ngIf="evento.tipo === 'beneficio'">🎁</span>
+                    <span *ngIf="evento.tipo === 'vencimiento'">⏰</span>
+                    <span *ngIf="evento.tipo === 'reunion'">👥</span>
+                  </span>
+                  <span class="evento-mini-texto">{{ evento.titulo }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leyenda de eventos -->
+        <div class="calendario-leyenda">
+          <div class="leyenda-item">
+            <span class="leyenda-color leyenda-planilla"></span>
+            <span>Planilla</span>
+          </div>
+          <div class="leyenda-item">
+            <span class="leyenda-color leyenda-beneficio"></span>
+            <span>Beneficios</span>
+          </div>
+          <div class="leyenda-item">
+            <span class="leyenda-color leyenda-vencimiento"></span>
+            <span>Vencimientos</span>
+          </div>
+          <div class="leyenda-item">
+            <span class="leyenda-color leyenda-reunion"></span>
+            <span>Reuniones</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

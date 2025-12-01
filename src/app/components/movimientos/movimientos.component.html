@@ -1,0 +1,34 @@
+<div class="movimientos-container dashboard-section">
+  <div class="section-header">
+    <div class="section-header__content">
+      <h3>Últimos movimientos de planilla</h3>
+      <span class="date-badge">{{ currentMonth }}</span>
+    </div>
+  </div>
+
+  <div class="movimientos-content" *ngIf="movimientos.length > 0; else noData">
+    <div class="movimiento-item" *ngFor="let mov of movimientos">
+      <div class="mov-icon" [ngClass]="mov.type">
+        <i [class]="mov.icon"></i>
+      </div>
+      
+      <div class="mov-info">
+        <div class="mov-details">
+          <p class="mov-description">{{ mov.description }}</p>
+          <span class="mov-date">{{ mov.date | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        
+        <div class="mov-amount" [ngClass]="mov.type">
+          {{ mov.amount | currency:'S/. ':'symbol':'1.2-2':'es-PE' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noData>
+    <div class="no-data">
+      <i class="fas fa-inbox icon-empty"></i>
+      <p>No hay movimientos recientes.</p>
+    </div>
+  </ng-template>
+</div>

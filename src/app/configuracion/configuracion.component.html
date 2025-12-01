@@ -1,0 +1,4473 @@
+<div class="configuracion-container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">⚙️</span>
+        Configuración del Sistema
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Gestión completa de parámetros y ajustes del sistema
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--outline" (click)="exportarConfiguracion()">
+        📤 Exportar
+      </button>
+      <button class="btn btn--sm btn--outline" (click)="restaurarDefecto()">
+        ↩️ Restaurar
+      </button>
+      <button class="btn btn--sm btn--success" (click)="guardarConfiguracion()" [disabled]="guardando">
+        {{ guardando ? '💾 Guardando...' : '💾 Guardar Cambios' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ALERTA DE CAMBIOS -->
+  <div class="alerta-cambios" *ngIf="hayChangiosSinGuardar()">
+    <div class="alerta-cambios__icon">⚠️</div>
+    <div class="alerta-cambios__content">
+      <strong>Hay cambios sin guardar</strong>
+      <p>Recuerde guardar los cambios antes de salir de esta sección</p>
+    </div>
+    <div class="alerta-cambios__acciones">
+      <button class="btn btn--sm btn--ghost" (click)="cancelarCambios()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- TABS NAVEGACIÓN -->
+  <div class="tabs-container">
+    <div class="tabs-scroll">
+      <div class="tabs">
+        <button
+          *ngFor="let tab of tabs"
+          class="tab"
+          [class.active]="tabActiva === tab.id"
+          (click)="cambiarTab(tab.id)"
+        >
+          <span class="tab__icon">{{ tab.icon }}</span>
+          <span class="tab__nombre">{{ tab.nombre }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENIDO DE TABS -->
+  <div class="tab-content">
+
+    <!-- ==================== TAB: EMPRESA ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'empresa'">
+      <h2 class="section-title">🏢 Datos de la Empresa/Municipalidad</h2>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📋 Información General</h3>
+        <div class="form-grid">
+          <div class="form-group form-group--full">
+            <label class="form-label">Razón Social *</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa.razonSocial"
+              (input)="detectarCambios()"
+              placeholder="Municipalidad Distrital de..."
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nombre Comercial</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.nombreComercial"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">RUC *</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.ruc"
+              (input)="detectarCambios()"
+              maxlength="11"
+              placeholder="20123456789"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Dirección</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.direccion"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Distrito</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.distrito"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Provincia</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.provincia"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Departamento</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.departamento"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">País</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.pais"
+              (input)="detectarCambios()"
+              value="Perú"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📞 Contacto</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Teléfono</label>
+            <input
+              type="tel"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.telefono"
+              (input)="detectarCambios()"
+              placeholder="01-1234567"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Celular</label>
+            <input
+              type="tel"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.celular"
+              (input)="detectarCambios()"
+              placeholder="987654321"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.email"
+              (input)="detectarCambios()"
+              placeholder="contacto@municipalidad.gob.pe"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Sitio Web</label>
+            <input
+              type="url"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.web"
+              (input)="detectarCambios()"
+              placeholder="www.municipalidad.gob.pe"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">👥 Autoridades</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Alcalde</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.alcalde"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Gerente Municipal</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.gerenteMunicipal"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Gerente de RRHH</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.gerenteRRHH"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Periodo de Gestión</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.periodoGestion"
+              (input)="detectarCambios()"
+              placeholder="2023-2026"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📄 Información Legal</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Actividad Económica</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.actividadEconomica"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Código CIIU</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.codigoCIIU"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tipo de Contribuyente</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.tipoContribuyente"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Régimen Tributario</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.empresa!.regimenTributario"
+              (input)="detectarCambios()"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: PLANILLAS ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'planillas'">
+      <h2 class="section-title">💰 Configuración de Planillas</h2>
+
+      <!-- ALERTA INFO: Tasas se configuran en otra sección -->
+      <div class="alert alert--info" style="margin-bottom: 2rem;">
+        <div class="alert__icon">💡</div>
+        <div class="alert__content">
+          <strong>Importante:</strong> Los porcentajes de AFP, ONP, Asignación Familiar y descuentos se configuran en la pestaña <strong>"📊 Tasas y Conceptos"</strong> para mejor control y trazabilidad.
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🧮 Parámetros de Cálculo</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">
+              Días del Mes 
+              <span class="label-hint" title="Define si se usan 30 días fijos o los días reales del mes para calcular sueldos diarios">ℹ️</span>
+            </label>
+            <select class="form-select" [(ngModel)]="configuracion.planillas!.diasDelMes" (change)="detectarCambios()">
+              <option [value]="30">30 días (Estándar)</option>
+              <option value="real">Días reales del mes</option>
+            </select>
+            <small class="form-hint">
+              <strong>Ejemplo:</strong> Sueldo S/.3,000 por 15 días → 
+              Con 30 días: S/.1,500.00 | Con días reales (31): S/.1,451.61
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              Horas por Día Laboral
+              <span class="label-hint" title="Número de horas de una jornada laboral completa">ℹ️</span>
+            </label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.planillas!.horasPorDia"
+              (input)="detectarCambios()"
+              min="1"
+              max="24"
+            />
+            <small class="form-hint">Usado para calcular pago por hora y horas extras</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              Decimales en Montos
+              <span class="label-hint" title="Cantidad de decimales a mostrar en todos los montos">ℹ️</span>
+            </label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.planillas!.redondeoDecimales"
+              (input)="detectarCambios()"
+              min="0"
+              max="4"
+            />
+            <small class="form-hint">Recomendado: 2 decimales (S/. 1,234.56)</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              Tipo de Redondeo
+              <span class="label-hint" title="Método de redondeo de decimales">ℹ️</span>
+            </label>
+            <select class="form-select" [(ngModel)]="configuracion.planillas!.redondeoTipo" (change)="detectarCambios()">
+              <option value="normal">Normal (Matemático)</option>
+              <option value="arriba">Siempre hacia arriba</option>
+              <option value="abajo">Siempre hacia abajo</option>
+            </select>
+            <small class="form-hint">Normal redondea S/. 10.125 → S/. 10.13</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📅 Fechas Importantes</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">
+              Día de Cierre de Planilla
+              <span class="label-hint" title="Día límite para registrar asistencias y novedades">ℹ️</span>
+            </label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.planillas!.diaCierrePlanilla"
+              (input)="detectarCambios()"
+              min="1"
+              max="31"
+            />
+            <small class="form-hint">
+              Ej: <strong>25</strong> = La planilla se cierra el día 25 de cada mes
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              Día de Pago de Planilla
+              <span class="label-hint" title="Día en que se realiza el pago a los trabajadores">ℹ️</span>
+            </label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.planillas!.diaPagoPlanilla"
+              (input)="detectarCambios()"
+              min="1"
+              max="31"
+            />
+            <small class="form-hint">
+              Ej: <strong>30</strong> = El pago se efectúa el día 30 de cada mes
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">⚙️ Automatización de Procesos</h3>
+        <div class="opciones-grid">
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.planillas!.calcularHorasExtrasAuto"
+              (change)="detectarCambios()"
+            />
+            <span>
+              <strong>Calcular horas extras automáticamente</strong>
+              <small style="display: block; color: #999; margin-top: 0.25rem;">
+                El sistema detecta y calcula automáticamente las horas extras según asistencias
+              </small>
+            </span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.planillas!.aplicarRetencionAutomatica"
+              (change)="detectarCambios()"
+            />
+            <span>
+              <strong>Aplicar descuentos automáticamente</strong>
+              <small style="display: block; color: #999; margin-top: 0.25rem;">
+                Aplica descuentos por tardanzas, faltas y otros según las tasas configuradas
+              </small>
+            </span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.planillas!.generarBoletasAuto"
+              (change)="detectarCambios()"
+            />
+            <span>
+              <strong>Generar boletas automáticamente</strong>
+              <small style="display: block; color: #999; margin-top: 0.25rem;">
+                Crea automáticamente las boletas de pago al cerrar la planilla mensual
+              </small>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: TASAS Y CONCEPTOS ==================== -->
+    <div class="tab-panel tasas-panel" *ngIf="tabActiva === 'tasas'">
+      <!-- HEADER -->
+      <div class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-title">
+            <span class="page-title__icon">📊</span>
+            Tasas y Conceptos Configurables
+          </h1>
+          <p class="page-subtitle">Gestión de tasas para cálculos de planilla</p>
+        </div>
+        <div class="page-header__right">
+          <button class="btn btn--sm btn--outline" (click)="cargarTasas()">
+            🔄 Actualizar
+          </button>
+          <button class="btn btn--sm btn--primary" (click)="nuevaTasa()">
+            ➕ Nueva Tasa
+          </button>
+        </div>
+      </div>
+
+      <!-- INFORMACIÓN IMPORTANTE -->
+      <div class="alert alert--info" style="margin-bottom: 2rem;">
+        <div class="alert__icon">ℹ️</div>
+        <div class="alert__content">
+          <strong>Información Importante</strong>
+          <ul style="margin: 0.5rem 0 0 0; padding-left: 1.2rem;">
+            <li>Las tasas configurables se utilizan automáticamente en los cálculos de planilla.</li>
+            <li>Los cambios afectan solo a las planillas futuras, no a las ya generadas.</li>
+            <li>Las tasas pueden tener vigencia temporal usando las fechas de inicio y fin.</li>
+            <li>El sistema selecciona automáticamente la tasa vigente según la fecha actual.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- CATEGORÍAS DE TASAS -->
+      <div class="tasas-container">
+        <div *ngFor="let categoria of Object.keys(tasasCategorizadas)" class="tasa-categoria-section">
+          <div class="categoria-header">
+            <!-- TÍTULO DE CATEGORÍA (EDITABLE) -->
+            <div class="categoria-title-wrapper" style="display: flex; align-items: center; gap: 0.75rem; width: 100%;">
+              <h3 class="categoria-title" *ngIf="categoriaEditando !== categoria" style="margin: 0; display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                <span class="categoria-icon">
+                  {{ categoria === 'AFP' || categoria === 'AFP - Fondo de Pensiones' ? '🏦' : 
+                     categoria === 'ONP' || categoria === 'ONP - Sistema de Pensiones' ? '🏛️' : 
+                     categoria === 'EsSalud' || categoria === 'Salud' ? '🏥' : 
+                     categoria === 'Renta' || categoria === 'Renta de 5ta Categoría' ? '💼' : 
+                     categoria === 'APORTES' || categoria === 'Aportes' ? '💰' : 
+                     categoria === 'SCTR' ? '🛡️' : 
+                     categoria === 'SEGUROS' ? '🔒' : '📌' }}
+                </span>
+                {{ categoria }}
+              </h3>
+              
+              <!-- INPUT EDITABLE -->
+              <div *ngIf="categoriaEditando === categoria" style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                <span class="categoria-icon">
+                  {{ categoria === 'AFP' || categoria === 'AFP - Fondo de Pensiones' ? '🏦' : 
+                     categoria === 'ONP' || categoria === 'ONP - Sistema de Pensiones' ? '🏛️' : 
+                     categoria === 'EsSalud' || categoria === 'Salud' ? '🏥' : 
+                     categoria === 'Renta' || categoria === 'Renta de 5ta Categoría' ? '💼' : 
+                     categoria === 'APORTES' || categoria === 'Aportes' ? '💰' : 
+                     categoria === 'SCTR' ? '🛡️' : 
+                     categoria === 'SEGUROS' ? '🔒' : '📌' }}
+                </span>
+                <input 
+                  type="text" 
+                  class="form-input" 
+                  [(ngModel)]="categoriaNombreEditando"
+                  (keyup.enter)="guardarNombreCategoria(categoria)"
+                  (keyup.escape)="cancelarEdicionCategoria()"
+                  style="flex: 1; font-size: 1.25rem; font-weight: 600; padding: 0.5rem 0.75rem;"
+                  [disabled]="guardandoNombreCategoria"
+                  #categoriaInput
+                  (focus)="categoriaInput.select()"
+                />
+                <button 
+                  class="btn btn--sm btn--primary" 
+                  (click)="guardarNombreCategoria(categoria)"
+                  [disabled]="guardandoNombreCategoria || !categoriaNombreEditando.trim()"
+                  style="margin: 0; min-width: 40px;">
+                  {{ guardandoNombreCategoria ? '⏳' : '✓' }}
+                </button>
+                <button 
+                  class="btn btn--sm btn--outline" 
+                  (click)="cancelarEdicionCategoria()"
+                  [disabled]="guardandoNombreCategoria"
+                  style="margin: 0; min-width: 40px;">
+                  ✕
+                </button>
+              </div>
+              
+              <!-- BOTÓN EDITAR -->
+              <button 
+                *ngIf="categoriaEditando !== categoria"
+                class="btn btn--sm btn--outline" 
+                (click)="iniciarEdicionCategoria(categoria)"
+                style="padding: 0.375rem 0.75rem; white-space: nowrap;"
+                title="Editar nombre de categoría">
+                ✏️ Editar
+              </button>
+              
+              <span class="categoria-count" style="margin-left: auto;">{{ tasasCategorizadas[categoria].length }} tasa(s)</span>
+            </div>
+          </div>
+          
+          <div class="tabla-responsive" *ngIf="tasasCategorizadas[categoria].length > 0">
+            <table class="tabla-moderna">
+              <thead>
+                <tr>
+                  <th width="15%">Código</th>
+                  <th width="25%">Nombre</th>
+                  <th width="12%">Valor</th>
+                  <th width="10%">Tipo</th>
+                  <th width="18%">Vigencia</th>
+                  <th width="10%">Estado</th>
+                  <th width="10%">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let tasa of tasasCategorizadas[categoria]" class="tabla-row">
+                  <td>
+                    <code class="codigo-badge">{{ tasa.Codigo }}</code>
+                  </td>
+                  <td>
+                    <div class="tasa-info">
+                      <span class="tasa-nombre">{{ tasa.Nombre }}</span>
+                      <small class="tasa-descripcion" *ngIf="tasa.Descripcion">{{ tasa.Descripcion }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="valor-destacado">{{ formatearValorTasa(tasa.Valor, tasa.TipoValor) }}</span>
+                  </td>
+                  <td>
+                    <span class="badge badge--{{ tasa.TipoValor === 'Porcentaje' ? 'info' : tasa.TipoValor === 'Monto' ? 'success' : tasa.TipoValor === 'Cantidad' ? 'warning' : 'secondary' }}">
+                      {{ tasa.TipoValor }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="vigencia-info">
+                      <small class="vigencia-desde">
+                        <span class="vigencia-label">Desde:</span> {{ tasa.FechaVigenciaInicio | date:'dd/MM/yyyy' }}
+                      </small>
+                      <small class="vigencia-hasta" *ngIf="tasa.FechaVigenciaFin">
+                        <span class="vigencia-label">Hasta:</span> {{ tasa.FechaVigenciaFin | date:'dd/MM/yyyy' }}
+                      </small>
+                      <small class="vigencia-indefinida" *ngIf="!tasa.FechaVigenciaFin">
+                        <span class="vigencia-label">Vigencia:</span> Indefinida
+                      </small>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge" [class.badge--success]="tasa.Activo" [class.badge--danger]="!tasa.Activo">
+                      {{ tasa.Activo ? '✓ Activo' : '✗ Inactivo' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="acciones-grupo">
+                      <button class="btn-icon btn-icon--edit" (click)="editarTasa(tasa)" title="Editar tasa">
+                        ✏️
+                      </button>
+                      <button class="btn-icon btn-icon--delete" (click)="eliminarTasa(tasa)" title="Eliminar tasa">
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="empty-state" *ngIf="tasasCategorizadas[categoria].length === 0">
+            <div class="empty-state__icon">📭</div>
+            <p class="empty-state__text">No hay tasas en esta categoría</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: BENEFICIOS ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'beneficios'">
+      <h2 class="section-title">🎁 Configuración de Beneficios</h2>
+
+      <!-- CTS -->
+      <div class="form-section">
+        <h3 class="form-section__title">💰 CTS (Compensación por Tiempo de Servicios)</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tasa de Interés (%)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.cts.tasaInteres"
+              (input)="detectarCambios()"
+              step="0.1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Banco Depositario</label>
+            <select class="form-select" [(ngModel)]="configuracion.beneficios!.cts.bancoDepositario" (change)="detectarCambios()">
+              <option *ngFor="let banco of bancosDisponibles" [value]="banco">{{ banco }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Días por Año</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.cts.diasPorAnio"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Meses Promedio Horas Extras</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.cts.mesesPromedioHorasExtras"
+              (input)="detectarCambios()"
+              min="1"
+              max="12"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Día Depósito Mayo</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.cts.fechaDepositoMayo"
+              (input)="detectarCambios()"
+              min="1"
+              max="31"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Día Depósito Noviembre</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.cts.fechaDepositoNoviembre"
+              (input)="detectarCambios()"
+              min="1"
+              max="31"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.beneficios!.cts.incluirGratificacionesEnCalculo"
+                (change)="detectarCambios()"
+              />
+              <span>Incluir gratificaciones en el cálculo</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.beneficios!.cts.incluirHorasExtrasEnCalculo"
+                (change)="detectarCambios()"
+              />
+              <span>Incluir horas extras en el cálculo</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.beneficios!.cts.generarDepositosAuto"
+                (change)="detectarCambios()"
+              />
+              <span>Generar depósitos automáticamente</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRATIFICACIONES -->
+      <div class="form-section">
+        <h3 class="form-section__title">🎁 Gratificaciones</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Bonificación Extraordinaria (%)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.gratificaciones.porcentajeBonificacionExtraordinaria"
+              (input)="detectarCambios()"
+              step="0.1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mes Gratificación Julio</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.gratificaciones.mesGratificacionJulio"
+              (input)="detectarCambios()"
+              min="1"
+              max="12"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mes Gratificación Diciembre</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.gratificaciones.mesGratificacionDiciembre"
+              (input)="detectarCambios()"
+              min="1"
+              max="12"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.beneficios!.gratificaciones.aplicarRetencionRenta"
+                (change)="detectarCambios()"
+              />
+              <span>Aplicar retención de renta 5ta</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- VACACIONES -->
+      <div class="form-section">
+        <h3 class="form-section__title">🏖️ Vacaciones</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Días por Año</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.vacaciones.diasPorAnio"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Días Mínimo Continuo</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.vacaciones.diasMinimoContinuo"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Días Máximo Fraccionamiento</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.vacaciones.diasMaximoFraccionamiento"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Días Anticipación Solicitud</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.vacaciones.diasAnticipacionSolicitud"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Años Máximos Acumulación</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.vacaciones.aniosMaximosAcumulacion"
+              (input)="detectarCambios()"
+              min="1"
+              max="5"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.beneficios!.vacaciones.permitirFraccionamiento"
+                (change)="detectarCambios()"
+              />
+              <span>Permitir fraccionamiento de vacaciones</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.beneficios!.vacaciones.permitirAcumulacion"
+                (change)="detectarCambios()"
+              />
+              <span>Permitir acumulación de vacaciones</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.beneficios!.vacaciones.generarRecordAutomatico"
+                (change)="detectarCambios()"
+              />
+              <span>Generar record vacacional automático</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- UTILIDADES -->
+      <div class="form-section">
+        <h3 class="form-section__title">💼 Utilidades</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">% Distribución a Trabajadores</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.utilidades.porcentajeDistribucionTrabajadores"
+              (input)="detectarCambios()"
+              step="0.1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">% Por Días</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.utilidades.porcentajePorDias"
+              (input)="detectarCambios()"
+              step="0.1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">% Por Remuneración</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.utilidades.porcentajePorRemuneracion"
+              (input)="detectarCambios()"
+              step="0.1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Días Año Completo</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.beneficios!.utilidades.diasAnioCompleto"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.beneficios!.utilidades.aplicarRenta5ta"
+                (change)="detectarCambios()"
+              />
+              <span>Aplicar Renta 5ta Categoría</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: ASISTENCIA ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'asistencia'">
+      <h2 class="section-title">📅 Configuración de Asistencia</h2>
+
+      <div class="form-section">
+        <h3 class="form-section__title">⏰ Tolerancias</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Minutos Tolerancia Tardanza</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.asistencia!.minutosToleranciaTardanza"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tardanzas Máximas por Mes</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.asistencia!.tardanzasMaximasMes"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Faltas Máximas por Mes</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.asistencia!.faltasMaximasMes"
+              (input)="detectarCambios()"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🔢 Tipo de Marcación</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Sistema de Marcación</label>
+            <select class="form-select" [(ngModel)]="configuracion.asistencia!.tipoMarcacion" (change)="detectarCambios()">
+              <option value="biometrico">Biométrico</option>
+              <option value="manual">Manual</option>
+              <option value="mixto">Mixto</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.asistencia!.requiereJustificacionTardanza"
+                (change)="detectarCambios()"
+              />
+              <span>Requiere justificación para tardanzas</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.asistencia!.requiereJustificacionFalta"
+                (change)="detectarCambios()"
+              />
+              <span>Requiere justificación para faltas</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">⏱️ Horas Extras</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Porcentaje HE al 25%</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.asistencia!.porcentajeHE25"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Porcentaje HE al 35%</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.asistencia!.porcentajeHE35"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Porcentaje HE al 100%</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.asistencia!.porcentajeHE100"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.asistencia!.permitirHorasExtras"
+                (change)="detectarCambios()"
+              />
+              <span>Permitir horas extras</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.asistencia!.requiereAprobacionHE"
+                (change)="detectarCambios()"
+              />
+              <span>Requiere aprobación de horas extras</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📊 Reportes</h3>
+        <div class="opciones-grid">
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.asistencia!.generarReportesDiarios"
+              (change)="detectarCambios()"
+            />
+            <span>Generar reportes diarios automáticamente</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.asistencia!.enviarAlertasTardanzas"
+              (change)="detectarCambios()"
+            />
+            <span>Enviar alertas de tardanzas</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: RRHH ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'rrhh'">
+      <h2 class="section-title">👥 Configuración de RRHH</h2>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📊 Evaluación de Desempeño</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Periodo de Evaluación</label>
+            <select class="form-select" [(ngModel)]="configuracion.rrhh!.periodoEvaluacionDesempeno" (change)="detectarCambios()">
+              <option value="mensual">Mensual</option>
+              <option value="trimestral">Trimestral</option>
+              <option value="semestral">Semestral</option>
+              <option value="anual">Anual</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Fecha de Reunión de Evaluación</label>
+            <input
+              type="date"
+              class="form-input"
+              [ngModel]="formatearFechaParaDateInput(configuracion.rrhh!.fechaReunionEvaluacion)"
+              (ngModelChange)="onFechaReunionEvaluacionChange($event)"
+              [ngModelOptions]="{ updateOn: 'blur' }"
+            />
+            <small class="form-hint">Fecha de la próxima reunión de evaluación de desempeño</small>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.rrhh!.permitirAutoevaluacion"
+                (change)="detectarCambios()"
+              />
+              <span>Permitir autoevaluación</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🎓 Capacitaciones</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Horas Capacitación Anual</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.rrhh!.horasCapacitacionAnual"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Presupuesto Capacitación (S/.)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.rrhh!.presupuestoCapacitacion"
+              (input)="detectarCambios()"
+              step="0.01"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🔔 Notificaciones</h3>
+        <div class="opciones-grid">
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.rrhh!.notificarCumpleanos"
+              (change)="detectarCambios()"
+            />
+            <span>Notificar cumpleaños de trabajadores</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.rrhh!.notificarAniversarios"
+              (change)="detectarCambios()"
+            />
+            <span>Notificar aniversarios laborales</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: DATOS MAESTROS ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'datos-maestros'">
+      <h2 class="section-title">🗂️ Administración de Datos Maestros</h2>
+      <p class="section-description">Gestión centralizada de todos los datos maestros del sistema (cargos, áreas, gerencias, etc.)</p>
+
+      <!-- NAVEGACIÓN DE SUBSECCIONES -->
+      <div class="subsecciones-nav">
+        <button 
+          *ngFor="let subseccion of subseccionesDatosMaestros"
+          class="subseccion-btn"
+          [class.active]="subseccionActiva === subseccion.id"
+          (click)="cambiarSubseccion(subseccion.id)"
+        >
+          <span class="subseccion-btn__icon">{{ subseccion.icon }}</span>
+          <span class="subseccion-btn__nombre">{{ subseccion.nombre }}</span>
+          <span class="subseccion-btn__count">{{ subseccion.count }}</span>
+        </button>
+      </div>
+
+      <!-- CONTENIDO DE SUBSECCIONES -->
+      <div class="subseccion-content">
+        
+        <!-- CARGOS -->
+        <div class="subseccion-panel" *ngIf="subseccionActiva === 'cargos'">
+          <div class="panel-header">
+            <h3>👔 Gestión de Cargos</h3>
+            <div class="panel-header__actions">
+              <button 
+                class="btn btn--danger btn--sm" 
+                (click)="eliminarCargosSeleccionados()"
+                [disabled]="cargosSeleccionados.length === 0"
+                *ngIf="cargosSeleccionados.length > 0"
+              >
+                🗑️ Eliminar Seleccionados ({{ cargosSeleccionados.length }})
+              </button>
+              <button class="btn btn--primary btn--sm" (click)="abrirModalNuevoCargo()">
+                ➕ Nuevo Cargo
+              </button>
+            </div>
+          </div>
+          
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="th-checkbox">
+                    <input 
+                      type="checkbox" 
+                      [checked]="todosCargosSeleccionados"
+                      (change)="toggleTodosCargos()"
+                    />
+                  </th>
+                  <th class="th-codigo">Código</th>
+                  <th class="th-nombre">Nombre</th>
+                  <th class="th-descripcion">Descripción</th>
+                  <th class="th-estado">Estado</th>
+                  <th class="th-acciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let cargo of cargos">
+                  <td class="td-checkbox">
+                    <input 
+                      type="checkbox" 
+                      [checked]="estaCargoSeleccionado(cargo.CargoID)"
+                      (change)="toggleSeleccionCargo(cargo.CargoID)"
+                    />
+                  </td>
+                  <td><code>{{ cargo.CargoID }}</code></td>
+                  <td><strong>{{ cargo.Nombre }}</strong></td>
+                  <td>{{ cargo.Descripcion || 'Sin descripción' }}</td>
+                  <td>
+                    <span class="status-badge active">
+                      Activo
+                    </span>
+                  </td>
+                  <td class="td-acciones">
+                    <div class="acciones-buttons">
+                      <button class="btn btn--sm btn--outline" (click)="abrirModalEditarCargo(cargo)">
+                        ✏️ Editar
+                      </button>
+                      <button class="btn btn--sm btn--danger" (click)="eliminarCargo(cargo)">
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- GERENCIAS -->
+        <div class="subseccion-panel" *ngIf="subseccionActiva === 'gerencias'">
+          <div class="panel-header">
+            <h3>🏛️ Gestión de Gerencias</h3>
+            <button class="btn btn--primary btn--sm" (click)="nuevaGerencia()">
+              ➕ Nueva Gerencia
+            </button>
+          </div>
+          
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="th-codigo">Código</th>
+                  <th class="th-nombre">Nombre</th>
+                  <th class="th-descripcion">Descripción</th>
+                  <th class="th-estado">Estado</th>
+                  <th class="th-acciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let gerencia of gerencias">
+                  <td><code>{{ gerencia.GerenciaID }}</code></td>
+                  <td><strong>{{ gerencia.Nombre }}</strong></td>
+                  <td>{{ gerencia.Descripcion || 'Sin descripción' }}</td>
+                  <td>
+                    <span class="status-badge active">
+                      Activo
+                    </span>
+                  </td>
+                  <td class="td-acciones">
+                    <div class="acciones-buttons">
+                      <button class="btn btn--sm btn--outline" (click)="editarGerencia(gerencia)">
+                        ✏️ Editar
+                      </button>
+                      <button class="btn btn--sm btn--danger" (click)="eliminarGerencia(gerencia)">
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SUBGERENCIAS -->
+        <div class="subseccion-panel" *ngIf="subseccionActiva === 'subgerencias'">
+          <div class="panel-header">
+            <h3>🏢 Gestión de Subgerencias</h3>
+            <button class="btn btn--primary btn--sm" (click)="nuevaSubgerencia()">
+              ➕ Nueva Subgerencia
+            </button>
+          </div>
+          
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="th-codigo">Código</th>
+                  <th class="th-nombre">Nombre</th>
+                  <th class="th-descripcion">Gerencia</th>
+                  <th class="th-estado">Estado</th>
+                  <th class="th-acciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let subgerencia of subgerencias">
+                  <td><code>{{ subgerencia.SubgerenciaID }}</code></td>
+                  <td><strong>{{ subgerencia.Nombre }}</strong></td>
+                  <td>{{ subgerencia.GerenciaNombre }}</td>
+                  <td>
+                    <span class="status-badge active">
+                      Activo
+                    </span>
+                  </td>
+                  <td class="td-acciones">
+                    <div class="acciones-buttons">
+                      <button class="btn btn--sm btn--outline" (click)="editarSubgerencia(subgerencia)">
+                        ✏️ Editar
+                      </button>
+                      <button class="btn btn--sm btn--danger" (click)="eliminarSubgerencia(subgerencia)">
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- UNIDADES -->
+        <div class="subseccion-panel" *ngIf="subseccionActiva === 'unidades'">
+          <div class="panel-header">
+            <h3>🏢 Gestión de Unidades</h3>
+            <button class="btn btn--primary btn--sm" (click)="nuevaUnidad()">
+              ➕ Nueva Unidad
+            </button>
+          </div>
+          
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="th-codigo">Código</th>
+                  <th class="th-nombre">Nombre</th>
+                  <th class="th-descripcion">Subgerencia</th>
+                  <th class="th-estado">Estado</th>
+                  <th class="th-acciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let unidad of unidades">
+                  <td><code>{{ unidad.UnidadID }}</code></td>
+                  <td><strong>{{ unidad.Nombre }}</strong></td>
+                  <td>{{ unidad.SubgerenciaNombre }}</td>
+                  <td>
+                    <span class="status-badge active">
+                      Activo
+                    </span>
+                  </td>
+                  <td class="td-acciones">
+                    <div class="acciones-buttons">
+                      <button class="btn btn--sm btn--outline" (click)="editarUnidad(unidad)">
+                        ✏️ Editar
+                      </button>
+                      <button class="btn btn--sm btn--danger" (click)="eliminarUnidad(unidad)">
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TIPOS DE CONTRATO -->
+        <div class="subseccion-panel" *ngIf="subseccionActiva === 'tipos-contrato'">
+          <div class="panel-header">
+            <h3>📋 Gestión de Tipos de Contrato</h3>
+            <button class="btn btn--primary btn--sm" (click)="abrirModalNuevoTipoContrato()">
+              ➕ Nuevo Tipo
+            </button>
+          </div>
+          
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="th-codigo">Código</th>
+                  <th class="th-nombre">Nombre</th>
+                  <th class="th-descripcion">Descripción</th>
+                  <th class="th-estado">Estado</th>
+                  <th class="th-acciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let tipo of tiposContrato">
+                  <td><code>{{ tipo.Codigo }}</code></td>
+                  <td><strong>{{ tipo.Nombre }}</strong></td>
+                  <td>{{ tipo.Descripcion || 'Sin descripción' }}</td>
+                  <td>
+                    <span class="status-badge active">
+                      Activo
+                    </span>
+                  </td>
+                  <td class="td-acciones">
+                    <div class="acciones-buttons">
+                      <button class="btn btn--sm btn--outline" (click)="abrirModalEditarTipoContrato(tipo)">
+                        ✏️ Editar
+                      </button>
+                      <button class="btn btn--sm btn--danger" (click)="eliminarTipoContrato(tipo)">
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- REGÍMENES LABORALES -->
+        <div class="subseccion-panel" *ngIf="subseccionActiva === 'regimenes-laborales'">
+          <div class="panel-header">
+            <h3>⚖️ Gestión de Regímenes Laborales</h3>
+            <button class="btn btn--primary btn--sm" (click)="abrirModalNuevoRegimenLaboral()">
+              ➕ Nuevo Régimen
+            </button>
+          </div>
+          
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="th-codigo">Código</th>
+                  <th class="th-nombre">Nombre</th>
+                  <th class="th-descripcion">Descripción</th>
+                  <th class="th-estado">Estado</th>
+                  <th class="th-acciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let regimen of regimenesLaborales">
+                  <td class="td-codigo"><code>{{ regimen.Codigo }}</code></td>
+                  <td class="td-nombre"><strong>{{ regimen.Nombre }}</strong></td>
+                  <td class="td-descripcion">{{ regimen.Descripcion || 'Sin descripción' }}</td>
+                  <td class="td-estado">
+                    <span class="status-badge active">
+                      Activo
+                    </span>
+                  </td>
+                  <td class="td-acciones">
+                    <div class="acciones-buttons">
+                      <button class="btn btn--sm btn--outline" (click)="abrirModalEditarRegimenLaboral(regimen)">
+                        ✏️ Editar
+                      </button>
+                      <button class="btn btn--sm btn--danger" (click)="eliminarRegimenLaboral(regimen)">
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CONDICIONES LABORALES -->
+        <div class="subseccion-panel" *ngIf="subseccionActiva === 'condiciones-laborales'">
+          <div class="panel-header">
+            <h3>📌 Gestión de Condiciones Laborales</h3>
+            <button class="btn btn--primary btn--sm" (click)="abrirModalNuevoCondicionLaboral()">
+              ➕ Nueva Condición Laboral
+            </button>
+          </div>
+          
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="th-codigo">Código</th>
+                  <th class="th-nombre">Nombre</th>
+                  <th class="th-descripcion">Descripción</th>
+                  <th class="th-estado">Estado</th>
+                  <th class="th-acciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let condicion of condicionesLaborales">
+                  <td class="td-codigo"><code>{{ condicion.Codigo }}</code></td>
+                  <td class="td-nombre"><strong>{{ condicion.Nombre }}</strong></td>
+                  <td class="td-descripcion">{{ condicion.Descripcion || 'Sin descripción' }}</td>
+                  <td class="td-estado">
+                    <span class="status-badge active">
+                      Activo
+                    </span>
+                  </td>
+                  <td class="td-acciones">
+                    <div class="acciones-buttons">
+                      <button class="btn btn--sm btn--outline" (click)="abrirModalEditarCondicionLaboral(condicion)">
+                        ✏️ Editar
+                      </button>
+                      <button class="btn btn--sm btn--danger" (click)="eliminarCondicionLaboral(condicion)">
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== TAB: TRIBUTARIO ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'tributario'">
+      <h2 class="section-title">🏛️ Configuración Tributaria</h2>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🏛️ SUNAT</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Usuario SUNAT</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.tributario!.usuarioSUNAT"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Clave SUNAT</label>
+            <input
+              type="password"
+              class="form-input"
+              [(ngModel)]="configuracion.tributario!.claveSUNAT"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Versión PLAME</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.tributario!.versionPLAME"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Ruta PLAME</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.tributario!.rutaPLAME"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.tributario!.generarArchivosPLAMEAuto"
+                (change)="detectarCambios()"
+              />
+              <span>Generar archivos PLAME automáticamente</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.tributario!.generarPDTAuto"
+                (change)="detectarCambios()"
+              />
+              <span>Generar PDT automáticamente</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">💵 UIT y Renta 5ta</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">UIT Actual (S/.)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.tributario!.uitActual"
+              (input)="detectarCambios()"
+              step="1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Deducción Mínima (UIT)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.tributario!.deduccionMinima"
+              (input)="detectarCambios()"
+              step="0.1"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🏥 EsSalud y Aportes</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tasa EsSalud (%)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.tributario!.tasaEsSalud"
+              (input)="detectarCambios()"
+              step="0.1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tarifa SCTR (%)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.tributario!.tarifaSCTR"
+              (input)="detectarCambios()"
+              step="0.1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tasa ONP (%)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.tributario!.tasaONP"
+              (input)="detectarCambios()"
+              step="0.1"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: SEGURIDAD ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'seguridad'">
+      <h2 class="section-title">🔐 Configuración de Seguridad</h2>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🔑 Políticas de Contraseñas</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Longitud Mínima</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.seguridad!.longitudMinimaPassword"
+              (input)="detectarCambios()"
+              min="6"
+              max="20"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Días Expiración</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.seguridad!.diasExpiracionPassword"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Intentos Fallidos para Bloqueo</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.seguridad!.bloquearTrasIntentosFallidos"
+              (input)="detectarCambios()"
+              min="3"
+              max="10"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.seguridad!.requiereCaracteresEspeciales"
+                (change)="detectarCambios()"
+              />
+              <span>Requiere caracteres especiales</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.seguridad!.requiereNumeros"
+                (change)="detectarCambios()"
+              />
+              <span>Requiere números</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.seguridad!.requiereMayusculas"
+                (change)="detectarCambios()"
+              />
+              <span>Requiere mayúsculas</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">⏱️ Sesiones</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tiempo Máximo Sesión (minutos)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.seguridad!.tiempoMaximoSesion"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Minutos Inactividad</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.seguridad!.minutosInactividad"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Sesiones Simultáneas</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.seguridad!.sesionesSimultaneas"
+              (input)="detectarCambios()"
+              min="1"
+              max="5"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.seguridad!.cerrarSesionInactividad"
+                (change)="detectarCambios()"
+              />
+              <span>Cerrar sesión por inactividad</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.seguridad!.permitirRecordarDispositivo"
+                (change)="detectarCambios()"
+              />
+              <span>Permitir recordar dispositivo</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📋 Auditoría</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nivel de Auditoría</label>
+            <select class="form-select" [(ngModel)]="configuracion.seguridad!.nivelAuditoria" (change)="detectarCambios()">
+              <option value="basico">Básico</option>
+              <option value="medio">Medio</option>
+              <option value="completo">Completo</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Días Retención Logs</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.seguridad!.diasRetencionLogs"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.seguridad!.registrarCambios"
+                (change)="detectarCambios()"
+              />
+              <span>Registrar todos los cambios</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.seguridad!.autenticacionDosFactores"
+                (change)="detectarCambios()"
+              />
+              <span>Autenticación de dos factores</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: ADMINISTRAR ROLES ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'administrar-roles' && (puedeVerRoles() || puedeVerUsuarios())">
+      <h2 class="section-title">👑 Administración de Roles y Usuarios</h2>
+      <p class="section-description">Gestión completa de roles, permisos y usuarios del sistema</p>
+
+      <!-- NAVEGACIÓN DE SUBSECCIONES -->
+      <div class="subsecciones-nav" *ngIf="puedeVerRoles() || puedeVerUsuarios()">
+        <button 
+          class="subseccion-btn"
+          *ngIf="puedeVerRoles()"
+          [class.active]="subseccionActiva === 'roles'"
+          (click)="subseccionActiva = 'roles'"
+        >
+          <span class="subseccion-btn__icon">👑</span>
+          <span class="subseccion-btn__text">Roles y Permisos</span>
+        </button>
+        <button 
+          class="subseccion-btn"
+          *ngIf="puedeVerUsuarios()"
+          [class.active]="subseccionActiva === 'usuarios'"
+          (click)="subseccionActiva = 'usuarios'"
+        >
+          <span class="subseccion-btn__icon">👥</span>
+          <span class="subseccion-btn__text">Usuarios</span>
+        </button>
+      </div>
+
+      <!-- CONTENIDO DE SUBSECCIONES -->
+      <div class="subseccion-content">
+        
+        <!-- ROLES Y PERMISOS -->
+        <div class="subseccion-panel" *ngIf="subseccionActiva === 'roles'">
+          <div class="panel-header">
+            <div class="panel-header__left">
+              <h3 class="panel-title">👑 Gestión de Roles</h3>
+              <p class="panel-description">Crear, editar y administrar roles del sistema con sus respectivos permisos</p>
+            </div>
+            <div class="panel-header__right">
+              <button class="btn btn--primary" (click)="abrirModalCrearRol()">
+                <span class="btn__icon">➕</span>
+                <span class="btn__text">Nuevo Rol</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- LISTA DE ROLES -->
+          <div class="roles-container" *ngIf="!rolesCargando; else loadingRoles">
+            <div class="roles-grid">
+              <div class="role-card" *ngFor="let rol of roles" [ngClass]="{
+                'role-card--super': getRolDisplayName(rol.nombre) === 'Super Administrador',
+                'role-card--admin': rol.nombre && (rol.nombre.toUpperCase() === 'ADMIN' || rol.nombre.toUpperCase() === 'ADMIN_NORMAL' || rol.nombre === 'Administrador')
+              }">
+                <div class="role-card__header">
+                  <div class="role-card__icon">👑</div>
+                  <div class="role-card__info">
+                    <h4 class="role-card__nombre">{{ getRolDisplayName(rol.nombre) }}</h4>
+                    <p class="role-card__descripcion">{{ rol.descripcion || 'Sin descripción' }}</p>
+                    <div class="role-card__permisos-count" *ngIf="rol.permisos">
+                      <span class="permisos-count-badge">
+                        {{ contarPermisosActivos(rol) }} / {{ contarPermisosTotales(rol) }} permisos
+                      </span>
+                    </div>
+                  </div>
+                  <div class="role-card__actions">
+                    <button class="btn-icon btn-icon--edit" (click)="abrirModalEditarRol(rol)" title="Editar rol">
+                      ✏️
+                    </button>
+                    <button class="btn-icon btn-icon--delete" (click)="eliminarRol(rol)" title="Eliminar rol">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+                <div class="role-card__permisos">
+                  <div class="permisos-grid" *ngIf="rol.permisos && Object.keys(rol.permisos).length > 0">
+                    <div class="permiso-item" *ngFor="let seccion of Object.keys(rol.permisos)">
+                      <div class="permiso-seccion">{{ seccion | titlecase }}</div>
+                      <div class="permiso-detalles">
+                        <span class="permiso-badge" 
+                              *ngFor="let permiso of Object.keys(rol.permisos[seccion] || {})"
+                              [class.active]="rol.permisos[seccion] && rol.permisos[seccion][permiso] === true">
+                          {{ permiso | titlecase }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="permisos-vacios" *ngIf="!rol.permisos || Object.keys(rol.permisos).length === 0">
+                    <p class="text-muted">Sin permisos configurados</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #loadingRoles>
+            <div class="loading-state">
+              <div class="loading-spinner"></div>
+              <p>Cargando roles...</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- USUARIOS -->
+        <div class="subseccion-panel" *ngIf="subseccionActiva === 'usuarios'">
+          <div class="panel-header">
+            <div class="panel-header__left">
+              <h3 class="panel-title">👥 Gestión de Usuarios</h3>
+              <p class="panel-description">Administrar usuarios del sistema y cambiar contraseñas</p>
+            </div>
+            <div class="panel-header__right">
+              <button class="btn btn--primary" (click)="abrirModalNuevoUsuario()" *ngIf="isAdmin">
+                <span class="btn__icon">➕</span>
+                <span class="btn__text">Nuevo Usuario</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- LISTA DE USUARIOS -->
+          <div class="usuarios-container" *ngIf="!usuariosCargando; else loadingUsuarios">
+            <div class="usuarios-table">
+              <div class="table-header">
+                <div class="table-cell">Usuario</div>
+                <div class="table-cell">Rol</div>
+                <div class="table-cell">Estado</div>
+                <div class="table-cell">Último Acceso</div>
+                <div class="table-cell">Acciones</div>
+              </div>
+              <div class="table-row" *ngFor="let usuario of usuarios">
+                <div class="table-cell">
+                  <div class="usuario-info">
+                    <div class="usuario-avatar" [style.background-color]="getColorAvatar(usuario)">
+                      <span class="avatar-iniciales">{{ getInicialesUsuario(usuario) }}</span>
+                      <span class="avatar-icono">{{ getIconoRol(usuario.rol) }}</span>
+                    </div>
+                    <div class="usuario-details">
+                      <div class="usuario-nombre">{{ usuario.username }}</div>
+                      <div class="usuario-email">{{ usuario.email || 'Sin email' }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="table-cell">
+                  <span
+                    class="rol-badge rol-badge--{{ usuario.rol?.toLowerCase() }}"
+                    [ngClass]="{
+                      'rol-badge--superadmin': getRolDisplayName(usuario.rol) === 'Super Administrador',
+                      'rol-badge--admin': usuario.rol && (usuario.rol.toUpperCase() === 'ADMIN' || usuario.rol.toUpperCase() === 'ADMIN_NORMAL' || usuario.rol === 'Administrador')
+                    }"
+                  >
+                    {{ getRolDisplayName(usuario.rol) }}
+                  </span>
+                </div>
+                <div class="table-cell">
+                  <span class="estado-badge estado-badge--activo">
+                    Activo
+                  </span>
+                </div>
+                <div class="table-cell">
+                  <span class="fecha-acceso">{{ formatearFecha(usuario.ultimoAcceso) || 'Nunca' }}</span>
+                </div>
+                <div class="table-cell">
+                  <div class="acciones-usuario">
+                    <button class="btn btn--sm btn--outline" (click)="abrirModalEditarUsuario(usuario)">
+                      <span class="btn__icon">✏️</span>
+                      <span class="btn__text">Editar</span>
+                    </button>
+                    <button class="btn btn--sm btn--outline" (click)="abrirModalCambiarPassword(usuario)">
+                      <span class="btn__icon">🔑</span>
+                      <span class="btn__text">Contraseña</span>
+                    </button>
+                    <button 
+                      class="btn btn--sm btn--danger" 
+                      (click)="abrirModalEliminarUsuario(usuario)"
+                      *ngIf="isAdmin"
+                      title="Eliminar usuario permanentemente de la base de datos">
+                      <span class="btn__icon">🗑️</span>
+                      <span class="btn__text">Eliminar</span>
+                    </button>
+                    <button 
+                      class="btn btn--sm btn--danger" 
+                      (click)="abrirModalResetearPassword(usuario)"
+                      *ngIf="isAdmin"
+                      title="Resetear contraseña (solo administradores)">
+                      <span class="btn__icon">🔄</span>
+                      <span class="btn__text">Resetear</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #loadingUsuarios>
+            <div class="loading-state">
+              <div class="loading-spinner"></div>
+              <p>Cargando usuarios...</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: NOTIFICACIONES ==================== -->
+  
+  <!-- MODAL ELIMINAR USUARIO -->
+  <div class="modal-overlay" *ngIf="mostrarModalEliminarUsuario">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🗑️ Eliminar usuario</h3>
+        <button class="btn btn--ghost" (click)="cerrarModalEliminarUsuario()">✖</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>⚠️ ADVERTENCIA:</strong> Esta acción eliminará permanentemente el usuario de la base de datos. Esta acción no se puede deshacer.</p>
+        <p><strong>Usuario:</strong> {{ usuarioAEliminar?.username }} ({{ usuarioAEliminar?.email || 'sin email' }})</p>
+        <div class="form-group">
+          <label class="form-label">Escriba <strong>ELIMINAR</strong> para confirmar</label>
+          <input type="text" class="form-input" [(ngModel)]="confirmacionEliminar" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" (click)="cerrarModalEliminarUsuario()">Cancelar</button>
+        <button class="btn btn--danger" (click)="eliminarUsuarioConfirmado()">Eliminar definitivamente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ÉXITO ELIMINACIÓN USUARIO -->
+  <div class="modal-overlay modal--exito" *ngIf="mostrarModalExitoEliminacion" (click)="cerrarModalExitoEliminacion()">
+    <div class="modal-content modal-content--exito" (click)="$event.stopPropagation()">
+      <div class="exito-eliminacion-usuario">
+        <!-- Círculo de carga -->
+        <div class="exito-eliminacion-usuario__loader" *ngIf="eliminandoUsuario">
+          <div class="spinner spinner--success"></div>
+        </div>
+        
+        <!-- Check de éxito -->
+        <div class="exito-eliminacion-usuario__check" *ngIf="eliminacionCompletada">
+          <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
+        
+        <h3 class="exito-eliminacion-usuario__title">Usuario eliminado exitosamente</h3>
+        <p class="exito-eliminacion-usuario__message" *ngIf="eliminacionCompletada">
+          El usuario ha sido eliminado permanentemente de la base de datos.
+        </p>
+        <p class="exito-eliminacion-usuario__message" *ngIf="eliminandoUsuario">
+          Eliminando usuario...
+        </p>
+      </div>
+    </div>
+  </div>
+
+    <div class="tab-panel" *ngIf="tabActiva === 'notificaciones'">
+      <h2 class="section-title">📧 Configuración de Notificaciones</h2>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📧 Servidor SMTP</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Servidor SMTP</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.notificaciones!.servidorSMTP"
+              (input)="detectarCambios()"
+              placeholder="smtp.gmail.com"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Puerto SMTP</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.notificaciones!.puertoSMTP"
+              (input)="detectarCambios()"
+              placeholder="587"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Usuario Email</label>
+            <input
+              type="email"
+              class="form-input"
+              [(ngModel)]="configuracion.notificaciones!.usuarioEmail"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Contraseña Email</label>
+            <input
+              type="password"
+              class="form-input"
+              [(ngModel)]="configuracion.notificaciones!.passwordEmail"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Remitente</label>
+            <input
+              type="email"
+              class="form-input"
+              [(ngModel)]="configuracion.notificaciones!.emailRemitente"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nombre Remitente</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.notificaciones!.nombreRemitente"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.notificaciones!.usarSSL"
+                (change)="detectarCambios()"
+              />
+              <span>Usar SSL/TLS</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <button class="btn btn--outline" (click)="probarConexionSMTP()">
+              🔧 Probar Conexión SMTP
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🔔 Tipos de Notificaciones</h3>
+        <div class="opciones-grid">
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.notificaciones!.notificarNuevoPlanilla"
+              (change)="detectarCambios()"
+            />
+            <span>Notificar nueva planilla</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.notificaciones!.notificarPagoRealizado"
+              (change)="detectarCambios()"
+            />
+            <span>Notificar pago realizado</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.notificaciones!.notificarCumpleanos"
+              (change)="detectarCambios()"
+            />
+            <span>Notificar cumpleaños</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.notificaciones!.notificarVencimientos"
+              (change)="detectarCambios()"
+            />
+            <span>Notificar vencimientos</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.notificaciones!.notificarTardanzas"
+              (change)="detectarCambios()"
+            />
+            <span>Notificar tardanzas</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📅 Resúmenes</h3>
+        <div class="opciones-grid">
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.notificaciones!.resumenDiario"
+              (change)="detectarCambios()"
+            />
+            <span>Resumen diario</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.notificaciones!.resumenSemanal"
+              (change)="detectarCambios()"
+            />
+            <span>Resumen semanal</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.notificaciones!.resumenMensual"
+              (change)="detectarCambios()"
+            />
+            <span>Resumen mensual</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: PERSONALIZACIÓN ==================== -->
+    
+    <!-- ==================== TAB: MÓDULOS (SOLO SUPER_ADMIN) ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'modulos' && isSuperAdmin">
+      <h2 class="section-title">🧩 Módulos del Sistema</h2>
+      <p class="panel-description">Activa o desactiva módulos visibles para administradores normales. Tú, como Super Administrador, siempre verás todos.</p>
+      <div class="form-section">
+        <h3 class="form-section__title">Módulos disponibles</h3>
+        <div class="opciones-grid">
+          <label class="opcion-check" *ngFor="let tab of tabs">
+            <input type="checkbox" [(ngModel)]="modulosHabilitados[tab.id]" />
+            <span>{{ tab.nombre }}</span>
+          </label>
+        </div>
+        <div class="form-actions" style="margin-top: 1rem;">
+          <button class="btn btn--primary" (click)="guardarModulosHabilitados()">💾 Guardar</button>
+        </div>
+      </div>
+    </div>
+    <div class="tab-panel" *ngIf="tabActiva === 'personalizacion'">
+      <h2 class="section-title">🎨 Personalización del Sistema</h2>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🎨 Tema y Colores</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tema</label>
+            <select class="form-select" [(ngModel)]="configuracion.personalizacion!.tema" (change)="detectarCambios()">
+              <option value="light">Claro</option>
+              <option value="dark">Oscuro</option>
+              <option value="auto">Automático</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Color Primario</label>
+            <input
+              type="color"
+              class="form-input"
+              [(ngModel)]="configuracion.personalizacion!.colorPrimario"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Color Secundario</label>
+            <input
+              type="color"
+              class="form-input"
+              [(ngModel)]="configuracion.personalizacion!.colorSecundario"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Color Accent</label>
+            <input
+              type="color"
+              class="form-input"
+              [(ngModel)]="configuracion.personalizacion!.colorAccent"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tamaño de Fuente</label>
+            <select class="form-select" [(ngModel)]="configuracion.personalizacion!.tamanioFuente" (change)="detectarCambios()">
+              <option value="pequeno">Pequeño</option>
+              <option value="mediano">Mediano</option>
+              <option value="grande">Grande</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group--full">
+            <button class="btn btn--primary" (click)="aplicarPersonalizacion()">
+              🎨 Aplicar Cambios Visuales
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📋 Formatos</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Formato de Fecha</label>
+            <select class="form-select" [(ngModel)]="configuracion.personalizacion!.formatoFecha" (change)="detectarCambios()">
+              <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+              <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+              <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Formato de Hora</label>
+            <select class="form-select" [(ngModel)]="configuracion.personalizacion!.formatoHora" (change)="detectarCambios()">
+              <option value="HH:mm">24 horas (HH:mm)</option>
+              <option value="hh:mm a">12 horas (hh:mm a)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Separador Decimal</label>
+            <select class="form-select" [(ngModel)]="configuracion.personalizacion!.separadorDecimal" (change)="detectarCambios()">
+              <option value=".">Punto (.)</option>
+              <option value=",">Coma (,)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Separador de Miles</label>
+            <select class="form-select" [(ngModel)]="configuracion.personalizacion!.separadorMiles" (change)="detectarCambios()">
+              <option value=",">Coma (,)</option>
+              <option value=".">Punto (.)</option>
+                            <option value=" ">Espacio ( )</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Idioma</label>
+            <select class="form-select" [(ngModel)]="configuracion.personalizacion!.idioma" (change)="detectarCambios()">
+              <option value="es">Español</option>
+              <option value="en">English</option>
+              <option value="qu">Quechua</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">⚙️ Opciones de Interfaz</h3>
+        <div class="opciones-grid">
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.personalizacion!.animaciones"
+              (change)="detectarCambios()"
+            />
+            <span>Animaciones</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.personalizacion!.sonidos"
+              (change)="detectarCambios()"
+            />
+            <span>Sonidos</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.personalizacion!.modoAccesibilidad"
+              (change)="detectarCambios()"
+            />
+            <span>Modo Accesibilidad</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.personalizacion!.incluirLogoEnReportes"
+              (change)="detectarCambios()"
+            />
+            <span>Incluir logo en reportes</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: BACKUP ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'backup'">
+      <h2 class="section-title">💾 Configuración de Backup</h2>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🔄 Backup Automático</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Frecuencia</label>
+            <select class="form-select" [(ngModel)]="configuracion.backup!.frecuenciaBackup" (change)="detectarCambios()">
+              <option value="diario">Diario</option>
+              <option value="semanal">Semanal</option>
+              <option value="mensual">Mensual</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hora de Ejecución</label>
+            <input
+              type="time"
+              class="form-input"
+              [(ngModel)]="configuracion.backup!.horaBackup"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Días de Retención</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.backup!.diasRetencionBackup"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Backups Máximos a Almacenar</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.backup!.backupsMaximosAlmacenar"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Ruta de Backup Local</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.backup!.rutaBackupLocal"
+              (input)="detectarCambios()"
+              placeholder="C:\Backups\Planillas"
+            />
+          </div>
+        </div>
+
+        <div class="opciones-grid">
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.backup!.backupAutomatico"
+              (change)="detectarCambios()"
+            />
+            <span>Backup automático activo</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.backup!.comprimirBackups"
+              (change)="detectarCambios()"
+            />
+            <span>Comprimir backups</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.backup!.encriptarBackups"
+              (change)="detectarCambios()"
+            />
+            <span>Encriptar backups</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.backup!.notificarBackupExitoso"
+              (change)="detectarCambios()"
+            />
+            <span>Notificar backup exitoso</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.backup!.notificarBackupFallido"
+              (change)="detectarCambios()"
+            />
+            <span>Notificar backup fallido</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.backup!.permitirRestauracion"
+              (change)="detectarCambios()"
+            />
+            <span>Permitir restauración de backups</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="acciones-backup">
+        <button class="btn btn--primary" (click)="ejecutarBackupManual()">
+          💾 Crear Backup Ahora
+        </button>
+        <button class="btn btn--outline" (click)="restaurarBackup()">
+          ↩️ Restaurar Backup
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: SISTEMA ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'sistema'">
+      <h2 class="section-title">⚙️ Configuración del Sistema</h2>
+
+      <div class="info-sistema">
+        <div class="info-item">
+          <span class="info-label">Versión del Sistema:</span>
+          <span class="info-value">{{ configuracion.sistema!.versionSistema }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Última Actualización:</span>
+          <span class="info-value">{{ configuracion.sistema?.fechaActualizacion ? formatearFecha(configuracion.sistema.fechaActualizacion) : 'No disponible' }}</span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">⚡ Performance y Límites</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Registros por Página</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.sistema!.registrosPorPagina"
+              (input)="detectarCambios()"
+              min="5"
+              max="100"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tamaño Máximo Archivo (MB)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.sistema!.tamanioMaximoArchivo"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tiempo de Caché (segundos)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.sistema!.tiempoCache"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Trabajadores Máximos</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.sistema!.trabajadoresMaximos"
+              (input)="detectarCambios()"
+            />
+          </div>
+        </div>
+
+        <div class="opciones-grid">
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.sistema!.cacheDatos"
+              (change)="detectarCambios()"
+            />
+            <span>Caché de datos activo</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.sistema!.optimizarConsultas"
+              (change)="detectarCambios()"
+            />
+            <span>Optimizar consultas automáticamente</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.sistema!.optimizarDBAutomatico"
+              (change)="detectarCambios()"
+            />
+            <span>Optimizar base de datos automáticamente</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.sistema!.verificarActualizacionesAuto"
+              (change)="detectarCambios()"
+            />
+            <span>Verificar actualizaciones automáticamente</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">📋 Logs</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nivel de Logs</label>
+            <select class="form-select" [(ngModel)]="configuracion.sistema!.nivelLogs" (change)="detectarCambios()">
+              <option value="error">Error</option>
+              <option value="warning">Warning</option>
+              <option value="info">Info</option>
+              <option value="debug">Debug</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Ruta de Logs</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.sistema!.rutaLogs"
+              (input)="detectarCambios()"
+              placeholder="C:\Logs\Planillas"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.sistema!.guardarLogsEnArchivo"
+                (change)="detectarCambios()"
+              />
+              <span>Guardar logs en archivo</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🔧 API</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">API Key</label>
+            <div class="input-group">
+              <input
+                type="text"
+                class="form-input"
+                [(ngModel)]="configuracion.sistema!.apiKey"
+                (input)="detectarCambios()"
+                readonly
+              />
+              <button class="btn btn--outline" (click)="generarAPIKey()">
+                🔑 Generar
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Rate Limit (req/min)</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="configuracion.sistema!.rateLimitAPI"
+              (input)="detectarCambios()"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.sistema!.apiHabilitada"
+                (change)="detectarCambios()"
+              />
+              <span>API habilitada</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="acciones-sistema">
+        <button class="btn btn--outline" (click)="limpiarCache()">
+          🗑️ Limpiar Caché
+        </button>
+        <button class="btn btn--outline" (click)="optimizarBaseDatos()">
+          ⚡ Optimizar Base de Datos
+        </button>
+        <button class="btn btn--outline" (click)="verificarActualizaciones()">
+          🔄 Verificar Actualizaciones
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: INTEGRACIONES ==================== -->
+    <div class="tab-panel" *ngIf="tabActiva === 'integraciones'">
+      <h2 class="section-title">🔗 Integraciones</h2>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🏦 Bancos</h3>
+        <div class="opciones-grid">
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.integraciones!.integrarBancoNacion"
+              (change)="detectarCambios()"
+            />
+            <span>Banco de la Nación</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.integraciones!.integrarBCP"
+              (change)="detectarCambios()"
+            />
+            <span>BCP</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.integraciones!.integrarInterbank"
+              (change)="detectarCambios()"
+            />
+            <span>Interbank</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🏛️ Gobierno</h3>
+        <div class="opciones-grid">
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.integraciones!.integrarSUNAT"
+              (change)="detectarCambios()"
+            />
+            <span>SUNAT</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.integraciones!.integrarEsSalud"
+              (change)="detectarCambios()"
+            />
+            <span>EsSalud</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.integraciones!.integrarRENIEC"
+              (change)="detectarCambios()"
+            />
+            <span>RENIEC</span>
+          </label>
+
+          <label class="opcion-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="configuracion.integraciones!.integrarAFP"
+              (change)="detectarCambios()"
+            />
+            <span>AFP</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section__title">🖥️ Biométrico</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Modelo de Dispositivo</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.integraciones!.modeloBiometrico"
+              (input)="detectarCambios()"
+              placeholder="ZKTeco K40"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">IP del Dispositivo</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="configuracion.integraciones!.ipBiometrico"
+              (input)="detectarCambios()"
+              placeholder="192.168.1.100"
+            />
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="configuracion.integraciones!.integrarBiometrico"
+                (change)="detectarCambios()"
+              />
+              <span>Integrar con dispositivo biométrico</span>
+            </label>
+          </div>
+
+          <div class="form-group form-group--full">
+            <button class="btn btn--outline" (click)="probarIntegracion('Biométrico')">
+              🔧 Probar Conexión
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER ACCIONES -->
+  <div class="config-footer">
+    <div class="config-footer__info">
+      <span class="info-text">Última modificación: {{ configuracion.sistema?.fechaActualizacion ? formatearFecha(configuracion.sistema.fechaActualizacion) : 'No disponible' }}</span>
+    </div>
+    <div class="config-footer__acciones">
+      <button class="btn btn--ghost" (click)="cancelarCambios()">
+        Cancelar
+      </button>
+      <button class="btn btn--outline" (click)="exportarConfiguracion()">
+        📤 Exportar
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" *ngIf="cargando">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>Cargando configuración...</p>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR/CREAR TASA -->
+  <div class="modal-overlay" *ngIf="mostrarModalTasa" (click)="cerrarModalTasa()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ tasaEditando?.ConfigID ? 'Editar Tasa' : 'Nueva Tasa' }}</h3>
+        <button class="btn-close" (click)="cerrarModalTasa()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          
+          <!-- CATEGORÍA (movido arriba para control dinámico) -->
+          <div class="form-group form-group--full">
+            <label class="form-label">Categoría *</label>
+            
+            <!-- SELECTOR DE CATEGORÍA CON OPCIÓN PERSONALIZADA -->
+            <div class="categoria-selector">
+              <select 
+                class="form-select" 
+                [(ngModel)]="tasaEditando.Categoria" 
+                (change)="onCategoriaChange($event)"
+                [class.form-select--custom]="categoriaEsPersonalizada">
+                <!-- OPCIÓN PARA CREAR NUEVA CATEGORÍA -->
+                <option value="__NUEVA_CATEGORIA__">➕ Crear Nueva Categoría...</option>
+                
+                <!-- PENSIONES -->
+                <option value="AFP - Fondo de Pensiones">AFP - Fondo de Pensiones</option>
+                <option value="ONP - Sistema de Pensiones">ONP - Sistema de Pensiones</option>
+                
+                <!-- SALUD Y SEGUROS -->
+                <option value="Salud">Salud (EsSalud)</option>
+                <option value="SEGUROS">Seguros</option>
+                <option value="SCTR">SCTR - Seguro Complementario</option>
+                
+                <!-- TRIBUTARIO -->
+                <option value="Renta de 5ta Categoría">Renta de 5ta Categoría</option>
+                <option value="Renta">Renta</option>
+                
+                <!-- INGRESOS Y BONIFICACIONES -->
+                <option value="Bonificaciones">Bonificaciones</option>
+                <option value="BONIFICACIONES">Bonificaciones (Sistema)</option>
+                <option value="INGRESOS">Ingresos</option>
+                <option value="Asignación Familiar">Asignación Familiar</option>
+                
+                <!-- DESCUENTOS -->
+                <option value="Descuentos por Asistencia">Descuentos por Asistencia</option>
+                <option value="DESCUENTOS">Descuentos</option>
+                <option value="SINDICAL">Sindical</option>
+                <option value="PRESTAMOS">Préstamos</option>
+                <option value="APORTES">Aportes</option>
+                
+                <!-- OTROS -->
+                <option value="Otros">Otros - Conceptos Generales</option>
+                <option value="OTROS_DESCUENTOS">Otros Descuentos</option>
+              </select>
+              
+              <!-- INPUT PARA CATEGORÍA PERSONALIZADA -->
+              <div class="categoria-personalizada" *ngIf="categoriaEsPersonalizada">
+                <input 
+                  type="text" 
+                  class="form-input" 
+                  [(ngModel)]="nuevaCategoria" 
+                  (input)="onNuevaCategoriaChange()"
+                  placeholder="Escriba el nombre de la nueva categoría..."
+                  maxlength="50">
+                <small class="form-hint">💡 Escriba el nombre de la nueva categoría (se convertirá automáticamente a mayúsculas)</small>
+              </div>
+            </div>
+            
+            <small class="form-hint">💡 La categoría determina el prefijo del código</small>
+          </div>
+
+          <!-- TIPO DE TASA -->
+          <div class="form-group form-group--full">
+            <label class="form-label">Tipo de Tasa <span style="color: #888; font-size: 0.9em;">(Opcional)</span></label>
+            <select 
+              class="form-select" 
+              [(ngModel)]="tasaEditando.TipoTasa"
+              (change)="onTipoTasaChange()">
+              <option value="">-- Seleccionar tipo (o dejar en blanco para detección automática) --</option>
+              <option value="DESCUENTO">➖ Descuento (Se resta del sueldo del trabajador)</option>
+              <option value="INGRESO">➕ Ingreso (Se suma al sueldo del trabajador)</option>
+              <option value="APORTE_EMPLEADOR">🏢 Aporte del Empleador (Costo para la empresa, no afecta el sueldo)</option>
+            </select>
+            <small class="form-hint">
+              💡 <strong>Opcional:</strong> Si no seleccionas, el sistema detectará automáticamente el tipo según el nombre, categoría o código de la tasa.
+              <br>
+              <strong>Palabras clave para detección automática:</strong>
+              <br>
+              • <strong>Descuento:</strong> "descuento", "cuota", "retención", "préstamo", "sindical", "falta", "tardanza"
+              <br>
+              • <strong>Ingreso:</strong> "bono", "bonificación", "compensación", "premio", "gratificación", "extra"
+              <br>
+              • <strong>Aporte:</strong> "aporte", "essalud", "sctr", "seguro vida", "empleador"
+            </small>
+          </div>
+
+          <!-- SELECTOR DE CARGO (solo para Renta 5ta y nuevo) -->
+          <div class="form-group form-group--full" *ngIf="!tasaEditando.ConfigID && esCategoriaRenta()">
+            <label class="form-label">💡 Atajo Rápido: Seleccionar Cargo</label>
+            <select 
+              class="form-select" 
+              [(ngModel)]="cargoSeleccionado"
+              (change)="onCargoSeleccionado()"
+            >
+              <option value="">-- Seleccionar cargo para Renta 5ta --</option>
+              <option *ngFor="let cargo of cargosDisponibles" [value]="cargo.nombre || cargo.NombreCargo">
+                {{ cargo.nombre || cargo.NombreCargo }}
+              </option>
+            </select>
+            <small class="form-hint">Selecciona un cargo y se llenará automáticamente el código, nombre y descripción</small>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Nombre de la Tasa *</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="tasaEditando.Nombre"
+              (ngModelChange)="generarCodigoTasa()"
+              placeholder="Ej: Descuento por Tardanza Leve"
+            />
+            <small class="form-hint">💡 Escribe el nombre y el código se generará automáticamente</small>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Código (Generado Automáticamente)</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="tasaEditando.Codigo"
+              placeholder="Se generará automáticamente..."
+              [disabled]="true"
+              style="background-color: #f5f5f5; color: #666; text-transform: uppercase; font-family: monospace;"
+            />
+            <small class="form-hint">✅ El código se genera automáticamente según la categoría y el nombre</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Valor *</label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="tasaEditando.Valor"
+              step="0.0001"
+            />
+            <small class="form-hint">Para porcentajes usa decimal (ej: 0.1137 = 11.37%)</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tipo *</label>
+            <select class="form-select" [(ngModel)]="tasaEditando.TipoValor">
+              <option value="Porcentaje">Porcentaje</option>
+              <option value="Monto">Monto</option>
+              <option value="Factor">Factor</option>
+              <option value="Cantidad">Cantidad</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Descripción</label>
+            <textarea
+              class="form-input"
+              [(ngModel)]="tasaEditando.Descripcion"
+              rows="3"
+              placeholder="Descripción de la tasa..."
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Fecha Vigencia Inicio *</label>
+            <input
+              type="date"
+              class="form-input"
+              [(ngModel)]="tasaEditando.FechaVigenciaInicio"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Fecha Vigencia Fin</label>
+            <input
+              type="date"
+              class="form-input"
+              [(ngModel)]="tasaEditando.FechaVigenciaFin"
+            />
+            <small class="form-hint">Dejar vacío para vigencia indefinida</small>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="opcion-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="tasaEditando.Activo"
+              />
+              <span>Activo</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn--secondary" (click)="cerrarModalTasa()">
+          ✕ Cancelar
+        </button>
+        <button class="btn btn--primary" (click)="guardarTasa()" [disabled]="guardando">
+          {{ guardando ? '⏳ Guardando...' : '💾 Guardar Tasa' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ELIMINAR/DESACTIVAR TASA -->
+  <div class="modal-overlay" *ngIf="mostrarModalEliminarTasa" (click)="cerrarModalEliminarTasa()">
+    <div class="modal-content modal-content--small" (click)="$event.stopPropagation()">
+      <div class="modal-header" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);">
+        <h3 style="color: white;">⚠️ Eliminar o Desactivar Tasa</h3>
+        <button class="btn-close" (click)="cerrarModalEliminarTasa()" style="color: white;">✕</button>
+      </div>
+
+      <div class="modal-body" style="padding: 2rem;">
+        <div class="alert alert--warning" style="margin-bottom: 1.5rem;">
+          <div class="alert__icon">⚠️</div>
+          <div class="alert__content">
+            <strong>¿Qué deseas hacer con esta tasa?</strong>
+            <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">
+              <strong>{{ tasaAEliminar?.Nombre }}</strong><br>
+              <code style="background: #fff; padding: 0.35rem 0.75rem; border-radius: 4px; color: #000; font-weight: 700; border: 2px solid #ffc107; display: inline-block; margin-top: 0.25rem; font-size: 0.95rem;">{{ tasaAEliminar?.Codigo }}</code>
+            </p>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 1rem; margin-bottom: 1.5rem;">
+          <!-- Opción 1: Desactivar -->
+          <div class="opcion-card" style="border: 2px solid #ffa500; border-radius: 8px; padding: 1rem; background: #fff8f0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #ff8c00; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 1.5rem;">👁️‍🗨️</span>
+              Marcar como Inactiva (Recomendado)
+            </h4>
+            <ul style="margin: 0; padding-left: 1.5rem; font-size: 0.9rem; color: #666;">
+              <li>✅ La tasa se conserva en el historial</li>
+              <li>✅ No se usará en futuros cálculos</li>
+              <li>✅ Se puede reactivar después</li>
+              <li>✅ Las planillas antiguas mantienen la referencia</li>
+            </ul>
+          </div>
+
+          <!-- Opción 2: Eliminar -->
+          <div class="opcion-card" style="border: 2px solid #dc3545; border-radius: 8px; padding: 1rem; background: #fff5f5;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #dc3545; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 1.5rem;">🗑️</span>
+              Eliminar Definitivamente
+            </h4>
+            <ul style="margin: 0; padding-left: 1.5rem; font-size: 0.9rem; color: #666;">
+              <li>❌ La tasa se borra permanentemente</li>
+              <li>❌ No se puede recuperar</li>
+              <li>⚠️ Puede afectar reportes históricos</li>
+              <li>⚠️ Solo usar si fue creada por error</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; gap: 0.75rem; justify-content: space-between;">
+        <button class="btn btn--ghost" (click)="cerrarModalEliminarTasa()" style="flex: 1;">
+          ✕ Cancelar
+        </button>
+        <button 
+          class="btn btn--warning" 
+          (click)="desactivarTasa()" 
+          [disabled]="guardando"
+          style="flex: 1; background: #ffa500; border-color: #ffa500;"
+        >
+          {{ guardando ? '⏳ Procesando...' : '👁️‍🗨️ Desactivar' }}
+        </button>
+        <button 
+          class="btn btn--danger" 
+          (click)="eliminarTasaDefinitivamente()" 
+          [disabled]="guardando"
+          style="flex: 1;"
+        >
+          {{ guardando ? '⏳ Procesando...' : '🗑️ Eliminar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INPUT FILE OCULTO PARA IMPORTAR -->
+<input
+  type="file"
+  #fileInput
+  accept=".json"
+  style="display: none"
+  (change)="importarConfiguracion($event)"
+/>
+
+<!-- MODAL PARA REGÍMENES LABORALES -->
+<div class="modal-overlay" *ngIf="mostrarModalRegimenLaboral" (click)="cerrarModalRegimenLaboral()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ regimenLaboralEditando?.RegimenID ? 'Editar Régimen Laboral' : 'Nuevo Régimen Laboral' }}</h3>
+      <button class="btn btn--ghost btn--sm" (click)="cerrarModalRegimenLaboral()">
+        ✕
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        
+        <!-- CÓDIGO -->
+        <div class="form-group">
+          <label class="form-label">Código *</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="regimenLaboralForm.codigo"
+            placeholder="Ej: CARGO-POLITICO"
+            maxlength="20"
+            required>
+          <small class="form-help">Máximo 20 caracteres. Se genera automáticamente si se deja vacío.</small>
+        </div>
+
+        <!-- NOMBRE -->
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="regimenLaboralForm.nombre"
+            placeholder="Ej: Cargo Político"
+            maxlength="100"
+            required>
+        </div>
+
+        <!-- DESCRIPCIÓN -->
+        <div class="form-group form-group--full">
+          <label class="form-label">Descripción *</label>
+          <textarea 
+            class="form-textarea" 
+            [(ngModel)]="regimenLaboralForm.descripcion"
+            placeholder="Descripción detallada del régimen laboral..."
+            rows="3"
+            maxlength="255"
+            required></textarea>
+        </div>
+
+        <!-- BASE NORMATIVA -->
+        <div class="form-group form-group--full">
+          <label class="form-label">Base Normativa *</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="regimenLaboralForm.baseNormativa"
+            placeholder="Ej: Ley General del Trabajo"
+            maxlength="100"
+            required>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn--ghost" (click)="cerrarModalRegimenLaboral()">
+        ✕ Cancelar
+      </button>
+      <button class="btn btn--primary" (click)="guardarRegimenLaboral()" [disabled]="guardandoRegimenLaboral">
+        {{ guardandoRegimenLaboral ? '⏳ Guardando...' : '💾 Guardar Régimen' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREAR/EDITAR TIPO DE CONTRATO -->
+<div class="modal-overlay" *ngIf="mostrarModalTipoContrato" (click)="cerrarModalTipoContrato()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ tipoContratoEditando?.TipoContratoID ? 'Editar Tipo de Contrato' : 'Nuevo Tipo de Contrato' }}</h3>
+      <button class="btn btn--ghost btn--sm" (click)="cerrarModalTipoContrato()">
+        ✕
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        
+        <!-- CÓDIGO -->
+        <div class="form-group">
+          <label class="form-label">Código *</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="tipoContratoForm.codigo"
+            placeholder="Ej: CAS-TEMP"
+            maxlength="20"
+            required>
+          <small class="form-help">Máximo 20 caracteres. Se genera automáticamente si se deja vacío.</small>
+        </div>
+
+        <!-- NOMBRE -->
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="tipoContratoForm.nombre"
+            placeholder="Ej: CAS Temporal"
+            maxlength="100"
+            required>
+        </div>
+
+        <!-- DESCRIPCIÓN -->
+        <div class="form-group form-group--full">
+          <label class="form-label">Descripción</label>
+          <textarea 
+            class="form-textarea" 
+            [(ngModel)]="tipoContratoForm.descripcion"
+            placeholder="Descripción detallada del tipo de contrato..."
+            rows="3"
+            maxlength="255"></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn--ghost" (click)="cerrarModalTipoContrato()">
+        ✕ Cancelar
+      </button>
+      <button class="btn btn--primary" (click)="guardarTipoContrato()" [disabled]="guardandoTipoContrato">
+        {{ guardandoTipoContrato ? '⏳ Guardando...' : '💾 Guardar Tipo de Contrato' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREAR/EDITAR CONDICIÓN LABORAL -->
+<div class="modal-overlay" *ngIf="mostrarModalCondicionLaboral" (click)="cerrarModalCondicionLaboral()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ condicionLaboralEditando?.CondicionID ? 'Editar Condición Laboral' : 'Nueva Condición Laboral' }}</h3>
+      <button class="btn btn--ghost btn--sm" (click)="cerrarModalCondicionLaboral()">
+        ✕
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        
+        <!-- CÓDIGO -->
+        <div class="form-group">
+          <label class="form-label">Código *</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="condicionLaboralForm.codigo"
+            placeholder="Ej: NOMBRADO"
+            maxlength="50"
+            required>
+          <small class="form-help">Máximo 50 caracteres. Ejemplos: NOMBRADO, CONTRATADO, EMPLEADO_CONFIANZA</small>
+        </div>
+
+        <!-- NOMBRE -->
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="condicionLaboralForm.nombre"
+            placeholder="Ej: Nombrado"
+            maxlength="200"
+            required>
+        </div>
+
+        <!-- DESCRIPCIÓN -->
+        <div class="form-group form-group--full">
+          <label class="form-label">Descripción</label>
+          <textarea
+            class="form-textarea"
+            [(ngModel)]="condicionLaboralForm.descripcion"
+            placeholder="Descripción de la condición laboral..."
+            rows="3"
+            maxlength="500">
+          </textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button 
+        class="btn btn--outline" 
+        (click)="cerrarModalCondicionLaboral()"
+        [disabled]="guardandoCondicionLaboral">
+        Cancelar
+      </button>
+      <button 
+        class="btn btn--primary" 
+        (click)="guardarCondicionLaboral()"
+        [disabled]="guardandoCondicionLaboral || !condicionLaboralForm.nombre?.trim() || !condicionLaboralForm.codigo?.trim()">
+        {{ guardandoCondicionLaboral ? 'Guardando...' : (condicionLaboralEditando ? 'Actualizar Condición' : 'Guardar Condición Laboral') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREAR/EDITAR CARGO -->
+<div class="modal-overlay" *ngIf="mostrarModalCargo" (click)="cerrarModalCargo()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ cargoEditando?.CargoID ? 'Editar Cargo' : 'Nuevo Cargo' }}</h3>
+      <button class="btn btn--ghost btn--sm" (click)="cerrarModalCargo()">
+        ✕
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        
+        <!-- NOMBRE -->
+        <div class="form-group form-group--full">
+          <label class="form-label">Nombre *</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="cargoForm.nombre"
+            placeholder="Ej: Jefe de Recursos Humanos"
+            maxlength="100"
+            required>
+        </div>
+
+        <!-- DESCRIPCIÓN -->
+        <div class="form-group form-group--full">
+          <label class="form-label">Descripción</label>
+          <textarea 
+            class="form-textarea" 
+            [(ngModel)]="cargoForm.descripcion"
+            placeholder="Descripción detallada del cargo..."
+            rows="3"
+            maxlength="255"></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn--ghost" (click)="cerrarModalCargo()">
+        ✕ Cancelar
+      </button>
+      <button class="btn btn--primary" (click)="guardarCargo()" [disabled]="guardandoCargo">
+        {{ guardandoCargo ? '⏳ Guardando...' : '💾 Guardar Cargo' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREAR/EDITAR ROL -->
+<div class="modal-overlay" *ngIf="mostrarModalRol" (click)="cerrarModalRol()">
+  <div class="modal-content modal-content--large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ rolEditando ? '✏️ Editar Rol' : '➕ Crear Nuevo Rol' }}</h3>
+      <button class="btn-close" (click)="cerrarModalRol()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <!-- Nombre del rol -->
+        <div class="form-group">
+          <label class="form-label">Nombre del Rol *</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="rolForm.nombre"
+            placeholder="Ej: Supervisor, Editor, etc."
+            required>
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-group form-group--full">
+          <label class="form-label">Descripción</label>
+          <textarea 
+            class="form-textarea" 
+            [(ngModel)]="rolForm.descripcion"
+            placeholder="Describe las responsabilidades de este rol..."
+            rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- PERMISOS -->
+      <div class="permisos-section">
+        <h4 class="permisos-title">🔐 Configurar Permisos</h4>
+        <p class="permisos-description">Selecciona los permisos que tendrá este rol en cada módulo del sistema</p>
+
+        <div class="permisos-container">
+          <!-- TRABAJADORES -->
+          <div class="permiso-modulo">
+            <div class="permiso-modulo__header">
+              <span class="permiso-modulo__icon">👥</span>
+              <span class="permiso-modulo__nombre">Trabajadores</span>
+            </div>
+            <div class="permiso-modulo__opciones">
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('trabajadores', 'ver')"
+                       (change)="togglePermiso('trabajadores', 'ver')">
+                <span class="checkmark"></span>
+                Ver trabajadores
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('trabajadores', 'crear')"
+                       (change)="togglePermiso('trabajadores', 'crear')">
+                <span class="checkmark"></span>
+                Crear trabajadores
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('trabajadores', 'editar')"
+                       (change)="togglePermiso('trabajadores', 'editar')">
+                <span class="checkmark"></span>
+                Editar trabajadores
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('trabajadores', 'eliminar')"
+                       (change)="togglePermiso('trabajadores', 'eliminar')">
+                <span class="checkmark"></span>
+                Eliminar trabajadores
+              </label>
+            </div>
+          </div>
+
+          <!-- PLANILLAS -->
+          <div class="permiso-modulo">
+            <div class="permiso-modulo__header">
+              <span class="permiso-modulo__icon">💰</span>
+              <span class="permiso-modulo__nombre">Planillas</span>
+            </div>
+            <div class="permiso-modulo__opciones">
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('planillas', 'ver')"
+                       (change)="togglePermiso('planillas', 'ver')">
+                <span class="checkmark"></span>
+                Ver planillas
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('planillas', 'crear')"
+                       (change)="togglePermiso('planillas', 'crear')">
+                <span class="checkmark"></span>
+                Crear planillas
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('planillas', 'editar')"
+                       (change)="togglePermiso('planillas', 'editar')">
+                <span class="checkmark"></span>
+                Editar planillas
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('planillas', 'eliminar')"
+                       (change)="togglePermiso('planillas', 'eliminar')">
+                <span class="checkmark"></span>
+                Eliminar planillas
+              </label>
+            </div>
+          </div>
+
+          <!-- REPORTES -->
+          <div class="permiso-modulo">
+            <div class="permiso-modulo__header">
+              <span class="permiso-modulo__icon">📊</span>
+              <span class="permiso-modulo__nombre">Reportes</span>
+            </div>
+            <div class="permiso-modulo__opciones">
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('reportes', 'ver')"
+                       (change)="togglePermiso('reportes', 'ver')">
+                <span class="checkmark"></span>
+                Ver reportes
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('reportes', 'exportar')"
+                       (change)="togglePermiso('reportes', 'exportar')">
+                <span class="checkmark"></span>
+                Exportar reportes
+              </label>
+            </div>
+          </div>
+
+          <!-- CONFIGURACIÓN -->
+          <div class="permiso-modulo">
+            <div class="permiso-modulo__header">
+              <span class="permiso-modulo__icon">⚙️</span>
+              <span class="permiso-modulo__nombre">Configuración</span>
+            </div>
+            <div class="permiso-modulo__opciones">
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('configuracion', 'ver')"
+                       (change)="togglePermiso('configuracion', 'ver')">
+                <span class="checkmark"></span>
+                Ver configuración
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('configuracion', 'editar')"
+                       (change)="togglePermiso('configuracion', 'editar')">
+                <span class="checkmark"></span>
+                Editar configuración
+              </label>
+            </div>
+          </div>
+
+          <!-- ASISTENCIA -->
+          <div class="permiso-modulo">
+            <div class="permiso-modulo__header">
+              <span class="permiso-modulo__icon">📅</span>
+              <span class="permiso-modulo__nombre">Asistencia</span>
+            </div>
+            <div class="permiso-modulo__opciones">
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('asistencia', 'ver')"
+                       (change)="togglePermiso('asistencia', 'ver')">
+                <span class="checkmark"></span>
+                Ver asistencia
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('asistencia', 'editar')"
+                       (change)="togglePermiso('asistencia', 'editar')">
+                <span class="checkmark"></span>
+                Editar asistencia
+              </label>
+            </div>
+          </div>
+
+          <!-- BENEFICIOS -->
+          <div class="permiso-modulo">
+            <div class="permiso-modulo__header">
+              <span class="permiso-modulo__icon">🎁</span>
+              <span class="permiso-modulo__nombre">Beneficios</span>
+            </div>
+            <div class="permiso-modulo__opciones">
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('beneficios', 'ver')"
+                       (change)="togglePermiso('beneficios', 'ver')">
+                <span class="checkmark"></span>
+                Ver beneficios
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('beneficios', 'editar')"
+                       (change)="togglePermiso('beneficios', 'editar')">
+                <span class="checkmark"></span>
+                Editar beneficios
+              </label>
+            </div>
+          </div>
+
+          <!-- PRÉSTAMOS -->
+          <div class="permiso-modulo">
+            <div class="permiso-modulo__header">
+              <span class="permiso-modulo__icon">💵</span>
+              <span class="permiso-modulo__nombre">Préstamos</span>
+            </div>
+            <div class="permiso-modulo__opciones">
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('prestamos', 'ver')"
+                       (change)="togglePermiso('prestamos', 'ver')">
+                <span class="checkmark"></span>
+                Ver préstamos
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('prestamos', 'crear')"
+                       (change)="togglePermiso('prestamos', 'crear')">
+                <span class="checkmark"></span>
+                Crear préstamos
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('prestamos', 'editar')"
+                       (change)="togglePermiso('prestamos', 'editar')">
+                <span class="checkmark"></span>
+                Editar préstamos
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('prestamos', 'eliminar')"
+                       (change)="togglePermiso('prestamos', 'eliminar')">
+                <span class="checkmark"></span>
+                Eliminar préstamos
+              </label>
+            </div>
+          </div>
+
+          <!-- USUARIOS -->
+          <div class="permiso-modulo">
+            <div class="permiso-modulo__header">
+              <span class="permiso-modulo__icon">👤</span>
+              <span class="permiso-modulo__nombre">Usuarios</span>
+            </div>
+            <div class="permiso-modulo__opciones">
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('usuarios', 'ver')"
+                       (change)="togglePermiso('usuarios', 'ver')">
+                <span class="checkmark"></span>
+                Ver usuarios
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('usuarios', 'crear')"
+                       (change)="togglePermiso('usuarios', 'crear')">
+                <span class="checkmark"></span>
+                Crear usuarios
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('usuarios', 'editar')"
+                       (change)="togglePermiso('usuarios', 'editar')">
+                <span class="checkmark"></span>
+                Editar usuarios
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('usuarios', 'eliminar')"
+                       (change)="togglePermiso('usuarios', 'eliminar')">
+                <span class="checkmark"></span>
+                Eliminar usuarios
+              </label>
+            </div>
+          </div>
+
+          <!-- ROLES -->
+          <div class="permiso-modulo">
+            <div class="permiso-modulo__header">
+              <span class="permiso-modulo__icon">👑</span>
+              <span class="permiso-modulo__nombre">Roles</span>
+            </div>
+            <div class="permiso-modulo__opciones">
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('roles', 'ver')"
+                       (change)="togglePermiso('roles', 'ver')">
+                <span class="checkmark"></span>
+                Ver roles
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('roles', 'crear')"
+                       (change)="togglePermiso('roles', 'crear')">
+                <span class="checkmark"></span>
+                Crear roles
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('roles', 'editar')"
+                       (change)="togglePermiso('roles', 'editar')">
+                <span class="checkmark"></span>
+                Editar roles
+              </label>
+              <label class="permiso-checkbox">
+                <input type="checkbox" 
+                       [checked]="tienePermiso('roles', 'eliminar')"
+                       (change)="togglePermiso('roles', 'eliminar')">
+                <span class="checkmark"></span>
+                Eliminar roles
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn--ghost" (click)="cerrarModalRol()">
+        ✕ Cancelar
+      </button>
+      <button class="btn btn--primary" (click)="guardarRol()" [disabled]="guardandoRol">
+        {{ guardandoRol ? '⏳ Guardando...' : '💾 Guardar Rol' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ÉXITO CREACIÓN/ACTUALIZACIÓN ROL -->
+<div class="modal-overlay modal--exito" *ngIf="mostrarModalExitoRol" (click)="cerrarModalExitoRol()">
+  <div class="modal-content modal-content--exito" (click)="$event.stopPropagation()">
+    <div class="exito-rol">
+      <!-- Círculo de carga -->
+      <div class="exito-rol__loader" *ngIf="guardandoRolProceso">
+        <div class="spinner spinner--success"></div>
+      </div>
+      
+      <!-- Check de éxito -->
+      <div class="exito-rol__check" *ngIf="rolGuardadoCompletado">
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+      
+      <h3 class="exito-rol__title">Rol guardado exitosamente</h3>
+      <p class="exito-rol__message" *ngIf="rolGuardadoCompletado">
+        {{ mensajeExitoRol }}
+      </p>
+      <p class="exito-rol__message" *ngIf="guardandoRolProceso">
+        Guardando rol...
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ELIMINAR ROL -->
+<div class="modal-overlay" *ngIf="mostrarModalEliminarRol" (click)="cerrarModalEliminarRol()">
+  <div class="modal-content modal-content--delete" (click)="$event.stopPropagation()">
+    <div class="delete-header">
+      <div class="delete-icon">🗑️</div>
+      <h3>Eliminar Rol Permanentemente</h3>
+    </div>
+    
+    <div class="delete-planilla-info">
+      <div class="info-item">
+        <span class="info-label">Rol:</span>
+        <span class="info-value">{{ rolAEliminar?.nombre }}</span>
+      </div>
+      <div class="info-item" *ngIf="rolAEliminar?.descripcion">
+        <span class="info-label">Descripción:</span>
+        <span class="info-value">{{ rolAEliminar.descripcion }}</span>
+      </div>
+    </div>
+    
+    <div class="delete-warning">
+      <div class="warning-icon">⚠️</div>
+      <div class="warning-content">
+        <p><strong>Esta acción no se puede deshacer.</strong></p>
+        <p>El rol será eliminado permanentemente de la base de datos.</p>
+        <p *ngIf="rolAEliminar?.nombre === 'Super Administrador' || getRolDisplayName(rolAEliminar?.nombre) === 'Super Administrador'">
+          <strong style="color: #dc2626;">⚠️ ADVERTENCIA: Estás eliminando el rol Super Administrador. Asegúrate de que no haya usuarios asignados a este rol.</strong>
+        </p>
+      </div>
+    </div>
+    
+    <div class="delete-confirmation">
+      <label class="form-label">Escriba <strong>ELIMINAR</strong> para confirmar:</label>
+      <input 
+        type="text" 
+        class="form-input" 
+        [(ngModel)]="confirmacionEliminarRol"
+        placeholder="ELIMINAR"
+        (keyup.enter)="confirmarEliminacionRol()"
+        autocomplete="off">
+    </div>
+    
+    <div class="delete-actions">
+      <button class="btn btn--ghost" (click)="cerrarModalEliminarRol()">
+        ✕ Cancelar
+      </button>
+      <button 
+        class="btn btn--danger" 
+        (click)="confirmarEliminacionRol()"
+        [disabled]="confirmacionEliminarRol !== 'ELIMINAR' || eliminandoRol">
+        {{ eliminandoRol ? '⏳ Eliminando...' : '🗑️ Eliminar Permanentemente' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ÉXITO ELIMINACIÓN ROL -->
+<div class="modal-overlay modal--exito" *ngIf="mostrarModalExitoEliminacionRol" (click)="cerrarModalExitoEliminacionRol()">
+  <div class="modal-content modal-content--exito" (click)="$event.stopPropagation()">
+    <div class="exito-rol">
+      <!-- Círculo de carga -->
+      <div class="exito-rol__loader" *ngIf="eliminandoRol">
+        <div class="spinner spinner--success"></div>
+      </div>
+      
+      <!-- Check de éxito -->
+      <div class="exito-rol__check" *ngIf="rolEliminadoCompletado">
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+      
+      <h3 class="exito-rol__title">Rol eliminado exitosamente</h3>
+      <p class="exito-rol__message" *ngIf="rolEliminadoCompletado">
+        El rol "{{ rolAEliminar?.nombre }}" ha sido eliminado permanentemente de la base de datos.
+      </p>
+      <p class="exito-rol__message" *ngIf="eliminandoRol">
+        Eliminando rol...
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR CONTRASEÑA -->
+<div class="modal-overlay" *ngIf="mostrarModalPassword" (click)="cerrarModalPassword()">
+  <div class="modal-content modal-content--small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🔑 Cambiar Contraseña</h3>
+      <button class="btn-close" (click)="cerrarModalPassword()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="usuario-info-modal">
+        <div class="usuario-avatar-modal" [style.background-color]="getColorAvatar({username: passwordForm.usuarioNombre})">
+          <span class="avatar-iniciales">{{ passwordForm.usuarioNombre?.substring(0, 2).toUpperCase() }}</span>
+          <span class="avatar-icono">🔑</span>
+        </div>
+        <div class="usuario-details-modal">
+          <div class="usuario-nombre-modal">{{ passwordForm.usuarioNombre }}</div>
+          <div class="usuario-rol-modal">Usuario del sistema</div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group form-group--full">
+          <label class="form-label">Contraseña Actual *</label>
+          <input 
+            type="password" 
+            class="form-input" 
+            [(ngModel)]="passwordForm.passwordActual"
+            placeholder="Ingresa la contraseña actual"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nueva Contraseña *</label>
+          <input 
+            type="password" 
+            class="form-input" 
+            [(ngModel)]="passwordForm.passwordNuevo"
+            placeholder="Mínimo 6 caracteres"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confirmar Nueva Contraseña *</label>
+          <input 
+            type="password" 
+            class="form-input" 
+            [(ngModel)]="passwordForm.passwordConfirmar"
+            placeholder="Repite la nueva contraseña"
+            required>
+        </div>
+      </div>
+
+      <div class="alert alert--info">
+        <div class="alert__icon">ℹ️</div>
+        <div class="alert__content">
+          <strong>Requisitos de contraseña:</strong>
+          <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem;">
+            <li>Mínimo 6 caracteres</li>
+            <li>Se recomienda usar una combinación de letras y números</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn--ghost" (click)="cerrarModalPassword()">
+        ✕ Cancelar
+      </button>
+      <button class="btn btn--primary" (click)="cambiarPassword()" [disabled]="guardandoPassword">
+        {{ guardandoPassword ? '⏳ Cambiando...' : '🔑 Cambiar Contraseña' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR USUARIO -->
+<div class="modal-overlay" *ngIf="mostrarModalEditarUsuario" (click)="cerrarModalEditarUsuario()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>✏️ Editar Usuario</h3>
+      <button class="btn-close" (click)="cerrarModalEditarUsuario()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="usuario-info-modal">
+        <div class="usuario-avatar-modal" [style.background-color]="getColorAvatar(usuarioEditando)">
+          <span class="avatar-iniciales">{{ getInicialesUsuario(usuarioEditando) }}</span>
+          <span class="avatar-icono">{{ getIconoRol(usuarioEditando?.rol) }}</span>
+        </div>
+        <div class="usuario-details-modal">
+          <div class="usuario-nombre-modal">{{ usuarioEditando?.username }}</div>
+          <div class="usuario-rol-modal">{{ getRolDisplayName(usuarioEditando?.rol) }}</div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input
+            type="text"
+            class="form-input"
+            [(ngModel)]="usuarioForm.nombre"
+            placeholder="Ingrese el nombre"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellidos *</label>
+          <input
+            type="text"
+            class="form-input"
+            [(ngModel)]="usuarioForm.apellidos"
+            placeholder="Ingrese los apellidos"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-input"
+            [(ngModel)]="usuarioForm.email"
+            placeholder="usuario@empresa.com"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre de Usuario *</label>
+          <input
+            type="text"
+            class="form-input"
+            [(ngModel)]="usuarioForm.username"
+            placeholder="Ej: jperez"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rol</label>
+          <select class="form-select" [(ngModel)]="usuarioForm.rol">
+            <option value="">Seleccionar rol...</option>
+            <option *ngFor="let rol of roles" [value]="rol.nombre">{{ getRolDisplayName(rol.nombre) }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Configuración DEMO (solo visible si es usuario DEMO) -->
+      <div class="demo-config-section" *ngIf="usuarioForm.rol === 'DEMO'">
+        <div class="demo-section-header">
+          <div class="demo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <h4>Configuración DEMO</h4>
+          <p>Gestiona el tiempo de acceso de esta cuenta DEMO</p>
+        </div>
+
+        <div class="demo-fields">
+          <div class="form-group">
+            <label class="form-label">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              Tiempo de Acceso (horas)
+            </label>
+            <input
+              type="number"
+              class="form-input"
+              [(ngModel)]="usuarioForm.horasDemo"
+              (ngModelChange)="onHorasDemoChange()"
+              placeholder="Ej: 24, 48, 72..."
+              min="1"
+              max="720"
+            />
+            <div class="form-hint">
+              Duración en horas (1-720 horas máximo)
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 2v4"/>
+                <path d="M16 2v4"/>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <path d="M3 10h18"/>
+              </svg>
+              Fecha de Inicio
+            </label>
+            <input
+              type="datetime-local"
+              class="form-input"
+              [(ngModel)]="usuarioForm.fechaInicioDemo"
+              [disabled]="true"
+            />
+            <div class="form-hint">
+              Fecha y hora de inicio del acceso DEMO
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 2v4"/>
+                <path d="M16 2v4"/>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <path d="M3 10h18"/>
+              </svg>
+              Fecha de Expiración
+            </label>
+            <input
+              type="datetime-local"
+              class="form-input"
+              [(ngModel)]="usuarioForm.fechaFinDemo"
+              [disabled]="true"
+            />
+            <div class="form-hint">
+              Se calcula automáticamente basado en las horas de acceso
+            </div>
+          </div>
+
+          <div class="demo-status" *ngIf="usuarioForm.fechaFinDemo">
+            <div class="status-item">
+              <span class="status-label">Estado:</span>
+              <span class="status-value" [class.active]="isDemoActive()" [class.expired]="!isDemoActive()">
+                {{ isDemoActive() ? 'Activo' : 'Expirado' }}
+              </span>
+            </div>
+            <div class="status-item" *ngIf="isDemoActive()">
+              <span class="status-label">Tiempo restante:</span>
+              <span class="status-value time-remaining">
+                {{ getTiempoRestante() }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn--ghost" (click)="cerrarModalEditarUsuario()">
+        Cancelar
+      </button>
+      <button class="btn btn--primary" (click)="guardarUsuario()" [disabled]="guardandoUsuario">
+        <span *ngIf="guardandoUsuario" class="btn__spinner"></span>
+        <span *ngIf="!guardandoUsuario">💾 Guardar Cambios</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RESETEAR CONTRASEÑA (SOLO ADMINISTRADORES) -->
+<div class="modal-overlay" *ngIf="mostrarModalResetearPassword" (click)="cerrarModalResetearPassword()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🔄 Resetear Contraseña</h3>
+      <button class="btn-close" (click)="cerrarModalResetearPassword()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="usuario-info-modal">
+        <div class="usuario-avatar-modal" [style.background-color]="getColorAvatar(usuarioReseteando)">
+          <span class="avatar-iniciales">{{ getInicialesUsuario(usuarioReseteando) }}</span>
+          <span class="avatar-icono">{{ getIconoRol(usuarioReseteando?.rol) }}</span>
+        </div>
+        <div class="usuario-details-modal">
+          <div class="usuario-nombre-modal">{{ usuarioReseteando?.username }}</div>
+          <div class="usuario-rol-modal">{{ getRolDisplayName(usuarioReseteando?.rol) }}</div>
+        </div>
+      </div>
+
+      <div class="warning-box">
+        <div class="warning-icon">⚠️</div>
+        <div class="warning-content">
+          <h4>Acción de Administrador</h4>
+          <p>Estás a punto de resetear la contraseña de este usuario. <strong>No necesitas conocer la contraseña actual.</strong></p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nueva Contraseña *</label>
+          <input
+            type="password"
+            class="form-input password-input"
+            [(ngModel)]="nuevaPassword"
+            placeholder="Mínimo 6 caracteres"
+            autocomplete="new-password"
+            data-lpignore="true"
+            data-form-type="other"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar Nueva Contraseña *</label>
+          <input
+            type="password"
+            class="form-input password-input"
+            [(ngModel)]="confirmarPassword"
+            placeholder="Repite la nueva contraseña"
+            autocomplete="new-password"
+            data-lpignore="true"
+            data-form-type="other"
+          />
+        </div>
+      </div>
+
+      <div class="password-requirements">
+        <h4>Requisitos de contraseña:</h4>
+        <ul>
+          <li>Mínimo 6 caracteres</li>
+          <li>Se recomienda usar una combinación de letras y números</li>
+          <li>El usuario deberá cambiar su contraseña en el próximo inicio de sesión</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn--ghost" (click)="cerrarModalResetearPassword()">
+        Cancelar
+      </button>
+      <button class="btn btn--danger" (click)="resetearPassword()" [disabled]="reseteandoPassword || !nuevaPassword || !confirmarPassword">
+        <span *ngIf="reseteandoPassword" class="btn__spinner"></span>
+        <span *ngIf="!reseteandoPassword">🔄 Resetear Contraseña</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO USUARIO -->
+<div class="modal-overlay" *ngIf="mostrarModalNuevoUsuario" (click)="cerrarModalNuevoUsuario()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>➕ Nuevo Usuario</h3>
+      <button class="btn-close" (click)="cerrarModalNuevoUsuario()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nombre de Usuario *</label>
+          <input
+            type="text"
+            class="form-input"
+            [(ngModel)]="nuevoUsuarioForm.username"
+            placeholder="Ej: jperez"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-input"
+            [(ngModel)]="nuevoUsuarioForm.email"
+            placeholder="usuario@empresa.com (opcional)"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input
+            type="text"
+            class="form-input"
+            [(ngModel)]="nuevoUsuarioForm.nombre"
+            placeholder="Juan"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellidos *</label>
+          <input
+            type="text"
+            class="form-input"
+            [(ngModel)]="nuevoUsuarioForm.apellidos"
+            placeholder="Pérez García"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rol *</label>
+          <select class="form-select" [(ngModel)]="nuevoUsuarioForm.rol">
+            <option value="">Seleccionar rol...</option>
+            <option *ngFor="let rol of roles" [value]="rol.nombre">{{ getRolDisplayName(rol.nombre) }}</option>
+          </select>
+        </div>
+        
+        <!-- Configuración DEMO -->
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <div class="demo-section">
+            <label class="demo-checkbox">
+              <input
+                type="checkbox"
+                [(ngModel)]="nuevoUsuarioForm.esDemo"
+                (change)="onDemoToggleChange()"
+              />
+              <span>🎯 Crear como cuenta DEMO (acceso temporal con todas las funciones)</span>
+            </label>
+            
+            <div class="demo-config" *ngIf="nuevoUsuarioForm.esDemo" style="margin-top: 15px; padding: 15px; background: rgba(255, 193, 7, 0.1); border-radius: 8px; border-left: 4px solid #ffc107;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">
+                  Duración de la DEMO (en horas) *
+                  <span class="form-hint">El usuario tendrá acceso completo durante este tiempo</span>
+                </label>
+                <input
+                  type="number"
+                  class="form-input"
+                  [(ngModel)]="nuevoUsuarioForm.horasDemo"
+                  placeholder="Ej: 1, 2, 24, 48..."
+                  min="1"
+                  max="720"
+                  style="max-width: 200px;"
+                />
+                <div class="demo-info" style="margin-top: 10px; font-size: 0.875rem; color: #ffc107;">
+                  <strong>⏱️ Tiempo configurado:</strong>
+                  <span *ngIf="nuevoUsuarioForm.horasDemo > 0">
+                    {{ nuevoUsuarioForm.horasDemo }} hora(s) 
+                    <span style="color: #ccc;">({{ calcularFinDemo() }})</span>
+                  </span>
+                  <span *ngIf="!nuevoUsuarioForm.horasDemo || nuevoUsuarioForm.horasDemo <= 0" style="color: #f44336;">
+                    Por favor, ingresa un número válido de horas
+                  </span>
+                </div>
+              </div>
+              
+              <div class="demo-warning" style="margin-top: 15px; padding: 10px; background: rgba(255, 87, 34, 0.1); border-radius: 6px; border-left: 4px solid #ff5722; font-size: 0.875rem; color: #ff5722;">
+                <strong>⚠️ Importante:</strong>
+                <ul style="margin: 8px 0 0 20px; padding: 0;">
+                  <li>Una vez que expire el tiempo configurado, el usuario no podrá iniciar sesión</li>
+                  <li>El rol DEMO tiene acceso completo a todas las funciones del sistema</li>
+                  <li>Puedes extender el tiempo editando el usuario después de crearlo</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Contraseña *</label>
+          <input
+            type="password"
+            class="form-input"
+            [(ngModel)]="nuevoUsuarioForm.password"
+            placeholder="Mínimo 6 caracteres"
+          />
+        </div>
+      </div>
+
+      <div class="password-requirements">
+        <h4>Requisitos de contraseña:</h4>
+        <ul>
+          <li>Mínimo 6 caracteres</li>
+          <li>Se recomienda usar una combinación de letras y números</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn--ghost" (click)="cerrarModalNuevoUsuario()">
+        Cancelar
+      </button>
+      <button class="btn btn--primary" (click)="crearUsuario()" [disabled]="creandoUsuario || !nuevoUsuarioForm.username || !nuevoUsuarioForm.nombre || !nuevoUsuarioForm.apellidos || !nuevoUsuarioForm.rol || !nuevoUsuarioForm.password">
+        <span *ngIf="creandoUsuario" class="btn__spinner"></span>
+        <span *ngIf="!creandoUsuario">➕ Crear Usuario</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ÉXITO AL GUARDAR CONFIGURACIÓN -->
+<div class="modal-overlay modal--exito modal--exito-configuracion" *ngIf="mostrarModalExitoConfiguracion" (click)="cerrarModalExitoConfiguracion()">
+  <div class="modal-content modal-content--exito modal-content--exito-configuracion" (click)="$event.stopPropagation()">
+    <div class="exito-configuracion">
+      <!-- Círculo de carga -->
+      <div class="exito-configuracion__loader" *ngIf="guardandoConfiguracion">
+        <div class="spinner spinner--green"></div>
+      </div>
+      
+      <!-- Check de éxito -->
+      <div class="exito-configuracion__check" *ngIf="configuracionGuardadaCompletada">
+        <svg class="checkmark checkmark--green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="60" height="60">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+      
+      <h3 class="exito-configuracion__title">Configuración Guardada</h3>
+      <p class="exito-configuracion__message" *ngIf="configuracionGuardadaCompletada">
+        Los cambios se han guardado exitosamente
+      </p>
+      <p class="exito-configuracion__message" *ngIf="guardandoConfiguracion">
+        Guardando configuración...
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ÉXITO CREACIÓN USUARIO -->
+<div class="modal-overlay modal--exito" *ngIf="mostrarModalExitoCreacion" (click)="cerrarModalExitoCreacion()">
+  <div class="modal-content modal-content--exito" (click)="$event.stopPropagation()">
+    <div class="exito-creacion-usuario">
+      <!-- Círculo de carga -->
+      <div class="exito-creacion-usuario__loader" *ngIf="creandoUsuarioProceso">
+        <div class="spinner spinner--success"></div>
+      </div>
+      
+      <!-- Check de éxito -->
+      <div class="exito-creacion-usuario__check" *ngIf="usuarioCreadoCompletado">
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+      
+      <h3 class="exito-creacion-usuario__title">Usuario creado exitosamente</h3>
+      <p class="exito-creacion-usuario__message" *ngIf="usuarioCreadoCompletado">
+        <span *ngIf="nuevoUsuarioForm.esDemo">
+          El usuario DEMO ha sido creado correctamente. Expirará en {{ nuevoUsuarioForm.horasDemo }} hora(s).
+        </span>
+        <span *ngIf="!nuevoUsuarioForm.esDemo">
+          El usuario ha sido creado correctamente.
+        </span>
+      </p>
+      <p class="exito-creacion-usuario__message" *ngIf="creandoUsuarioProceso">
+        Creando usuario...
+      </p>
+    </div>
+  </div>
+</div>

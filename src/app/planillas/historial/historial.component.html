@@ -1,0 +1,1452 @@
+<div class="historial-planillas">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">📚</span>
+        Historial de Planillas
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Consulta y gestion de planillas generadas
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--outline" (click)="exportarHistorial()">
+        📊 Exportar Historial
+      </button>
+      <button class="btn btn--sm btn--primary" routerLink="/planillas/generar">
+        ➕ Nueva Planilla
+      </button>
+    </div>
+  </div>
+
+  <!-- RESUMEN GENERAL -->
+  <div class="resumen-general" *ngIf="resumen">
+    <div class="resumen-card resumen-card--primary">
+      <div class="resumen-card__icon">📋</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Planillas</span>
+        <span class="resumen-card__value">{{ resumen.totalPlanillas }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--success">
+      <div class="resumen-card__icon">👥</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Trabajadores Afectados</span>
+        <span class="resumen-card__value">{{ resumen.totalTrabajadores }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--info">
+      <div class="resumen-card__icon">💰</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Pagado</span>
+        <span class="resumen-card__value">S/. {{ (resumen?.totalPagado || 0).toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--warning">
+      <div class="resumen-card__icon">✅</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Planillas Pagadas</span>
+        <span class="resumen-card__value">{{ resumen.planillasPagadas || 0 }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--pending">
+      <div class="resumen-card__icon">⏳</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Pendientes</span>
+        <span class="resumen-card__value">{{ resumen.planillasPendientes || 0 }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--cancelled">
+      <div class="resumen-card__icon">🚫</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Anuladas</span>
+        <span class="resumen-card__value">{{ resumen.planillasAnuladas || 0 }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-section">
+    <div class="filtros-header">
+      <h3 class="filtros-title">🔍 Filtros de Busqueda</h3>
+      <div class="filtros-header__right">
+        <span class="resultado-texto">
+          Mostrando <strong>{{ planillasFiltradas.length }}</strong> planillas
+          <span *ngIf="filtros.mes && filtros.mes !== 0"> de <strong>{{ nombreMesFiltro }}</strong></span>
+          de <strong>{{ filtros.anio }}</strong>
+        </span>
+        <button class="btn btn--ghost btn--sm" (click)="limpiarFiltros()">
+          ✖️ Limpiar Filtros
+        </button>
+      </div>
+    </div>
+
+    <div class="filtros-grid">
+      <div class="filtro-item">
+        <label class="filtro-label">Ano:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.anio" (change)="aplicarFiltros()">
+          <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Mes:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.mes" (change)="aplicarFiltros()">
+          <option [ngValue]="undefined">Todos</option>
+          <option *ngFor="let mes of mesesHistorial" [ngValue]="mes.valor">{{ mes.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Tipo de Planilla:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.tipoPlanilla" (change)="aplicarFiltros()">
+          <option *ngFor="let tipo of tiposPlanilla" [value]="tipo">{{ tipo }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Estado:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.estado" (change)="aplicarFiltros()">
+          <option *ngFor="let estado of estadosPlanilla" [value]="estado">{{ estado }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item filtro-item--search">
+        <label class="filtro-label">Buscar:</label>
+        <div class="search-box">
+          <span class="search-box__icon">🔍</span>
+          <input
+            type="text"
+            class="search-box__input"
+            placeholder="Buscar por codigo, periodo..."
+            [(ngModel)]="filtros.busqueda"
+            (input)="aplicarFiltros()"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- TOGGLE VISTA -->
+    <div class="filtros-vista">
+      <label class="filtro-label">Vista:</label>
+      <div class="vista-toggle">
+        <button 
+          class="btn btn--sm btn--outline" 
+          [class.active]="vistaActual === 'lista'"
+          (click)="vistaActual = 'lista'"
+        >
+          📋 Lista
+        </button>
+        <button 
+          class="btn btn--sm btn--outline" 
+          [class.active]="vistaActual === 'tarjetas'"
+          (click)="vistaActual = 'tarjetas'"
+        >
+          🗂️ Tarjetas
+        </button>
+        <button 
+          class="btn btn--sm btn--outline" 
+          [class.active]="vistaActual === 'estadisticas'"
+          (click)="vistaActual = 'estadisticas'"
+        >
+          📊 Estadisticas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA LISTA -->
+  <div class="tabla-container" *ngIf="vistaActual === 'lista'">
+    <div class="tabla-scroll">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Codigo</th>
+            <th>Periodo</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Trabajadores</th>
+            <th>Total Neto</th>
+            <th>Fecha Generacion</th>
+            <th>Generado Por</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="cargando">
+            <td colspan="9" class="td-loading">
+              <div class="loading-spinner">Cargando...</div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!cargando && planillasPaginadas.length === 0">
+            <td colspan="9" class="td-empty">
+              <div class="empty-state">
+                <span class="empty-state__icon">📭</span>
+                <p class="empty-state__text">No se encontraron planillas</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let planilla of planillasPaginadas">
+            <td class="td-codigo">
+              <span class="codigo-badge">{{ planilla.codigo }}</span>
+            </td>
+            <td class="td-periodo">{{ planilla.periodo }}</td>
+            <td class="td-tipo">
+              <span class="tipo-badge">{{ planilla.tipoPlanilla }}</span>
+            </td>
+            <td class="td-estado">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(planilla.estado)">
+                {{ planilla.estado }}
+              </span>
+            </td>
+            <td class="td-numero">{{ planilla.totalTrabajadores }}</td>
+            <td class="td-monto">
+              <strong>S/. {{ (planilla.totalNeto || 0).toFixed(2) }}</strong>
+            </td>
+            <td class="td-fecha">{{ formatearFecha(planilla.fechaGeneracion) }}</td>
+            <td class="td-usuario">{{ planilla.generadoPor }}</td>
+            <td class="td-acciones">
+              <div class="acciones-menu">
+                <ng-container *ngFor="let accion of obtenerAccionesDisponibles(planilla)">
+                  <button 
+                    class="btn-action"
+                    [ngClass]="accion.class"
+                    [title]="accion.label"
+                    (click)="ejecutarAccion(accion.tipo, planilla)"
+                  >
+                    {{ accion.icono }}
+                  </button>
+                </ng-container>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINACION -->
+    <div class="paginacion" *ngIf="totalPaginas > 1">
+      <button 
+        class="paginacion-btn" 
+        (click)="cambiarPagina(paginaActual - 1)"
+        [disabled]="paginaActual === 1"
+      >
+        ← Anterior
+      </button>
+
+      <div class="paginacion-numeros">
+        <button
+          *ngFor="let p of [].constructor(totalPaginas); let i = index"
+          class="paginacion-numero"
+          [class.active]="paginaActual === i + 1"
+          (click)="cambiarPagina(i + 1)"
+        >
+          {{ i + 1 }}
+        </button>
+      </div>
+
+      <button 
+        class="paginacion-btn" 
+        (click)="cambiarPagina(paginaActual + 1)"
+        [disabled]="paginaActual === totalPaginas"
+      >
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+  <!-- VISTA TARJETAS -->
+  <div class="tarjetas-grid" *ngIf="vistaActual === 'tarjetas'">
+    <div class="planilla-card" *ngFor="let planilla of planillasPaginadas">
+      <div class="planilla-card__header">
+        <div class="planilla-card__codigo">{{ planilla.codigo }}</div>
+        <span class="badge" [ngClass]="getEstadoBadgeClass(planilla.estado)">
+          {{ planilla.estado }}
+        </span>
+      </div>
+
+      <div class="planilla-card__body">
+        <h3 class="planilla-card__periodo">{{ planilla.periodo }}</h3>
+        <span class="planilla-card__tipo">{{ planilla.tipoPlanilla }}</span>
+
+        <div class="planilla-card__stats">
+          <div class="stat-item">
+            <span class="stat-item__icon">👥</span>
+            <div class="stat-item__content">
+              <span class="stat-item__label">Trabajadores</span>
+              <span class="stat-item__value">{{ planilla.totalTrabajadores }}</span>
+            </div>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-item__icon">💰</span>
+            <div class="stat-item__content">
+              <span class="stat-item__label">Total Neto</span>
+              <span class="stat-item__value">S/. {{ (planilla.totalNeto || 0).toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="planilla-card__info">
+          <div class="info-row">
+            <span class="info-label">Generado:</span>
+            <span class="info-value">{{ formatearFecha(planilla.fechaGeneracion) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Por:</span>
+            <span class="info-value">{{ planilla.generadoPor }}</span>
+          </div>
+          <div class="info-row" *ngIf="planilla.fechaPago">
+            <span class="info-label">Pagado:</span>
+            <span class="info-value">{{ formatearFecha(planilla.fechaPago) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="planilla-card__footer">
+        <button 
+          class="btn btn--sm btn--outline"
+          (click)="verDetalle(planilla)"
+        >
+          👁️ Ver Detalle
+        </button>
+        <button 
+          class="btn btn--sm btn--primary"
+          (click)="descargarPlanilla(planilla)"
+          *ngIf="planilla.estado === 'Pagada' || planilla.estado === 'Aprobada'"
+        >
+          📥 Descargar
+        </button>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="planillasPaginadas.length === 0">
+      <span class="empty-state__icon">📭</span>
+      <p class="empty-state__text">No se encontraron planillas</p>
+    </div>
+  </div>
+
+  <!-- VISTA ESTADISTICAS -->
+  <div class="estadisticas-container" *ngIf="vistaActual === 'estadisticas' && resumen">
+    <div class="estadisticas-grid">
+      <!-- POR TIPO -->
+      <div class="estadistica-panel">
+        <h3 class="panel__title">📊 Distribucion por Tipo</h3>
+        <div class="tipo-stats">
+          <div class="tipo-stat-item" *ngFor="let item of resumen.distribucionPorTipo">
+            <div class="tipo-stat-item__header">
+              <span class="tipo-stat-item__nombre">{{ item.tipo }}</span>
+              <span class="tipo-stat-item__cantidad">{{ item.cantidad }}</span>
+            </div>
+            <div class="tipo-stat-item__monto">S/. {{ (item.total || 0).toFixed(2) }}</div>
+            <div class="tipo-stat-item__bar">
+              <div 
+                class="bar-fill" 
+                [style.width]="(item.cantidad / resumen.totalPlanillas * 100) + '%'"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POR ESTADO -->
+      <div class="estadistica-panel">
+        <h3 class="panel__title">📈 Distribucion por Estado</h3>
+        <div class="estado-stats">
+          <div class="estado-stat-item">
+            <div class="estado-stat-item__icon estado-stat-item__icon--draft">📝</div>
+            <div class="estado-stat-item__content">
+              <span class="estado-stat-item__label">Borrador</span>
+              <span class="estado-stat-item__value">{{ resumen.planillasBorrador }}</span>
+            </div>
+          </div>
+
+          <div class="estado-stat-item">
+            <div class="estado-stat-item__icon estado-stat-item__icon--generated">⚙️</div>
+            <div class="estado-stat-item__content">
+              <span class="estado-stat-item__label">Generadas</span>
+              <span class="estado-stat-item__value">{{ resumen.planillasGeneradas }}</span>
+            </div>
+          </div>
+
+          <div class="estado-stat-item">
+            <div class="estado-stat-item__icon estado-stat-item__icon--approved">✅</div>
+            <div class="estado-stat-item__content">
+              <span class="estado-stat-item__label">Aprobadas</span>
+              <span class="estado-stat-item__value">{{ resumen.planillasAprobadas }}</span>
+            </div>
+          </div>
+
+          <div class="estado-stat-item">
+            <div class="estado-stat-item__icon estado-stat-item__icon--paid">💳</div>
+            <div class="estado-stat-item__content">
+              <span class="estado-stat-item__label">Pagadas</span>
+              <span class="estado-stat-item__value">{{ resumen.planillasPagadas }}</span>
+            </div>
+          </div>
+
+          <div class="estado-stat-item">
+            <div class="estado-stat-item__icon estado-stat-item__icon--cancelled">🚫</div>
+            <div class="estado-stat-item__content">
+              <span class="estado-stat-item__label">Anuladas</span>
+              <span class="estado-stat-item__value">{{ resumen.planillasAnuladas }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TENDENCIA MENSUAL -->
+      <div class="estadistica-panel estadistica-panel--full">
+        <h3 class="panel__title">📉 Tendencia Mensual (Ultimos 6 meses)</h3>
+        <div class="tendencia-chart">
+          <div class="tendencia-item" *ngFor="let item of resumen.tendenciaMensual">
+            <div class="tendencia-item__bar-container">
+              <div 
+                class="tendencia-item__bar"
+                [style.height]="(item.total / resumen.totalNetoPagado * 100) + '%'"
+              ></div>
+            </div>
+            <div class="tendencia-item__info">
+              <span class="tendencia-item__mes">{{ item.mes }}</span>
+              <span class="tendencia-item__cantidad">{{ item.cantidad }}</span>
+              <span class="tendencia-item__monto">S/. {{ (item.total || 0).toFixed(0) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE PLANILLA COMPLETO -->
+  <div class="modal modal--detalle" *ngIf="mostrarModalDetalle" (click)="mostrarModalDetalle = false">
+    <div class="modal__content modal__content--xlarge" (click)="$event.stopPropagation()">
+      <div class="modal__header modal__header--compact">
+        <div class="modal__header-content">
+          <h3 class="modal__title">📊 {{ planillaSeleccionada?.codigo }} - {{ planillaSeleccionada?.periodo }}</h3>
+          <span class="badge badge--sm" [ngClass]="getEstadoBadgeClass(planillaSeleccionada?.estado)">
+            {{ planillaSeleccionada?.estado }}
+          </span>
+        </div>
+        <div class="detalle-totales-grid detalle-totales-grid--compact">
+          <div class="total-item total-item--success total-item--compact">
+            <span class="total-label">Ingresos</span>
+            <span class="total-value">{{ formatearMoneda(planillaSeleccionada?.totalIngresos || 0) }}</span>
+          </div>
+          <div class="total-item total-item--danger total-item--compact">
+            <span class="total-label">Descuentos</span>
+            <span class="total-value">{{ formatearMoneda(planillaSeleccionada?.totalDescuentos || 0) }}</span>
+          </div>
+          <div class="total-item total-item--primary total-item--compact">
+            <span class="total-label">Neto</span>
+            <span class="total-value">{{ formatearMoneda(planillaSeleccionada?.totalNeto || 0) }}</span>
+          </div>
+          <div class="total-item total-item--warning total-item--compact">
+            <span class="total-label">Aportes</span>
+            <span class="total-value">{{ formatearMoneda(planillaSeleccionada?.totalAportes || 0) }}</span>
+          </div>
+        </div>
+        <button class="modal__close" (click)="mostrarModalDetalle = false">✖️</button>
+      </div>
+      <div class="modal__body modal__body--compact" *ngIf="planillaSeleccionada">
+        <!-- TABLA SIMPLE - DISEÑO ROBUSTO -->
+        <div class="tabla-detalle">
+            <div class="tabla-detalle__header tabla-detalle__header--compact">
+              <h3 class="tabla-detalle__title">📋 Detalle de Planilla</h3>
+              <div class="tabla-detalle__actions">
+            <button 
+              class="btn btn--sm" 
+              [class.btn--outline]="vistaDetalle === 'compacta'"
+              [class.btn--primary]="vistaDetalle === 'excel'"
+              (click)="toggleVistaDetalle()"
+              title="Alternar entre vista compacta y vista Excel expandida"
+            >
+              {{ vistaDetalle === 'compacta' ? '📊 Vista Excel' : '📋 Vista Compacta' }}
+            </button>
+            <button class="btn btn--sm btn--outline" (click)="exportarTXT()">
+              💾 TXT (Bancos)
+            </button>
+          </div>
+            </div>
+            
+            <!-- BÚSQUEDA Y FILTROS -->
+            <div class="tabla-filtros tabla-filtros--compact">
+              <div class="search-box search-box--compact">
+                <input 
+                  type="text" 
+                  [(ngModel)]="busquedaTrabajador"
+                  (ngModelChange)="onFiltroCambio()"
+                  placeholder="🔍 Buscar trabajador, DNI, cargo..."
+                  class="search-input search-input--compact"
+                />
+              </div>
+              <div class="filter-chips filter-chips--compact">
+                <button 
+                  class="filter-chip filter-chip--compact" 
+                  [class.active]="regimenFiltro === 'Todos'"
+                  (click)="regimenFiltro = 'Todos'; onFiltroCambio()"
+                  [style.background]="regimenFiltro === 'Todos' ? 'var(--accent)' : 'var(--panel)'"
+                  [style.color]="regimenFiltro === 'Todos' ? '#fff' : 'var(--text-1)'"
+                >
+                  Todos ({{ planillaSeleccionada?.trabajadores?.length || 0 }})
+                </button>
+                <button 
+                  *ngFor="let regimen of getRegimenesUnicos()"
+                  class="filter-chip filter-chip--compact"
+                  [class.active]="regimenFiltro === regimen"
+                  (click)="regimenFiltro = regimen; onFiltroCambio()"
+                  [style.background]="regimenFiltro === regimen ? 'var(--accent)' : 'var(--panel)'"
+                  [style.color]="regimenFiltro === regimen ? '#fff' : 'var(--text-1)'"
+                >
+                  {{ regimen }}
+                </button>
+              </div>
+              <button 
+                (click)="limpiarFiltrosTrabajadores()" 
+                class="btn-clear-filters btn-clear-filters--compact" 
+                *ngIf="busquedaTrabajador || regimenFiltro !== 'Todos'"
+              >
+                ✖️ Limpiar
+              </button>
+            </div>
+
+            <!-- VISTA COMPACTA -->
+            <div class="tabla-scroll" *ngIf="vistaDetalle === 'compacta'">
+              <table class="tabla">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;"></th>
+                    <th>DNI</th>
+                    <th>Trabajador</th>
+                    <th>Cargo</th>
+                    <th class="text-right">Días</th>
+                    <th class="text-right">Rem. Básica</th>
+                    <th class="text-right">Total Ingresos</th>
+                    <th class="text-right">Total Descuentos</th>
+                    <th class="text-right">Neto a Pagar</th>
+                    <th>Banco</th>
+                    <th>Cuenta</th>
+                    <th>Banco Desc. Judicial</th>
+                    <th>Cuenta Desc. Judicial</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <ng-container *ngFor="let trabajador of getTrabajadoresFiltrados(); let i = index">
+                    <tr [attr.data-trabajador-index]="i">
+                      <td class="td-expandir">
+                        <button 
+                          class="btn-expandir" 
+                          (click)="toggleDetalleTrabajador(i)"
+                          [class.expandido]="estaExpandido(i)"
+                          title="Ver detalles completos"
+                        >
+                          {{ estaExpandido(i) ? '▼' : '▶' }}
+                        </button>
+                      </td>
+                      <td class="td-dni">{{ trabajador.dni }}</td>
+                      <td class="td-trabajador">
+                        <div class="trabajador-info">
+                          <span class="trabajador-info__nombre">{{ trabajador.nombre }}</span>
+                          <span class="trabajador-info__area" *ngIf="trabajador.area && trabajador.area !== 'Sin área'">{{ trabajador.area }}</span>
+                        </div>
+                      </td>
+                      <td class="td-cargo">{{ trabajador.cargo }}</td>
+                      <td class="td-numero text-right">{{ trabajador.dias_trabajados || 30 }}</td>
+                      <td class="td-monto text-right">{{ formatearMoneda(trabajador.remuneracionBasica || 0) }}</td>
+                      <td class="td-monto td-monto--success text-right">{{ formatearMoneda(trabajador.total_ingresos || 0) }}</td>
+                      <td class="td-monto td-monto--danger text-right">{{ formatearMoneda(trabajador.total_descuentos || 0) }}</td>
+                      <td class="td-monto td-monto--primary text-right">
+                        <strong>{{ formatearMoneda(trabajador.neto_a_pagar || 0) }}</strong>
+                      </td>
+                      <td class="td-banco">{{ trabajador.banco || 'N/A' }}</td>
+                      <td class="td-cuenta">{{ trabajador.numero_cuenta || 'N/A' }}</td>
+                      <td class="td-banco">{{ trabajador.banco_descuento_judicial || 'N/A' }}</td>
+                      <td class="td-cuenta">{{ trabajador.numero_cuenta_descuento_judicial || 'N/A' }}</td>
+                    </tr>
+                    
+                    <!-- PANEL DE DETALLES EXPANDIBLE -->
+                    <tr *ngIf="estaExpandido(i)" class="detalle-expandido" [attr.data-trabajador-index]="i">
+                      <td colspan="13" class="detalle-expandido__cell">
+                        <div class="detalle-completo">
+                          <!-- INGRESOS -->
+                          <div class="detalle-seccion detalle-seccion--ingresos">
+                            <h4 class="detalle-seccion__titulo">💰 INGRESOS</h4>
+                            <div class="detalle-grid">
+                              <div class="detalle-item" *ngIf="trabajador.remuneracionBasica">
+                                <span class="detalle-label">Rem. Básica:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.remuneracionBasica) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.costo_vida">
+                                <span class="detalle-label">Costo de Vida:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.costo_vida) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.asignacion_familiar">
+                                <span class="detalle-label">Asig. Familiar:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.asignacion_familiar) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.movilidad">
+                                <span class="detalle-label">Movilidad:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.movilidad) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.horas_extras_monto">
+                                <span class="detalle-label">Horas Extras:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.horas_extras_monto) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.bonificaciones">
+                                <span class="detalle-label">Bonificaciones:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.bonificaciones) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.otros_ingresos">
+                                <span class="detalle-label">Otros Ingresos:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.otros_ingresos) }}</span>
+                              </div>
+                              <div class="detalle-item detalle-item--total">
+                                <span class="detalle-label"><strong>TOTAL INGRESOS:</strong></span>
+                                <span class="detalle-value detalle-value--success"><strong>{{ formatearMoneda(trabajador.total_ingresos || 0) }}</strong></span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- DESCUENTOS -->
+                          <div class="detalle-seccion detalle-seccion--descuentos">
+                            <h4 class="detalle-seccion__titulo">➖ DESCUENTOS</h4>
+                            <div class="detalle-grid">
+                              <div class="detalle-item" *ngIf="trabajador.sistema_pensiones">
+                                <span class="detalle-label">Sistema:</span>
+                                <span class="detalle-value">{{ trabajador.sistema_pensiones }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.aporte_obligatorio_afp || trabajador.aporte_onp">
+                                <span class="detalle-label">AFP/ONP:</span>
+                                <span class="detalle-value">{{ formatearMoneda((trabajador.aporte_obligatorio_afp || 0) + (trabajador.aporte_onp || 0)) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.comision_afp">
+                                <span class="detalle-label">Comisión AFP:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.comision_afp) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.seguro_afp">
+                                <span class="detalle-label">Seguro AFP:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.seguro_afp) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.renta_5ta">
+                                <span class="detalle-label">Renta 5ta:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.renta_5ta) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.cuota_sindical">
+                                <span class="detalle-label">Cuota Sindical:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.cuota_sindical) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.cuota_sindical_sitro_mdh">
+                                <span class="detalle-label">Cuota SITRO MDH:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.cuota_sindical_sitro_mdh) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.prestamo_cooperativa_san_lorenzo">
+                                <span class="detalle-label">Prést. San Lorenzo:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.prestamo_cooperativa_san_lorenzo) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.cooperativa_san_miguel">
+                                <span class="detalle-label">Cooperativa San Miguel:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.cooperativa_san_miguel) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuento_coopac_nsr">
+                                <span class="detalle-label">COOPAC NSR:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuento_coopac_nsr) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuento_coopac_san_jose">
+                                <span class="detalle-label">COOPAC San Jose:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuento_coopac_san_jose) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuento_centro_coop">
+                                <span class="detalle-label">Centro COOP:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuento_centro_coop) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuento_leon_xiii">
+                                <span class="detalle-label">León XIII:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuento_leon_xiii) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuento_banco_comercio">
+                                <span class="detalle-label">Banco Comercio:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuento_banco_comercio) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuento_banco_nacion">
+                                <span class="detalle-label">Banco de la Nación:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuento_banco_nacion) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuento_rimac_seguros">
+                                <span class="detalle-label">Rimac Seguros:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuento_rimac_seguros) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuento_banbif">
+                                <span class="detalle-label">BanBif:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuento_banbif) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuento_oftalmol_entes">
+                                <span class="detalle-label">Oftalmol Entes:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuento_oftalmol_entes) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuento_pactado_pago_indebido">
+                                <span class="detalle-label">Pactado Pago Indebido:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuento_pactado_pago_indebido) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.tardanzas">
+                                <span class="detalle-label">Tardanzas:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.tardanzas) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.faltas">
+                                <span class="detalle-label">Faltas:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.faltas) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.descuentos_judiciales">
+                                <span class="detalle-label">Desc. Judiciales:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.descuentos_judiciales) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.otros_descuentos">
+                                <span class="detalle-label">Otros Desc.:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.otros_descuentos) }}</span>
+                              </div>
+                              <div class="detalle-item detalle-item--total">
+                                <span class="detalle-label"><strong>TOTAL DESCUENTOS:</strong></span>
+                                <span class="detalle-value detalle-value--danger"><strong>{{ formatearMoneda(trabajador.total_descuentos || 0) }}</strong></span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- APORTES EMPLEADOR -->
+                          <div class="detalle-seccion detalle-seccion--aportes">
+                            <h4 class="detalle-seccion__titulo">🏥 APORTES EMPLEADOR</h4>
+                            <div class="detalle-grid">
+                              <div class="detalle-item" *ngIf="trabajador.essalud">
+                                <span class="detalle-label">EsSalud (9%):</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.essalud) }}</span>
+                              </div>
+                              <div class="detalle-item">
+                                <span class="detalle-label">Seguro Vida:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.seguro_vida || 0) }}</span>
+                              </div>
+                              <div class="detalle-item">
+                                <span class="detalle-label">SCTR Pensión:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.sctr_pension || 0) }}</span>
+                              </div>
+                              <div class="detalle-item">
+                                <span class="detalle-label">SCTR Salud:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.sctr_salud || 0) }}</span>
+                              </div>
+                              <div class="detalle-item detalle-item--total">
+                                <span class="detalle-label"><strong>TOTAL APORTES:</strong></span>
+                                <span class="detalle-value detalle-value--warning"><strong>{{ formatearMoneda(trabajador.total_aportes || 0) }}</strong></span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- NETO -->
+                          <div class="detalle-seccion detalle-seccion--neto">
+                            <h4 class="detalle-seccion__titulo">💰 NETO</h4>
+                            <div class="detalle-grid">
+                              <div class="detalle-item detalle-item--total">
+                                <span class="detalle-label"><strong>Neto a Pagar:</strong></span>
+                                <span class="detalle-value detalle-value--primary"><strong>{{ formatearMoneda(trabajador.neto_a_pagar || 0) }}</strong></span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.gratificacion">
+                                <span class="detalle-label">Gratificación:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.gratificacion) }}</span>
+                              </div>
+                              <div class="detalle-item" *ngIf="trabajador.cts_mensual">
+                                <span class="detalle-label">CTS Mensual:</span>
+                                <span class="detalle-value">{{ formatearMoneda(trabajador.cts_mensual) }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </ng-container>
+                </tbody>
+                <tfoot>
+                  <tr class="tabla-totales">
+                    <td colspan="6" class="text-right"><strong>TOTALES:</strong></td>
+                    <td class="td-monto td-monto--success text-right">
+                      <strong>{{ formatearMoneda(planillaSeleccionada?.totalIngresos || 0) }}</strong>
+                    </td>
+                    <td class="td-monto td-monto--danger text-right">
+                      <strong>{{ formatearMoneda(planillaSeleccionada?.totalDescuentos || 0) }}</strong>
+                    </td>
+                    <td class="td-monto td-monto--primary text-right">
+                      <strong>{{ formatearMoneda(planillaSeleccionada?.totalNeto || 0) }}</strong>
+                    </td>
+                    <td colspan="2"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+          <!-- VISTA EXCEL EXPANDIDA -->
+          <div class="tabla-scroll-excel" *ngIf="vistaDetalle === 'excel'">
+            <ng-container *ngFor="let grupo of getTrabajadoresAgrupadosPorRegimen(); trackBy: trackByRegimen">
+              <!-- HEADER DEL GRUPO POR RÉGIMEN -->
+              <div class="grupo-regimen-header">
+                <h4 class="grupo-regimen-title">{{ grupo.regimen }}</h4>
+                <span class="grupo-regimen-count">{{ grupo.trabajadores.length }} trabajador(es)</span>
+              </div>
+              
+              <!-- TABLA EXCEL EXPANDIDA -->
+              <div class="tabla-excel-scroll">
+                <table class="tabla-excel">
+                      <thead>
+                        <tr>
+                          <th>DNI</th>
+                          <th>Trabajador</th>
+                          <th>Cargo</th>
+                          <th>Gerencia</th>
+                          <th>Subgerencia</th>
+                          <th>Unidad</th>
+                          <th class="text-right">Días</th>
+                          <!-- INGRESOS -->
+                          <th class="text-right grupo-verde">Rem. Básica</th>
+                          <th class="text-right grupo-verde">Costo Vida</th>
+                          <th class="text-right grupo-verde">Asig. Familiar</th>
+                          <th class="text-right grupo-verde">Movilidad</th>
+                          <th class="text-right grupo-verde">Horas Extras</th>
+                          <th class="text-right grupo-verde">Bonificaciones</th>
+                          <th class="text-right grupo-verde">P.C (2015-2016)</th>
+                          <th class="text-right grupo-verde">R.A (829-2011-MDH)</th>
+                          <th class="text-right grupo-verde">Otras y/o Reintegros</th>
+                          <th class="text-right grupo-verde">Conv. 2022-2023</th>
+                          <th class="text-right grupo-verde">Conv. 2023-2024</th>
+                          <th class="text-right grupo-verde">Conv. 2024-2025</th>
+                          <th class="text-right grupo-verde">Homologación</th>
+                          <th class="text-right grupo-verde">Otros Ingresos</th>
+                          <th class="text-right grupo-verde total-col">Total Ingresos</th>
+                          <!-- DESCUENTOS -->
+                          <th class="text-right grupo-rojo">AFP/ONP</th>
+                          <th class="text-right grupo-rojo">Comisión AFP</th>
+                          <th class="text-right grupo-rojo">Seguro AFP</th>
+                          <th class="text-right grupo-rojo">Renta 5ta</th>
+                          <th class="text-right grupo-rojo">Cuota Sindical</th>
+                          <th class="text-right grupo-rojo">Prest. Coop. San Lorenzo</th>
+                          <th class="text-right grupo-rojo">Coop San Miguel</th>
+                          <th class="text-right grupo-rojo">Desc. COOPAC NSR</th>
+                          <th class="text-right grupo-rojo">Desc. COOPAC San Jose</th>
+                          <th class="text-right grupo-rojo">Desc. Centro Coop</th>
+                          <th class="text-right grupo-rojo">Desc. Leon XIII</th>
+                          <th class="text-right grupo-rojo">Desc. Banco Comercio</th>
+                          <th class="text-right grupo-rojo">Desc. Banco Nación</th>
+                          <th class="text-right grupo-rojo">Rimac Seguros</th>
+                          <th class="text-right grupo-rojo">Desc. BanBif</th>
+                          <th class="text-right grupo-rojo">Oftalmol Entes</th>
+                          <th class="text-right grupo-rojo">Desc. Pactado Pago Indeb.</th>
+                          <th class="text-right grupo-rojo">Tardanzas</th>
+                          <th class="text-right grupo-rojo">Faltas</th>
+                          <th class="text-right grupo-rojo">Desc. Judiciales</th>
+                          <th class="text-right grupo-rojo">Otros Desc.</th>
+                          <th class="text-right grupo-rojo total-col">Total Descuentos</th>
+                          <!-- APORTES -->
+                          <th class="text-right grupo-amarillo">EsSalud</th>
+                          <th class="text-right grupo-amarillo">Seguro Vida</th>
+                          <th class="text-right grupo-amarillo">SCTR Pensión</th>
+                          <th class="text-right grupo-amarillo">SCTR Salud</th>
+                          <th class="text-right grupo-amarillo total-col">Total Aportes</th>
+                          <!-- NETO -->
+                          <th class="text-right grupo-azul total-col">Neto a Pagar</th>
+                          <th>Banco</th>
+                          <th>Cuenta</th>
+                          <th>Banco Desc. Judicial</th>
+                          <th>Cuenta Desc. Judicial</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let trabajador of grupo.trabajadores">
+                          <td class="td-dni">{{ trabajador.dni }}</td>
+                          <td class="td-trabajador">{{ trabajador.nombre }}</td>
+                          <td class="td-cargo">{{ trabajador.cargo }}</td>
+                          <td>{{ trabajador.gerencia || 'N/A' }}</td>
+                          <td>{{ trabajador.subgerencia || 'N/A' }}</td>
+                          <td>{{ trabajador.unidad || 'N/A' }}</td>
+                          <td class="text-right">{{ trabajador.dias_trabajados || 30 }}</td>
+                          <!-- INGRESOS -->
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.remuneracionBasica || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.costo_vida || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.asignacion_familiar || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.movilidad || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.horas_extras_monto || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.bonificaciones || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.pc_2015_2016 || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.ra_829_2011_mdh || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.otras_reintegros || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.convenio_2022_2023 || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.convenio_2023_2024 || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.convenio_2024_2025 || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.homologacion || 0) }}</td>
+                          <td class="text-right grupo-verde">{{ formatearMoneda(trabajador.otros_ingresos || 0) }}</td>
+                          <td class="text-right grupo-verde total-col"><strong>{{ formatearMoneda(trabajador.total_ingresos || 0) }}</strong></td>
+                          <!-- DESCUENTOS -->
+                          <td class="text-right grupo-rojo">{{ formatearMoneda((trabajador.aporte_obligatorio_afp || 0) + (trabajador.aporte_onp || 0)) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.comision_afp || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.seguro_afp || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.renta_5ta || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.cuota_sindical || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.prestamo_cooperativa_san_lorenzo || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.cooperativa_san_miguel || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuento_coopac_nsr || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuento_coopac_san_jose || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuento_centro_coop || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuento_leon_xiii || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuento_banco_comercio || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuento_banco_nacion || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuento_rimac_seguros || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuento_banbif || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuento_oftalmol_entes || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuento_pactado_pago_indebido || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.tardanzas || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.faltas || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.descuentos_judiciales || 0) }}</td>
+                          <td class="text-right grupo-rojo">{{ formatearMoneda(trabajador.otros_descuentos || 0) }}</td>
+                          <td class="text-right grupo-rojo total-col"><strong>{{ formatearMoneda(trabajador.total_descuentos || 0) }}</strong></td>
+                          <!-- APORTES -->
+                          <td class="text-right grupo-amarillo">{{ formatearMoneda(trabajador.essalud || 0) }}</td>
+                          <td class="text-right grupo-amarillo">{{ formatearMoneda(trabajador.seguro_vida || 0) }}</td>
+                          <td class="text-right grupo-amarillo">{{ formatearMoneda(trabajador.sctr_pension || 0) }}</td>
+                          <td class="text-right grupo-amarillo">{{ formatearMoneda(trabajador.sctr_salud || 0) }}</td>
+                          <td class="text-right grupo-amarillo total-col"><strong>{{ formatearMoneda(trabajador.total_aportes || 0) }}</strong></td>
+                          <!-- NETO -->
+                          <td class="text-right grupo-azul total-col"><strong>{{ formatearMoneda(trabajador.neto_a_pagar || 0) }}</strong></td>
+                          <td>{{ trabajador.banco || 'N/A' }}</td>
+                          <td>{{ trabajador.numero_cuenta || 'N/A' }}</td>
+                          <td>{{ trabajador.banco_descuento_judicial || 'N/A' }}</td>
+                          <td>{{ trabajador.numero_cuenta_descuento_judicial || 'N/A' }}</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr class="tabla-totales-grupo">
+                          <td colspan="7" class="text-right"><strong>TOTALES {{ grupo.regimen }}:</strong></td>
+                          <!-- INGRESOS: 14 columnas antes de Total Ingresos -->
+                          <td colspan="14" class="grupo-verde"></td>
+                          <td class="text-right grupo-verde total-col"><strong>{{ formatearMoneda(calcularTotalGrupo(grupo.trabajadores, 'total_ingresos')) }}</strong></td>
+                          <!-- DESCUENTOS: 21 columnas antes de Total Descuentos -->
+                          <td colspan="21" class="grupo-rojo"></td>
+                          <td class="text-right grupo-rojo total-col"><strong>{{ formatearMoneda(calcularTotalGrupo(grupo.trabajadores, 'total_descuentos')) }}</strong></td>
+                          <!-- APORTES: 4 columnas antes de Total Aportes -->
+                          <td colspan="4" class="grupo-amarillo"></td>
+                          <td class="text-right grupo-amarillo total-col"><strong>{{ formatearMoneda(calcularTotalGrupo(grupo.trabajadores, 'total_aportes')) }}</strong></td>
+                          <!-- NETO: 1 columna -->
+                          <td class="text-right grupo-azul total-col"><strong>{{ formatearMoneda(calcularTotalGrupo(grupo.trabajadores, 'neto_a_pagar')) }}</strong></td>
+                          <!-- FINALES: 4 columnas (Banco, Cuenta, Banco Desc. Judicial, Cuenta Desc. Judicial) -->
+                          <td colspan="4"></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </ng-container>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalDetalle = false">Cerrar</button>
+        <button class="btn btn--outline" (click)="exportarExcel()">📊 Exportar Excel</button>
+        <button class="btn btn--primary" (click)="exportarPDF()">📥 Descargar PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ANULAR PLANILLA -->
+  <div class="modal" *ngIf="mostrarModalAnular" (click)="mostrarModalAnular = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">🚫 Anular Planilla</h3>
+        <button class="modal__close" (click)="mostrarModalAnular = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="planillaAAnular">
+        <div class="anular-warning">
+          <div class="anular-warning__icon">⚠️</div>
+          <p class="anular-warning__text">
+            Esta a punto de anular la planilla <strong>{{ planillaAAnular.codigo }}</strong>.
+            Esta accion no se puede deshacer.
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Motivo de Anulacion *</label>
+          <textarea 
+            class="form-textarea" 
+            rows="4" 
+            placeholder="Indique el motivo de la anulacion..."
+            [(ngModel)]="motivoAnulacion"
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalAnular = false">Cancelar</button>
+        <button class="btn btn--danger" (click)="confirmarAnulacion()">
+          🚫 Confirmar Anulacion
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ÉXITO ANULACIÓN -->
+  <div class="modal modal--exito" *ngIf="mostrarModalExitoAnulacion">
+    <div class="modal__content modal__content--exito" (click)="$event.stopPropagation()">
+      <div class="exito-anulacion">
+        <!-- Círculo de carga -->
+        <div class="exito-anulacion__loader" *ngIf="anulando">
+          <div class="spinner"></div>
+        </div>
+        
+        <!-- Check de éxito -->
+        <div class="exito-anulacion__check" *ngIf="!anulando">
+          <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
+        
+        <h3 class="exito-anulacion__title">Planilla anulada exitosamente</h3>
+        <p class="exito-anulacion__message" *ngIf="!anulando">
+          La planilla ha sido anulada correctamente.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VALIDACIÓN ANULACIÓN -->
+  <div class="modal modal--validacion" *ngIf="mostrarModalValidacionAnulacion">
+    <div class="modal__content modal__content--validacion" (click)="$event.stopPropagation()">
+      <div class="validacion-anulacion">
+        <div class="validacion-anulacion__icon">⚠️</div>
+        <h3 class="validacion-anulacion__title">Motivo requerido</h3>
+        <p class="validacion-anulacion__message">
+          Debe ingresar un motivo para la anulación antes de continuar.
+        </p>
+        <button class="btn btn--primary" (click)="cerrarModalValidacionAnulacion()">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ELIMINAR DEFINITIVAMENTE -->
+  <div class="modal modal--delete" *ngIf="mostrarModalEliminar" (click)="cerrarModalEliminar()" [class.modal--shaking]="mensajeError">
+    <div class="modal__content modal__content--delete" (click)="$event.stopPropagation()">
+      <!-- Header compacto -->
+      <div class="modal__header modal__header--delete">
+        <div class="delete-header__icon">⚠️</div>
+        <div class="delete-header__text">
+          <h3 class="modal__title">Eliminar Planilla</h3>
+          <p class="modal__subtitle">Esta acción no se puede deshacer</p>
+        </div>
+        <button class="modal__close" (click)="cerrarModalEliminar()" [disabled]="eliminando">✖️</button>
+      </div>
+
+      <div class="modal__body modal__body--delete" *ngIf="planillaAEliminar">
+        <!-- Mensaje de error -->
+        <div class="alert alert--error" *ngIf="mensajeError && !eliminando && !eliminacionCompletada" [@shake]>
+          <span class="alert__icon">❌</span>
+          <span class="alert__message">{{ mensajeError }}</span>
+        </div>
+        
+        <!-- Estado de carga y éxito -->
+        <div class="delete-exito-container" *ngIf="eliminando || eliminacionCompletada">
+          <div class="delete-exito">
+            <!-- Círculo de carga -->
+            <div class="delete-exito__loader" *ngIf="eliminando">
+              <div class="spinner spinner--delete"></div>
+            </div>
+            
+            <!-- Check de éxito -->
+            <div class="delete-exito__check" *ngIf="eliminacionCompletada">
+              <svg class="checkmark checkmark--delete" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+                <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+              </svg>
+            </div>
+            
+            <h3 class="delete-exito__title" *ngIf="eliminacionCompletada">{{ mensajeExito }}</h3>
+            <p class="delete-exito__text" *ngIf="eliminando">Eliminando...</p>
+          </div>
+        </div>
+        
+        <!-- Contenido normal (solo cuando no está eliminando ni completado) -->
+        <div class="delete-content" *ngIf="!eliminando && !eliminacionCompletada">
+          <!-- Información de la planilla -->
+          <div class="delete-planilla-info">
+            <div class="delete-planilla-info__item">
+              <span class="delete-planilla-info__label">Código:</span>
+              <span class="delete-planilla-info__value">{{ planillaAEliminar.codigo }}</span>
+            </div>
+            <div class="delete-planilla-info__item">
+              <span class="delete-planilla-info__label">Período:</span>
+              <span class="delete-planilla-info__value">{{ planillaAEliminar.periodo }}</span>
+            </div>
+            <div class="delete-planilla-info__item">
+              <span class="delete-planilla-info__label">Monto:</span>
+              <span class="delete-planilla-info__value">S/. {{ (planillaAEliminar.totalNeto || 0).toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <!-- Advertencia compacta -->
+          <div class="delete-warning">
+            <p class="delete-warning__text">
+              Se eliminarán <strong>permanentemente</strong> todos los datos, cálculos y registros de esta planilla.
+            </p>
+          </div>
+
+          <!-- Campo de confirmación -->
+          <div class="delete-confirmation">
+            <label class="delete-confirmation__label">
+              Escriba <strong>"ELIMINAR"</strong> para confirmar:
+            </label>
+            <input 
+              type="text" 
+              class="delete-confirmation__input"
+              [class.delete-confirmation__input--error]="confirmacionEliminar && confirmacionEliminar.toUpperCase() !== 'ELIMINAR'"
+              [class.delete-confirmation__input--success]="confirmacionEliminar.toUpperCase() === 'ELIMINAR'"
+              placeholder="ELIMINAR"
+              [(ngModel)]="confirmacionEliminar"
+              [disabled]="eliminando"
+              autocomplete="off"
+              (keyup.enter)="confirmarEliminacion()"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer compacto -->
+      <div class="modal__footer modal__footer--delete" *ngIf="!eliminando && !eliminacionCompletada">
+        <button class="btn btn--outline" (click)="cerrarModalEliminar()" [disabled]="eliminando">
+          Cancelar
+        </button>
+        <button 
+          class="btn btn--danger" 
+          (click)="confirmarEliminacion()"
+          [disabled]="confirmacionEliminar.toUpperCase() !== 'ELIMINAR' || eliminando"
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR PLANILLA -->
+  <div class="modal modal--editar" *ngIf="mostrarModalEditar" (click)="cerrarModalEditar()">
+    <div class="modal__content modal__content--xlarge" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <div class="modal__header-content">
+          <h3 class="modal__title">✏️ Editar Planilla: {{ planillaAEditar?.codigo }}</h3>
+          <span class="badge badge--sm" [ngClass]="getEstadoBadgeClass(planillaAEditar?.estado)">
+            {{ planillaAEditar?.estado }}
+          </span>
+        </div>
+        <button class="modal__close" (click)="cerrarModalEditar()" [disabled]="guardandoCambios">✖️</button>
+      </div>
+
+      <div class="modal__body" *ngIf="planillaAEditar">
+        <!-- BÚSQUEDA Y FILTROS -->
+        <div class="editar-filtros">
+          <div class="search-box">
+            <input 
+              type="text" 
+              [(ngModel)]="busquedaEditar"
+              placeholder="🔍 Buscar trabajador, DNI, cargo..."
+              class="search-input"
+            />
+          </div>
+          <div class="filter-chips">
+            <button 
+              class="filter-chip" 
+              [class.active]="regimenFiltroEditar === 'Todos'"
+              (click)="regimenFiltroEditar = 'Todos'"
+            >
+              Todos ({{ trabajadoresEditables.length }})
+            </button>
+            <button 
+              *ngFor="let regimen of getRegimenesUnicos()"
+              class="filter-chip"
+              [class.active]="regimenFiltroEditar === regimen"
+              (click)="regimenFiltroEditar = regimen"
+            >
+              {{ regimen }}
+            </button>
+          </div>
+        </div>
+
+        <!-- TABLA EDITABLE -->
+        <div class="tabla-editable-container" *ngIf="!guardandoCambios && trabajadoresEditables.length > 0">
+          <div class="tabla-scroll tabla-scroll--editable">
+            <table class="tabla tabla--editable">
+              <thead>
+                <tr>
+                  <th>DNI</th>
+                  <th>Trabajador</th>
+                  <th>Cargo</th>
+                  <th class="text-right">Días</th>
+                  <th class="text-right">Rem. Básica</th>
+                  <th class="text-right">Costo Vida</th>
+                  <th class="text-right">Asig. Familiar</th>
+                  <th class="text-right">Movilidad</th>
+                  <th class="text-right">Horas Extras</th>
+                  <th class="text-right">Bonificaciones</th>
+                  <th class="text-right">P.C (2015-2016)</th>
+                  <th class="text-right">R.A (829-2011)</th>
+                  <th class="text-right">Otras Reintegros</th>
+                  <th class="text-right">Conv. 2022-2023</th>
+                  <th class="text-right">Conv. 2023-2024</th>
+                  <th class="text-right">Conv. 2024-2025</th>
+                  <th class="text-right">Homologación</th>
+                  <th class="text-right">Otros Ingresos</th>
+                  <th class="text-right">Tardanzas</th>
+                  <th class="text-right">Faltas</th>
+                  <th class="text-right">Otros Desc.</th>
+                  <th class="text-right">Total Ingresos</th>
+                  <th class="text-right">Total Descuentos</th>
+                  <th class="text-right"><strong>Neto a Pagar</strong></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let trabajador of getTrabajadoresEditablesFiltrados()">
+                  <td class="td-dni">{{ trabajador.dni }}</td>
+                  <td class="td-trabajador">
+                    <div class="trabajador-info">
+                      <span class="trabajador-info__nombre">{{ trabajador.nombre }}</span>
+                      <span class="trabajador-info__area" *ngIf="trabajador.area && trabajador.area !== 'Sin área'">{{ trabajador.area }}</span>
+                    </div>
+                  </td>
+                  <td class="td-cargo">{{ trabajador.cargo }}</td>
+                  <td class="td-numero text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.dias_trabajados"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      max="31"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.remuneracionBasica"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.costo_vida"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.asignacion_familiar"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.movilidad"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.horas_extras_monto"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.bonificaciones"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.pc_2015_2016"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.ra_829_2011_mdh"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.otras_reintegros"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.convenio_2022_2023"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.convenio_2023_2024"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.convenio_2024_2025"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.homologacion"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.otros_ingresos"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.tardanzas"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.faltas"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto text-right">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="trabajador.otros_descuentos"
+                      (ngModelChange)="calcularTotalesTrabajador(trabajador)"
+                      class="input-editable"
+                      min="0"
+                      step="0.01"
+                    />
+                  </td>
+                  <td class="td-monto td-monto--success text-right">
+                    <strong>{{ formatearMoneda(trabajador.total_ingresos) }}</strong>
+                  </td>
+                  <td class="td-monto td-monto--danger text-right">
+                    <strong>{{ formatearMoneda(trabajador.total_descuentos) }}</strong>
+                  </td>
+                  <td class="td-monto td-monto--primary text-right">
+                    <strong>{{ formatearMoneda(trabajador.neto_a_pagar) }}</strong>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- LOADING -->
+        <div class="loading-container" *ngIf="guardandoCambios && trabajadoresEditables.length === 0">
+          <div class="loading-spinner"></div>
+          <p>Cargando trabajadores...</p>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div class="empty-state" *ngIf="!guardandoCambios && getTrabajadoresEditablesFiltrados().length === 0">
+          <span class="empty-state__icon">📭</span>
+          <p class="empty-state__text">No se encontraron trabajadores</p>
+        </div>
+      </div>
+
+      <div class="modal__footer" *ngIf="trabajadoresEditables.length > 0">
+        <button 
+          class="btn btn--ghost" 
+          (click)="cerrarModalEditar()"
+          [disabled]="guardandoCambios"
+        >
+          Cancelar
+        </button>
+        <button 
+          class="btn btn--primary" 
+          (click)="guardarCambiosPlanilla()"
+          [disabled]="guardandoCambios"
+        >
+          <span *ngIf="!guardandoCambios">💾 Guardar Cambios</span>
+          <span *ngIf="guardandoCambios">⏳ Guardando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Interceptor</title>
+</head>
+<body>
+    <h1>Test del Interceptor HTTP</h1>
+    <button onclick="testRequest()">Probar Petición</button>
+    <div id="resultado"></div>
+    
+    <script>
+        function testRequest() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = '<p>Haciendo petición...</p>';
+            
+            // Simular una petición HTTP
+            fetch('http://localhost:5000/api/trabajadores')
+                .then(response => {
+                    resultado.innerHTML += `<p>Status: ${response.status}</p>`;
+                    return response.json();
+                })
+                .then(data => {
+                    resultado.innerHTML += `<p>Datos: ${JSON.stringify(data)}</p>`;
+                })
+                .catch(error => {
+                    resultado.innerHTML += `<p>Error: ${error.message}</p>`;
+                });
+        }
+    </script>
+</body>
+</html>
+

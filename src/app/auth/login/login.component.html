@@ -1,0 +1,275 @@
+<div #loginContainer class="login-container red-theme">
+  <!-- Fondo con imagen de iglesia -->
+  <div class="background-animation"></div>
+  
+  <!-- Título en esquina superior izquierda -->
+  <div class="brand-corner">
+    <h1 class="brand-title">GESTORPLAN</h1>
+    <p class="brand-subtitle">Sistema de Planillas</p>
+  </div>
+
+  <!-- Sistema de temas avanzado -->
+  <div class="theme-system">
+    <!-- Botón principal de temas -->
+    <div class="theme-toggle">
+      <button class="theme-button" (click)="toggleThemePanel()" [class.active]="showThemePanel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+        </svg>
+      </button>
+    </div>
+
+        <!-- Panel de temas -->
+        <div #themePanel class="theme-panel" [class.active]="showThemePanel">
+      <div class="theme-panel-header">
+        <h3>Personalizar Tema</h3>
+        <button class="close-btn" (click)="closeThemePanel()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Temas predefinidos -->
+      <div class="predefined-themes">
+        <h4>Temas Predefinidos</h4>
+        <div class="theme-colors">
+          <button class="theme-color red" (click)="applyPredefinedTheme('red')" title="Rojo">
+            <span class="color-preview"></span>
+            <span class="color-name">Rojo</span>
+          </button>
+          <button class="theme-color blue" (click)="applyPredefinedTheme('blue')" title="Azul">
+            <span class="color-preview"></span>
+            <span class="color-name">Azul</span>
+          </button>
+          <button class="theme-color green" (click)="applyPredefinedTheme('green')" title="Verde">
+            <span class="color-preview"></span>
+            <span class="color-name">Verde</span>
+          </button>
+          <button class="theme-color purple" (click)="applyPredefinedTheme('purple')" title="Morado">
+            <span class="color-preview"></span>
+            <span class="color-name">Morado</span>
+          </button>
+          <button class="theme-color orange" (click)="applyPredefinedTheme('orange')" title="Naranja">
+            <span class="color-preview"></span>
+            <span class="color-name">Naranja</span>
+          </button>
+          <button class="theme-color teal" (click)="applyPredefinedTheme('teal')" title="Turquesa">
+            <span class="color-preview"></span>
+            <span class="color-name">Turquesa</span>
+          </button>
+          <button class="theme-color pink" (click)="applyPredefinedTheme('pink')" title="Rosa">
+            <span class="color-preview"></span>
+            <span class="color-name">Rosa</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Personalización avanzada -->
+      <div class="custom-theme">
+        <h4>Personalización Avanzada</h4>
+        <div class="color-controls">
+              <div class="color-group">
+                <label>Color Principal</label>
+                <input type="color" [(ngModel)]="customTheme.primary" (change)="onCustomColorChange()">
+              </div>
+              <div class="color-group">
+                <label>Color Secundario</label>
+                <input type="color" [(ngModel)]="customTheme.secondary" (change)="onCustomColorChange()">
+              </div>
+              <div class="color-group">
+                <label>Color de Acento</label>
+                <input type="color" [(ngModel)]="customTheme.accent" (change)="onCustomColorChange()">
+              </div>
+              <div class="color-group">
+                <label>Fondo del Panel</label>
+                <input type="color" [(ngModel)]="customTheme.panelBg" (change)="onCustomColorChange()">
+              </div>
+              <div class="color-group">
+                <label>Color de Borde</label>
+                <input type="color" [(ngModel)]="customTheme.border" (change)="onCustomColorChange()">
+              </div>
+              <div class="color-group">
+                <label>Color de Foco</label>
+                <input type="color" [(ngModel)]="customTheme.focus" (change)="onCustomColorChange()">
+              </div>
+        </div>
+      </div>
+
+          <!-- Acciones -->
+          <div class="theme-actions">
+            <button class="reset-btn" (click)="resetToDefault()">Restaurar</button>
+            <button class="cancel-btn" (click)="restorePreviousTheme(); closeThemePanel()">Cancelar</button>
+            <button class="save-btn" (click)="saveCustomTheme()">Guardar</button>
+          </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="login-content">
+    <!-- Logo y título -->
+    <div class="login-header">
+      <div class="logo-container">
+        <div class="logo-icon">
+          <img src="assets/logo_code-removebg-preview (1).png" alt="GESTORPLAN Logo" class="logo-image">
+        </div>
+      </div>
+      <h2 class="login-title">Iniciar Sesión</h2>
+      <p class="login-subtitle">Accede a tu cuenta para gestionar las planillas</p>
+    </div>
+
+    <!-- Formulario de login -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Campo Usuario -->
+      <div class="form-group">
+        <label for="username" class="form-label">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Usuario
+        </label>
+        <div class="input-container">
+          <input
+            type="text"
+            id="username"
+            formControlName="username"
+            class="form-input"
+            [class.error]="isInvalid('username')"
+            placeholder="Ingrese su nombre de usuario"
+            autocomplete="username"
+          >
+        </div>
+        <div class="error-message" *ngIf="isInvalid('username')">
+          {{ getError('username') }}
+        </div>
+      </div>
+
+      <!-- Campo Contraseña -->
+      <div class="form-group">
+        <label for="password" class="form-label">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <circle cx="12" cy="16" r="1"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Contraseña
+        </label>
+        <div class="input-container">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            class="form-input"
+            [class.error]="isInvalid('password')"
+            placeholder="Ingrese su contraseña"
+            autocomplete="current-password"
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            [class.active]="showPassword"
+          >
+            <svg *ngIf="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg *ngIf="showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+        <div class="error-message" *ngIf="isInvalid('password')">
+          {{ getError('password') }}
+        </div>
+      </div>
+
+      <!-- Recordar sesión -->
+      <div class="form-options">
+        <label class="checkbox-container">
+          <input type="checkbox" formControlName="rememberMe" class="checkbox-input">
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Recordar mi sesión</span>
+        </label>
+        <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <!-- Mensajes de estado -->
+      <div class="alert alert-error" *ngIf="errorMessage">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+        {{ errorMessage }}
+      </div>
+
+      <div class="alert alert-success" *ngIf="successMessage">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 12l2 2 4-4"/>
+          <circle cx="12" cy="12" r="10"/>
+        </svg>
+        {{ successMessage }}
+      </div>
+
+      <!-- Botón de login -->
+      <button
+        type="submit"
+        class="login-button"
+        [disabled]="isLoading"
+        [class.loading]="isLoading"
+      >
+        <span class="button-content" *ngIf="!isLoading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10,17 15,12 10,7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          Iniciar Sesión
+        </span>
+        <span class="loading-content" *ngIf="isLoading">
+          <div class="spinner"></div>
+          Iniciando sesión...
+        </span>
+      </button>
+
+      <!-- Botón demo -->
+      <button
+        type="button"
+        class="demo-button"
+        (click)="loginDemo()"
+        [disabled]="isLoading"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4"/>
+          <path d="M9 11V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+          <path d="M9 11l3 3 3-3"/>
+        </svg>
+        Acceso Demo
+      </button>
+    </form>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <p>&copy; 2025 GESTORPLAN - Sistema de Planillas Municipal</p>
+      <p>Municipalidad de Huanchaco</p>
+    </div>
+  </div>
+
+  <!-- Botón circular con logo en esquina inferior -->
+  <button class="home-button" title="Ir a página principal">
+    <img src="assets/logo code.jpeg" alt="CODART Logo" class="home-button-logo">
+  </button>
+
+  <!-- Modal DEMO -->
+  <app-demo-login-modal
+    [isVisible]="showDemoModal"
+    (close)="onDemoModalClose()"
+    (loginSuccess)="onDemoLoginSuccess($event)"
+    (loginError)="onDemoLoginError($event)"
+  ></app-demo-login-modal>
+</div>

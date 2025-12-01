@@ -1,0 +1,13 @@
+<!-- src/app/app.component.html -->
+
+<!-- PANTALLA DE CARGA: Mostrar mientras se verifica la autenticación -->
+<div *ngIf="isCheckingAuth" class="loading-container">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Verificando sesión...</p>
+  </div>
+</div>
+
+<!-- Contenido principal de la aplicación o login, manejado por el router -->
+<!-- Renderiza el router-outlet solo cuando la verificación inicial ha terminado -->
+<router-outlet *ngIf="!isCheckingAuth"></router-outlet>

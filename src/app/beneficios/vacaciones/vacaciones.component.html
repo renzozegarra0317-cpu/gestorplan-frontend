@@ -1,0 +1,858 @@
+<div class="vacaciones-container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">🏖️</span>
+        Vacaciones
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Gestion de periodos vacacionales y programacion anual
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--outline" (click)="exportarExcel()">
+        📊 Exportar Excel
+      </button>
+      <button class="btn btn--sm btn--primary" (click)="abrirProgramacion()">
+        ➕ Programar Vacaciones
+      </button>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="resumen-vacaciones" *ngIf="resumen">
+    <div class="resumen-card resumen-card--total">
+      <div class="resumen-card__icon">📋</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Registros</span>
+        <span class="resumen-card__value">{{ resumen.totalRegistros }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--generados">
+      <div class="resumen-card__icon">📅</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Dias Generados</span>
+        <span class="resumen-card__value">{{ resumen.totalDiasGenerados }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--gozados">
+      <div class="resumen-card__icon">✅</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Dias Gozados</span>
+        <span class="resumen-card__value">{{ resumen.totalDiasGozados }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--pendientes">
+      <div class="resumen-card__icon">⏳</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Dias Pendientes</span>
+        <span class="resumen-card__value">{{ resumen.totalDiasPendientes }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--tasa">
+      <div class="resumen-card__icon">📊</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Tasa de Goce</span>
+        <span class="resumen-card__value">{{ resumen.tasaGocePorcentual.toFixed(1) }}%</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--monto">
+      <div class="resumen-card__icon">💰</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Monto Pagado</span>
+        <span class="resumen-card__value">S/. {{ resumen.totalMontoPagado.toFixed(2) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-section">
+    <div class="filtros-header">
+      <div class="filtros-header__left">
+        <h3 class="filtros-title">🔍 Filtros de Busqueda</h3>
+      </div>
+      <div class="filtros-header__right">
+        <div class="filtros-vista">
+          <label class="filtros-vista__label">Vista:</label>
+          <div class="vista-toggle">
+            <button 
+              class="btn btn--sm btn--view-toggle" 
+              [class.active]="vistaActual === 'lista'"
+              (click)="vistaActual = 'lista'"
+            >
+              📋 Lista
+            </button>
+            <button 
+              class="btn btn--sm btn--view-toggle" 
+              [class.active]="vistaActual === 'calendario'"
+              (click)="vistaActual = 'calendario'"
+            >
+              📅 Calendario
+            </button>
+            <button 
+              class="btn btn--sm btn--view-toggle" 
+              [class.active]="vistaActual === 'record'"
+              (click)="vistaActual = 'record'"
+            >
+              📊 Record
+            </button>
+          </div>
+        </div>
+        <button class="btn btn--ghost btn--sm" (click)="limpiarFiltros()">
+          ✖️ Limpiar
+        </button>
+      </div>
+    </div>
+
+    <div class="filtros-grid">
+      <div class="filtro-item">
+        <label class="filtro-label">Año:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.anio" (change)="aplicarFiltros()">
+          <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Tipo:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.tipo" (change)="aplicarFiltros()">
+          <option *ngFor="let tipo of tiposVacaciones" [value]="tipo">{{ tipo }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Estado:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.estado" (change)="aplicarFiltros()">
+          <option *ngFor="let estado of estadosVacaciones" [value]="estado">{{ estado }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Area:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.area" (change)="aplicarFiltros()">
+          <option *ngFor="let area of areas" [value]="area">{{ area }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item filtro-item--search">
+        <div class="search-box-wrapper">
+          <div class="search-box">
+            <label class="filtro-label">Buscar:</label>
+            <div class="search-box__input-wrapper">
+              <span class="search-box__icon">🔍</span>
+              <input
+                type="text"
+                class="search-box__input"
+                placeholder="Buscar por DNI, nombre, codigo..."
+                [(ngModel)]="filtros.busqueda"
+                (input)="aplicarFiltros()"
+              />
+            </div>
+          </div>
+        </div>
+        <span class="resultado-texto">
+          Mostrando <strong>{{ registrosFiltrados.length }}</strong> registros
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA LISTA -->
+  <div class="tabla-container" *ngIf="vistaActual === 'lista'">
+    <div class="tabla-scroll">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Codigo</th>
+            <th>Trabajador</th>
+            <th>DNI</th>
+            <th>Area</th>
+            <th>Periodo</th>
+            <th>Tipo</th>
+            <th>Dias Generados</th>
+            <th>Dias Gozados</th>
+            <th>Dias Pendientes</th>
+            <th>Programacion</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="cargando">
+            <td colspan="12" class="td-loading">
+              <div class="loading-spinner">Cargando...</div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!cargando && registrosPaginados.length === 0">
+            <td colspan="12" class="td-empty">
+              <div class="empty-state">
+                <span class="empty-state__icon">📭</span>
+                <p class="empty-state__text">No se encontraron registros de vacaciones</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let registro of registrosPaginados">
+            <td class="td-codigo">
+              <span class="codigo-badge">{{ registro.codigo }}</span>
+            </td>
+            <td class="td-trabajador">
+              <div class="trabajador-info">
+                <span class="trabajador-info__nombre">{{ registro.trabajadorNombre }}</span>
+                <span class="trabajador-info__cargo">{{ registro.trabajadorCargo }}</span>
+              </div>
+            </td>
+            <td class="td-dni">{{ registro.trabajadorDni }}</td>
+            <td class="td-area">{{ registro.trabajadorArea }}</td>
+            <td class="td-periodo">
+              <div class="periodo-info">
+                <span class="periodo-info__anios">{{ registro.aniosPeriodo }}</span>
+                <span class="periodo-info__fecha">{{ formatearFecha(registro.periodoInicio) }} - {{ formatearFecha(registro.periodoFin) }}</span>
+              </div>
+            </td>
+            <td class="td-tipo">
+              <span class="badge" [ngClass]="getTipoBadgeClass(registro.tipoVacaciones)">
+                {{ registro.tipoVacaciones }}
+              </span>
+            </td>
+            <td class="td-dias">{{ registro.diasGenerados }}</td>
+            <td class="td-dias td-dias--gozados">{{ registro.diasGozados }}</td>
+            <td class="td-dias td-dias--pendientes">{{ registro.diasPendientes }}</td>
+            <td class="td-programacion">
+              <div class="programacion-info" *ngIf="registro.fechaInicioProgramada">
+                <span class="programacion-info__fecha">{{ formatearFecha(registro.fechaInicioProgramada) }}</span>
+                <span class="programacion-info__dias">{{ registro.diasProgramados }} días</span>
+              </div>
+              <span class="programacion-info__vacio" *ngIf="!registro.fechaInicioProgramada">-</span>
+            </td>
+            <td class="td-estado">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(registro.estado)">
+                {{ registro.estado }}
+              </span>
+            </td>
+            <td class="td-acciones">
+              <div class="acciones-menu">
+                <button 
+                  class="btn-icon" 
+                  title="Ver Detalle"
+                  (click)="verDetalle(registro)"
+                >
+                  👁️
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Aprobar"
+                  (click)="aprobarVacaciones(registro)"
+                  *ngIf="registro.estado === 'Programado'"
+                >
+                  ✅
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Iniciar Goce"
+                  (click)="iniciarGoce(registro)"
+                  *ngIf="registro.estado === 'Aprobado'"
+                >
+                  🚀
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Pagar"
+                  (click)="abrirPago(registro)"
+                  *ngIf="registro.estado === 'Gozado'"
+                >
+                  💳
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Descargar Constancia"
+                  (click)="descargarConstancia(registro)"
+                  *ngIf="registro.estado === 'Pagado' || registro.estado === 'Gozado'"
+                >
+                  📥
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINACION -->
+    <div class="paginacion" *ngIf="totalPaginas > 1">
+      <button 
+        class="paginacion-btn" 
+        (click)="cambiarPagina(paginaActual - 1)"
+        [disabled]="paginaActual === 1"
+      >
+        ← Anterior
+      </button>
+
+      <div class="paginacion-numeros">
+        <button
+          *ngFor="let p of [].constructor(totalPaginas); let i = index"
+          class="paginacion-numero"
+          [class.active]="paginaActual === i + 1"
+          (click)="cambiarPagina(i + 1)"
+        >
+          {{ i + 1 }}
+        </button>
+      </div>
+
+      <button 
+        class="paginacion-btn" 
+        (click)="cambiarPagina(paginaActual + 1)"
+        [disabled]="paginaActual === totalPaginas"
+      >
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+  <!-- VISTA CALENDARIO -->
+  <div class="calendario-container" *ngIf="vistaActual === 'calendario'">
+    <div class="calendario-info">
+      <p>📅 Vista de calendario de vacaciones en desarrollo</p>
+    </div>
+  </div>
+
+  <!-- VISTA RECORD VACACIONAL -->
+  <div class="record-container" *ngIf="vistaActual === 'record'">
+    <div class="record-header">
+      <h3>📊 Record Vacacional de Trabajadores</h3>
+    </div>
+
+    <div class="trabajadores-record">
+      <div class="trabajador-record-card" *ngFor="let trabajador of trabajadoresDisponibles">
+        <div class="record-card__header">
+          <div class="record-card__info">
+            <h4>{{ trabajador.nombre }}</h4>
+            <p>{{ trabajador.cargo }}</p>
+            <span class="dni-badge">DNI: {{ trabajador.dni }}</span>
+          </div>
+          <button class="btn btn--sm btn--outline" (click)="verRecord(trabajador)">
+            👁️ Ver Record
+          </button>
+        </div>
+        <div class="record-card__stats">
+          <div class="stat-item">
+            <span class="stat-label">Fecha Ingreso:</span>
+            <span class="stat-value">{{ formatearFecha(trabajador.fechaIngreso) }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Años Servicio:</span>
+            <span class="stat-value">{{ calcularAniosServicio(trabajador.fechaIngreso) }} años</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Dias Pendientes:</span>
+            <span class="stat-value stat-value--pendiente">{{ trabajador.diasPendientes }} días</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: APROBAR VACACIONES -->
+  <div class="modal modal--aprobar" *ngIf="mostrarModalAprobar" (click)="cerrarModalAprobar()">
+    <div class="modal__content modal__content--aprobar" (click)="$event.stopPropagation()">
+      <div class="aprobar-vacaciones">
+        <div class="aprobar-vacaciones__icon">✅</div>
+        <h3 class="aprobar-vacaciones__title">Aprobar Vacaciones</h3>
+        <p class="aprobar-vacaciones__message" *ngIf="registroAprobar">
+          ¿Desea aprobar las vacaciones de <strong>{{ registroAprobar.trabajadorNombre }}</strong>?
+        </p>
+        <div class="aprobar-vacaciones__info" *ngIf="registroAprobar">
+          <div class="info-item">
+            <span class="info-label">Periodo:</span>
+            <span class="info-value">{{ registroAprobar.periodoAnio }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Días:</span>
+            <span class="info-value">{{ registroAprobar.diasCorresponden }} días</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Estado actual:</span>
+            <span class="info-value badge badge--programado">{{ registroAprobar.estado }}</span>
+          </div>
+        </div>
+        <div class="aprobar-vacaciones__actions">
+          <button class="btn btn--outline" (click)="cerrarModalAprobar()">
+            Cancelar
+          </button>
+          <button class="btn btn--primary" (click)="confirmarAprobacion()">
+            ✅ Aprobar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ÉXITO APROBACIÓN -->
+  <div class="modal modal--exito" *ngIf="mostrarModalExitoAprobacion">
+    <div class="modal__content modal__content--exito" (click)="$event.stopPropagation()">
+      <div class="exito-aprobacion">
+        <!-- Círculo de carga -->
+        <div class="exito-aprobacion__loader" *ngIf="aprobando">
+          <div class="spinner spinner--success"></div>
+        </div>
+        
+        <!-- Check de éxito -->
+        <div class="exito-aprobacion__check" *ngIf="aprobacionCompletada">
+          <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
+        
+        <h3 class="exito-aprobacion__title">Vacaciones aprobadas exitosamente</h3>
+        <p class="exito-aprobacion__message" *ngIf="aprobacionCompletada">
+          Las vacaciones han sido aprobadas correctamente.
+        </p>
+        <p class="exito-aprobacion__message" *ngIf="aprobando">
+          Aprobando vacaciones...
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ÉXITO PROGRAMACIÓN -->
+  <div class="modal modal--exito" *ngIf="mostrarModalExitoProgramacion">
+    <div class="modal__content modal__content--exito" (click)="$event.stopPropagation()">
+      <div class="exito-programacion">
+        <!-- Círculo de carga -->
+        <div class="exito-programacion__loader" *ngIf="programando">
+          <div class="spinner spinner--success"></div>
+        </div>
+        
+        <!-- Check de éxito -->
+        <div class="exito-programacion__check" *ngIf="programacionCompletada">
+          <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
+        
+        <h3 class="exito-programacion__title">Vacación programada exitosamente</h3>
+        <p class="exito-programacion__message" *ngIf="programacionCompletada">
+          La vacación ha sido programada correctamente.
+        </p>
+        <p class="exito-programacion__message" *ngIf="programando">
+          Programando vacación...
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PROGRAMAR VACACIONES -->
+  <div class="modal" *ngIf="mostrarModalProgramar" (click)="mostrarModalProgramar = false">
+    <div class="modal__content modal__content--programar" (click)="$event.stopPropagation()">
+      <div class="modal__header modal__header--programar">
+        <div class="header-programar">
+          <div class="header-programar__icon">🏖️</div>
+          <div class="header-programar__content">
+            <h3 class="modal__title">Programar Vacaciones</h3>
+            <p class="modal__subtitle">Configure las fechas de descanso del trabajador</p>
+          </div>
+        </div>
+        <button class="modal__close" (click)="mostrarModalProgramar = false">✖️</button>
+      </div>
+      <div class="modal__body modal__body--programar">
+
+        <div class="form-section">
+          <h4 class="form-section__title">👤 Datos del Trabajador</h4>
+          <div class="form-grid">
+            <div class="form-group form-group--full">
+              <label class="form-label">Trabajador *</label>
+              <select 
+                class="form-select" 
+                [(ngModel)]="formularioProgramacion.trabajadorId"
+                [disabled]="cargandoTrabajadores"
+              >
+                <option value="0">
+                  {{ cargandoTrabajadores ? 'Cargando trabajadores...' : 'Seleccione un trabajador' }}
+                </option>
+                <option *ngFor="let trab of trabajadoresDisponibles" [value]="trab.id">
+                  {{ trab.nombre }} - {{ trab.diasPendientes }} días pendientes
+                </option>
+              </select>
+              <div *ngIf="cargandoTrabajadores" class="loading-indicator">
+                <span>⏳ Cargando trabajadores disponibles...</span>
+              </div>
+              <div *ngIf="!cargandoTrabajadores && trabajadoresDisponibles.length === 0" class="empty-indicator">
+                <span>⚠️ No se encontraron trabajadores disponibles</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4 class="form-section__title">📅 Periodo de Vacaciones</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Fecha Inicio *</label>
+              <input 
+                type="date" 
+                class="form-input"
+                [(ngModel)]="formularioProgramacion.fechaInicio"
+                (change)="calcularDiasProgramados()"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Fecha Fin *</label>
+              <input 
+                type="date" 
+                class="form-input"
+                [(ngModel)]="formularioProgramacion.fechaFin"
+                (change)="calcularDiasProgramados()"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Dias Programados</label>
+              <input 
+                type="number" 
+                class="form-input"
+                [(ngModel)]="formularioProgramacion.diasProgramados"
+                readonly
+              />
+            </div>
+          </div>
+
+          <div class="dias-info">
+            <div class="dias-info__item">
+              <span class="dias-info__icon">📅</span>
+              <div class="dias-info__content">
+                <span class="dias-info__label">Minimo continuo:</span>
+                <span class="dias-info__valor">{{ config.diasMinimoContinuo }} días</span>
+              </div>
+            </div>
+            <div class="dias-info__item">
+              <span class="dias-info__icon">📊</span>
+              <div class="dias-info__content">
+                <span class="dias-info__label">Maximo fraccionamiento:</span>
+                <span class="dias-info__valor">{{ config.diasMaximoFraccionamiento }} días</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label class="form-label">Observaciones</label>
+            <textarea 
+              class="form-textarea" 
+              rows="3"
+              [(ngModel)]="formularioProgramacion.observaciones"
+              placeholder="Observaciones adicionales..."
+            ></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalProgramar = false">Cancelar</button>
+        <button class="btn btn--primary" (click)="confirmarProgramacion()">
+          📅 Confirmar Programacion
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE VACACIONES -->
+  <div class="modal" *ngIf="mostrarModalDetalle" (click)="mostrarModalDetalle = false">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">📊 Detalle de Vacaciones</h3>
+        <button class="modal__close" (click)="mostrarModalDetalle = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="detalle-vacaciones">
+          <!-- INFORMACION GENERAL -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">👤 Informacion del Trabajador</h4>
+            <div class="datos-grid">
+              <div class="dato-item">
+                <span class="dato-label">Codigo:</span>
+                <span class="dato-value">{{ registroSeleccionado.codigo }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Nombre:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorNombre }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">DNI:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorDni }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Cargo:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorCargo }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Area:</span>
+                <span class="dato-value">{{ registroSeleccionado.trabajadorArea }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PERIODO VACACIONAL -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">📅 Periodo Vacacional</h4>
+            <div class="periodo-banner-detalle">
+              <span class="periodo-banner-detalle__icon">🏖️</span>
+              <div class="periodo-banner-detalle__content">
+                <span class="periodo-banner-detalle__titulo">{{ registroSeleccionado.aniosPeriodo }}</span>
+                <span class="periodo-banner-detalle__fecha">{{ formatearFecha(registroSeleccionado.periodoInicio) }} - {{ formatearFecha(registroSeleccionado.periodoFin) }}</span>
+              </div>
+              <span class="badge badge--large" [ngClass]="getTipoBadgeClass(registroSeleccionado.tipoVacaciones)">
+                {{ registroSeleccionado.tipoVacaciones }}
+              </span>
+            </div>
+          </div>
+
+          <!-- DIAS -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">📊 Resumen de Dias</h4>
+            <div class="dias-resumen">
+              <div class="dias-item dias-item--generados">
+                <span class="dias-item__label">Dias Generados:</span>
+                <span class="dias-item__valor">{{ registroSeleccionado.diasGenerados }}</span>
+              </div>
+              <div class="dias-item dias-item--gozados">
+                <span class="dias-item__label">Dias Gozados:</span>
+                <span class="dias-item__valor">{{ registroSeleccionado.diasGozados }}</span>
+              </div>
+              <div class="dias-item dias-item--pendientes">
+                <span class="dias-item__label">Dias Pendientes:</span>
+                <span class="dias-item__valor">{{ registroSeleccionado.diasPendientes }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROGRAMACION -->
+          <div class="detalle-seccion" *ngIf="registroSeleccionado.fechaInicioProgramada">
+            <h4 class="seccion-titulo">📅 Programacion</h4>
+            <div class="datos-grid">
+              <div class="dato-item">
+                <span class="dato-label">Fecha Inicio:</span>
+                <span class="dato-value">{{ formatearFecha(registroSeleccionado.fechaInicioProgramada) }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Fecha Fin:</span>
+                <span class="dato-value">{{ formatearFecha(registroSeleccionado.fechaFinProgramada) }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Dias Programados:</span>
+                <span class="dato-value">{{ registroSeleccionado.diasProgramados }} días</span>
+              </div>
+              <div class="dato-item" *ngIf="registroSeleccionado.fechaProgramacion">
+                <span class="dato-label">Fecha Programacion:</span>
+                <span class="dato-value">{{ formatearFecha(registroSeleccionado.fechaProgramacion) }}</span>
+              </div>
+              <div class="dato-item" *ngIf="registroSeleccionado.programadoPor">
+                <span class="dato-label">Programado Por:</span>
+                <span class="dato-value">{{ registroSeleccionado.programadoPor }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- GOCE REAL -->
+          <div class="detalle-seccion" *ngIf="registroSeleccionado.fechaInicioReal">
+            <h4 class="seccion-titulo">✅ Goce Real</h4>
+            <div class="datos-grid">
+              <div class="dato-item">
+                <span class="dato-label">Fecha Inicio:</span>
+                <span class="dato-value">{{ formatearFecha(registroSeleccionado.fechaInicioReal) }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Fecha Fin:</span>
+                <span class="dato-value">{{ formatearFecha(registroSeleccionado.fechaFinReal) }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Dias Reales:</span>
+                <span class="dato-value">{{ registroSeleccionado.diasReales }} días</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAGO -->
+          <div class="detalle-seccion detalle-seccion--pago">
+            <h4 class="seccion-titulo">💰 Pago de Vacaciones</h4>
+            <div class="pago-detalle-vac">
+              <div class="pago-row">
+                <span class="pago-label">Remuneracion Vacacional:</span>
+                <span class="pago-valor">S/. {{ registroSeleccionado.remuneracionVacacional.toFixed(2) }}</span>
+              </div>
+              <div class="pago-row pago-row--total">
+                <span class="pago-label">Monto Vacaciones:</span>
+                <span class="pago-valor">S/. {{ registroSeleccionado.montoVacaciones.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TRUNCAS -->
+          <div class="detalle-seccion detalle-seccion--trunca" *ngIf="registroSeleccionado.esTrunca">
+            <h4 class="seccion-titulo">⚠️ Vacaciones Truncas</h4>
+            <div class="datos-grid">
+              <div class="dato-item">
+                <span class="dato-label">Motivo:</span>
+                <span class="dato-value">{{ registroSeleccionado.motivoTrunca }}</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Dias Truncas:</span>
+                <span class="dato-value">{{ registroSeleccionado.diasTruncas }} días</span>
+              </div>
+              <div class="dato-item">
+                <span class="dato-label">Monto:</span>
+                <span class="dato-value">S/. {{ registroSeleccionado.montoTruncas?.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ESTADO -->
+          <div class="detalle-seccion">
+            <h4 class="seccion-titulo">📊 Estado</h4>
+            <div class="estado-info">
+              <span class="badge badge--large" [ngClass]="getEstadoBadgeClass(registroSeleccionado.estado)">
+                {{ registroSeleccionado.estado }}
+              </span>
+              <div class="estado-fechas">
+                <p *ngIf="registroSeleccionado.fechaAprobacion">
+                  Aprobado: {{ formatearFecha(registroSeleccionado.fechaAprobacion) }} por {{ registroSeleccionado.aprobadoPor }}
+                </p>
+                <p *ngIf="registroSeleccionado.fechaPago">
+                  Pagado: {{ formatearFecha(registroSeleccionado.fechaPago) }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalDetalle = false">Cerrar</button>
+        <button class="btn btn--primary" (click)="descargarConstancia(registroSeleccionado!)">
+          📥 Descargar Constancia
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RECORD VACACIONAL -->
+  <div class="modal" *ngIf="mostrarModalRecord" (click)="mostrarModalRecord = false">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">📊 Record Vacacional</h3>
+        <button class="modal__close" (click)="mostrarModalRecord = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="recordSeleccionado">
+        <div class="record-vacacional">
+          <!-- INFO TRABAJADOR -->
+          <div class="record-header-info">
+            <div class="record-header-info__principal">
+              <h3>{{ recordSeleccionado.trabajadorNombre }}</h3>
+              <p>Fecha Ingreso: {{ formatearFecha(recordSeleccionado.fechaIngreso) }}</p>
+              <p>Años de Servicio: {{ recordSeleccionado.aniosServicio }} años</p>
+            </div>
+            <div class="record-header-info__totales">
+              <div class="total-item">
+                <span class="total-label">Total Generados:</span>
+                <span class="total-value">{{ recordSeleccionado.totalDiasGenerados }} días</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Total Gozados:</span>
+                <span class="total-value">{{ recordSeleccionado.totalDiasGozados }} días</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Total Pendientes:</span>
+                <span class="total-value total-value--pendiente">{{ recordSeleccionado.totalDiasPendientes }} días</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PERIODOS -->
+          <div class="record-periodos">
+            <h4>Historial de Periodos</h4>
+            <table class="tabla-record">
+              <thead>
+                <tr>
+                  <th>Periodo</th>
+                  <th>Generados</th>
+                  <th>Gozados</th>
+                  <th>Pendientes</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let periodo of recordSeleccionado.periodos">
+                  <td><strong>{{ periodo.anio }}</strong></td>
+                  <td>{{ periodo.diasGenerados }}</td>
+                  <td class="td-gozados">{{ periodo.diasGozados }}</td>
+                  <td class="td-pendientes">{{ periodo.diasPendientes }}</td>
+                  <td>
+                    <span class="badge-estado">{{ periodo.estado }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalRecord = false">Cerrar</button>
+        <button class="btn btn--primary">
+          📥 Descargar Record
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PAGO -->
+  <div class="modal" *ngIf="mostrarModalPago" (click)="mostrarModalPago = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">💳 Confirmar Pago de Vacaciones</h3>
+        <button class="modal__close" (click)="mostrarModalPago = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="pago-info-vac">
+          <div class="pago-info-vac__icon">🏖️</div>
+          <div class="pago-info-vac__content">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p class="pago-periodo-vac">{{ registroSeleccionado.aniosPeriodo }}</p>
+            <p class="pago-dias-vac">{{ registroSeleccionado.diasReales }} días gozados</p>
+            <p class="pago-monto-vac">S/. {{ registroSeleccionado.montoVacaciones.toFixed(2) }}</p>
+          </div>
+        </div>
+
+        <div class="pago-banco-vac">
+          <div class="banco-row-vac">
+            <span class="banco-label-vac">Banco:</span>
+            <span class="banco-value-vac">{{ registroSeleccionado.banco }}</span>
+          </div>
+          <div class="banco-row-vac">
+            <span class="banco-label-vac">Cuenta:</span>
+            <span class="banco-value-vac">{{ registroSeleccionado.numeroCuenta }}</span>
+          </div>
+        </div>
+
+        <div class="pago-warning-vac">
+          <p>⚠️ Esta accion registrara el pago de las vacaciones. Asegurese de haber realizado la transferencia bancaria.</p>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalPago = false">Cancelar</button>
+        <button class="btn btn--success" (click)="confirmarPago()">
+          💳 Confirmar Pago
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

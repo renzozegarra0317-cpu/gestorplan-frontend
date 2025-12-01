@@ -1,0 +1,254 @@
+<aside class="sidebar" [class.collapsed]="isCollapsed">
+  <!-- BOTÓN TOGGLE -->
+  <button class="sidebar-toggle hide-mobile" (click)="toggleSidebar()" title="Expandir/Colapsar menú">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+      <path d="M3 4h14M3 10h14M3 16h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <!-- LOGO Y TÍTULO -->
+  <div class="sidebar-brand">
+    <div class="brand-logo">
+      <img src="assets/logo code.jpeg" alt="GESTORPLAN Logo" class="brand-logo__image">
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">GESTORPLAN</div>
+      <div class="brand-meta">Sistema de Planillas</div>
+    </div>
+  </div>
+
+  <!-- MENÚ PRINCIPAL -->
+  <nav class="sidebar-menu">
+    <ul>
+      <!-- PANEL -->
+      <li>
+        <a 
+          routerLink="/dashboard" 
+          [class.active]="isSimpleItemActive('/dashboard')"
+          (click)="onSimpleItemClick('/dashboard')"
+          class="menu-item"
+        >
+          <span class="menu-icon">🏠</span>
+          <span class="menu-label">Dashboard</span>
+        </a>
+      </li>
+
+      <!-- TRABAJADORES (con submenu) -->
+      <li class="menu-group" *ngIf="authService && authService.canView('trabajadores')" [class.has-submenu]="!isCollapsed" [class.submenu-active]="expandedSections.trabajadores && isCollapsed">
+        <button 
+          class="menu-item menu-expandable" 
+          [class.active]="isParentActive('/trabajadores')"
+          [title]="isCollapsed ? 'Trabajadores' : ''"
+          (click)="toggleSection('trabajadores', $event)"
+        >
+          <span class="menu-icon">👥</span>
+          <span class="menu-label">Trabajadores</span>
+          <span class="menu-arrow" [class.rotated]="expandedSections.trabajadores">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/>
+                  </svg>
+                </span>
+              </button>
+              
+              <!-- Submenu normal (expandido) -->
+              <ul class="submenu" [class.expanded]="expandedSections.trabajadores && !isCollapsed">
+                <li><a routerLink="/trabajadores/lista" routerLinkActive="active" class="submenu-item">Lista de trabajadores</a></li>
+                <li *ngIf="isRRHH || isDemo"><a routerLink="/trabajadores/nuevo" routerLinkActive="active" class="submenu-item">Nuevo trabajador</a></li>
+                <li *ngIf="isRRHH || isDemo"><a routerLink="/trabajadores/importar" routerLinkActive="active" class="submenu-item">Importar datos</a></li>
+              </ul>
+              
+        <!-- Submenu flotante (colapsado) -->
+        <div class="submenu-floating" *ngIf="isCollapsed && expandedSections.trabajadores">
+          <div class="submenu-title">Trabajadores</div>
+          <a routerLink="/trabajadores/lista" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">📋</span>
+            <span class="submenu-text">Lista de trabajadores</span>
+                </a>
+          <a *ngIf="isRRHH || isDemo" routerLink="/trabajadores/nuevo" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">➕</span>
+            <span class="submenu-text">Nuevo trabajador</span>
+                </a>
+          <a *ngIf="isRRHH || isDemo" routerLink="/trabajadores/importar" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">📥</span>
+            <span class="submenu-text">Importar datos</span>
+                </a>
+        </div>
+            </li>
+
+      <!-- ASISTENCIA (con submenu) -->
+      <li class="menu-group" *ngIf="authService && authService.canView('asistencia')" [class.has-submenu]="!isCollapsed" [class.submenu-active]="expandedSections.asistencia && isCollapsed">
+        <button 
+          class="menu-item menu-expandable" 
+          [class.active]="isParentActive('/asistencia')"
+          [title]="isCollapsed ? 'Asistencia' : ''"
+          (click)="toggleSection('asistencia', $event)"
+        >
+          <span class="menu-icon">⏰</span>
+          <span class="menu-label">Asistencia</span>
+          <span class="menu-arrow" [class.rotated]="expandedSections.asistencia">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+          </span>
+        </button>
+        
+        <ul class="submenu" [class.expanded]="expandedSections.asistencia && !isCollapsed">
+          <li><a routerLink="/asistencia/registro" routerLinkActive="active" class="submenu-item">Registro diario</a></li>
+          <li><a routerLink="/asistencia/resumen" routerLinkActive="active" class="submenu-item">Resumen mensual</a></li>
+          <li><a routerLink="/asistencia/tardanzas" routerLinkActive="active" class="submenu-item">Tardanzas/Faltas</a></li>
+        </ul>
+        
+        <div class="submenu-floating" *ngIf="isCollapsed && expandedSections.asistencia">
+          <div class="submenu-title">Asistencia</div>
+          <a routerLink="/asistencia/registro" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">✍️</span>
+            <span class="submenu-text">Registro diario</span>
+          </a>
+          <a routerLink="/asistencia/resumen" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">📊</span>
+            <span class="submenu-text">Resumen mensual</span>
+          </a>
+          <a routerLink="/asistencia/tardanzas" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">⚠️</span>
+            <span class="submenu-text">Tardanzas/Faltas</span>
+          </a>
+        </div>
+      </li>
+
+      <!-- PLANILLAS (con submenu) -->
+      <li class="menu-group" *ngIf="authService && authService.canView('planillas')" [class.has-submenu]="!isCollapsed" [class.submenu-active]="expandedSections.planillas && isCollapsed">
+        <button 
+          class="menu-item menu-expandable" 
+          [class.active]="isParentActive('/planillas')"
+          [title]="isCollapsed ? 'Planillas' : ''"
+          (click)="toggleSection('planillas', $event)"
+        >
+          <span class="menu-icon">📋</span>
+          <span class="menu-label">Planillas</span>
+          <span class="menu-arrow" [class.rotated]="expandedSections.planillas">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+          </span>
+        </button>
+        
+        <ul class="submenu" [class.expanded]="expandedSections.planillas && !isCollapsed">
+          <li><a routerLink="/planillas/generar" routerLinkActive="active" class="submenu-item">Generar planilla</a></li>
+          <li><a routerLink="/planillas/historial" routerLinkActive="active" class="submenu-item">Historial</a></li>
+          <li><a routerLink="/planillas/conceptos" routerLinkActive="active" class="submenu-item">Conceptos</a></li>
+          <li><a routerLink="/planillas/boletas" routerLinkActive="active" class="submenu-item">Boletas de pago</a></li>
+        </ul>
+        
+        <div class="submenu-floating" *ngIf="isCollapsed && expandedSections.planillas">
+          <div class="submenu-title">Planillas</div>
+          <a routerLink="/planillas/generar" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">➕</span>
+            <span class="submenu-text">Generar planilla</span>
+          </a>
+          <a routerLink="/planillas/historial" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">📚</span>
+            <span class="submenu-text">Historial</span>
+          </a>
+          <a routerLink="/planillas/conceptos" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">💰</span>
+            <span class="submenu-text">Conceptos</span>
+          </a>
+          <a routerLink="/planillas/boletas" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">📄</span>
+            <span class="submenu-text">Boletas de pago</span>
+          </a>
+        </div>
+      </li>
+
+      <!-- BENEFICIOS (con submenu) -->
+      <li class="menu-group" [class.has-submenu]="!isCollapsed" [class.submenu-active]="expandedSections.beneficios && isCollapsed">
+        <button 
+          class="menu-item menu-expandable" 
+          [class.active]="isParentActive('/beneficios')"
+          [title]="isCollapsed ? 'Beneficios' : ''"
+          (click)="toggleSection('beneficios', $event)"
+        >
+          <span class="menu-icon">🎁</span>
+          <span class="menu-label">Beneficios</span>
+          <span class="menu-arrow" [class.rotated]="expandedSections.beneficios">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+          </span>
+        </button>
+        
+        <ul class="submenu" [class.expanded]="expandedSections.beneficios && !isCollapsed">
+          <li><a routerLink="/beneficios/cts" routerLinkActive="active" class="submenu-item">CTS</a></li>
+          <li><a routerLink="/beneficios/gratificaciones" routerLinkActive="active" class="submenu-item">Gratificaciones</a></li>
+          <li><a routerLink="/beneficios/vacaciones" routerLinkActive="active" class="submenu-item">Vacaciones</a></li>
+          <li><a routerLink="/beneficios/utilidades" routerLinkActive="active" class="submenu-item">Utilidades</a></li>
+        </ul>
+        
+        <div class="submenu-floating" *ngIf="isCollapsed && expandedSections.beneficios">
+          <div class="submenu-title">Beneficios</div>
+          <a routerLink="/beneficios/cts" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">💼</span>
+            <span class="submenu-text">CTS</span>
+          </a>
+          <a routerLink="/beneficios/gratificaciones" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">🎉</span>
+            <span class="submenu-text">Gratificaciones</span>
+          </a>
+          <a routerLink="/beneficios/vacaciones" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">🏖️</span>
+            <span class="submenu-text">Vacaciones</span>
+          </a>
+          <a routerLink="/beneficios/utilidades" routerLinkActive="active" class="submenu-floating-item">
+            <span class="submenu-icon">💵</span>
+            <span class="submenu-text">Utilidades</span>
+          </a>
+        </div>
+      </li>
+
+      <!-- PRÉSTAMOS -->
+      <li>
+        <a 
+          routerLink="/prestamos" 
+          [class.active]="isSimpleItemActive('/prestamos')"
+          (click)="onSimpleItemClick('/prestamos')"
+          class="menu-item"
+        >
+          <span class="menu-icon">💳</span>
+          <span class="menu-label">Préstamos</span>
+        </a>
+      </li>
+
+      <!-- REPORTES -->
+      <li *ngIf="authService && authService.canView('reportes')">
+        <a 
+          routerLink="/reportes" 
+          [class.active]="isSimpleItemActive('/reportes')"
+          (click)="onSimpleItemClick('/reportes')"
+          class="menu-item"
+        >
+          <span class="menu-icon">📊</span>
+          <span class="menu-label">Reportes</span>
+        </a>
+      </li>
+
+      <!-- CONFIGURACIÓN -->
+      <li *ngIf="isAdmin || isDemo || authService.canView('configuracion')">
+        <a 
+          routerLink="/configuracion" 
+          [class.active]="isSimpleItemActive('/configuracion')"
+          (click)="onSimpleItemClick('/configuracion')"
+          class="menu-item"
+        >
+          <span class="menu-icon">⚙️</span>
+          <span class="menu-label">Configuración</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- CERRAR SESIÓN -->
+  <button class="sidebar-logout" (click)="cerrarSesion()" [title]="isCollapsed ? 'Cerrar Sesión' : ''">
+    <span class="logout-icon">🚪</span>
+    <span class="logout-text">Cerrar Sesión</span>
+    </button>
+</aside>

@@ -1,0 +1,531 @@
+<div class="generar-planilla">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">💰</span>
+        Generar Planilla de Remuneraciones
+      </h1>
+      <p class="page-subtitle">Sistema automático de cálculo y generación de planillas</p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--outline" (click)="nuevaPlanilla()" *ngIf="pasoActual === 4">
+        ➕ Nueva Planilla
+      </button>
+    </div>
+  </div>
+
+  <!-- WIZARD STEPS -->
+  <div class="wizard-steps">
+    <div 
+      class="wizard-step" 
+      [class.active]="pasoActual === 1"
+      [class.completed]="pasoActual > 1"
+      (click)="irAPaso(1)"
+    >
+      <div class="wizard-step__number">
+        <span *ngIf="pasoActual > 1">✓</span>
+        <span *ngIf="pasoActual <= 1">1</span>
+      </div>
+      <div class="wizard-step__content">
+        <span class="wizard-step__title">Configuración</span>
+        <span class="wizard-step__subtitle">Periodo y tipo</span>
+      </div>
+    </div>
+
+    <div class="wizard-connector" [class.active]="pasoActual > 1"></div>
+
+    <div 
+      class="wizard-step" 
+      [class.active]="pasoActual === 2"
+      [class.completed]="pasoActual > 2"
+      (click)="irAPaso(2)"
+    >
+      <div class="wizard-step__number">
+        <span *ngIf="pasoActual > 2">✓</span>
+        <span *ngIf="pasoActual <= 2">2</span>
+      </div>
+      <div class="wizard-step__content">
+        <span class="wizard-step__title">Selección</span>
+        <span class="wizard-step__subtitle">Trabajadores</span>
+      </div>
+    </div>
+
+    <div class="wizard-connector" [class.active]="pasoActual > 2"></div>
+
+    <div 
+      class="wizard-step" 
+      [class.active]="pasoActual === 3"
+      [class.completed]="pasoActual > 3"
+    >
+      <div class="wizard-step__number">
+        <span *ngIf="pasoActual > 3">✓</span>
+        <span *ngIf="pasoActual <= 3">3</span>
+      </div>
+      <div class="wizard-step__content">
+        <span class="wizard-step__title">Cálculo</span>
+        <span class="wizard-step__subtitle">Procesamiento</span>
+      </div>
+    </div>
+
+    <div class="wizard-connector" [class.active]="pasoActual > 3"></div>
+
+    <div 
+      class="wizard-step" 
+      [class.active]="pasoActual === 4"
+    >
+      <div class="wizard-step__number">4</div>
+      <div class="wizard-step__content">
+        <span class="wizard-step__title">Resultado</span>
+        <span class="wizard-step__subtitle">Planilla generada</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 1: CONFIGURACIÓN -->
+  <div class="paso-container" *ngIf="pasoActual === 1">
+    <div class="paso-header">
+      <h2 class="paso-title">📅 Configuración de Planilla</h2>
+      <p class="paso-subtitle">Seleccione el periodo y tipo de planilla a generar</p>
+    </div>
+
+    <div class="config-grid">
+      <div class="config-section">
+        <h3 class="section-title">Periodo</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Mes <span class="required">*</span></label>
+            <select class="form-select form-select--large" [(ngModel)]="configuracion.mes">
+              <option *ngFor="let mes of meses" [value]="mes.valor">{{ mes.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Año <span class="required">*</span></label>
+            <select class="form-select form-select--large" [(ngModel)]="configuracion.anio">
+              <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3 class="section-title">Tipo de Planilla</h3>
+        <div class="tipo-planilla-grid">
+          <div 
+            class="tipo-planilla-card" 
+            *ngFor="let tipo of tiposPlanilla"
+            [class.active]="configuracion.tipoPlanilla === tipo.id"
+            (click)="seleccionarTipoPlanilla(tipo.id)"
+          >
+            <div class="tipo-planilla-card__icon">{{ tipo.icono }}</div>
+            <div class="tipo-planilla-card__content">
+              <span class="tipo-planilla-card__label">{{ tipo.nombre }}</span>
+              <span class="tipo-planilla-card__desc">{{ tipo.descripcion }}</span>
+            </div>
+            <div class="tipo-planilla-card__check" *ngIf="configuracion.tipoPlanilla === tipo.id">✓</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3 class="section-title">Filtros Opcionales</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tipo de Contrato</label>
+            <select class="form-select" [(ngModel)]="filtros.tipoContrato" (change)="aplicarFiltros()">
+              <option value="">Todos los contratos</option>
+              <option *ngFor="let tipo of tiposContrato" [value]="tipo">{{ tipo }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-preview">
+        <div class="preview-card">
+          <div class="preview-card__icon">📋</div>
+          <div class="preview-card__content">
+            <span class="preview-card__label">Planilla a generar:</span>
+            <span class="preview-card__value">{{ tipoPlanillaActual?.nombre }}</span>
+            <span class="preview-card__period">{{ nombreMesActual }} {{ configuracion.anio }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 2: SELECCIÓN DE TRABAJADORES -->
+  <div class="paso-container" *ngIf="pasoActual === 2">
+    <div class="paso-header">
+      <h2 class="paso-title">👥 Selección de Trabajadores</h2>
+      <p class="paso-subtitle">Seleccione los trabajadores a incluir en la planilla</p>
+    </div>
+
+    <!-- ALERTA PARA CTS -->
+    <div class="alert alert--info" *ngIf="configuracion.tipoPlanilla === 'CTS'">
+      <span class="alert__icon">ℹ️</span>
+      <div class="alert__content">
+        <strong>Planilla CTS:</strong> Solo se mostrarán trabajadores del régimen <strong>DL 728</strong>, ya que la CTS solo aplica para este régimen laboral.
+      </div>
+    </div>
+
+    <div class="seleccion-container">
+      <div class="seleccion-header">
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              class="checkbox-input"
+              [(ngModel)]="filtros.incluirTodos"
+              (change)="toggleIncluirTodos()"
+            />
+            <span class="checkbox-text">Incluir todos los trabajadores disponibles</span>
+          </label>
+        </div>
+
+        <div class="seleccion-stats">
+          <span class="stat-badge stat-badge--primary">
+            Total disponibles: <strong>{{ trabajadoresFiltrados.length }}</strong>
+          </span>
+          <span class="stat-badge stat-badge--success">
+            Seleccionados: <strong>{{ trabajadoresSeleccionados.length }}</strong>
+          </span>
+        </div>
+      </div>
+
+      <!-- BARRA DE BÚSQUEDA -->
+      <div class="search-bar" *ngIf="!filtros.incluirTodos">
+        <div class="search-input">
+          <span class="search-input__icon">🔍</span>
+          <input 
+            type="text" 
+            class="search-input__field"
+            placeholder="Buscar por DNI, nombre, cargo..."
+            [(ngModel)]="filtros.busqueda"
+            (input)="aplicarFiltros()"
+          />
+        </div>
+        <button class="btn btn--sm btn--outline" (click)="limpiarFiltros()" *ngIf="filtros.busqueda || filtros.tipoContrato">
+          ✖️ Limpiar filtros
+        </button>
+      </div>
+
+      <!-- LOADING -->
+      <div class="loading-state" *ngIf="cargandoTrabajadores">
+        <div class="spinner"></div>
+        <p>Cargando trabajadores...</p>
+      </div>
+
+      <!-- GRID DE TRABAJADORES -->
+      <div class="trabajadores-grid" *ngIf="!filtros.incluirTodos && !cargandoTrabajadores">
+        <div 
+          class="trabajador-card" 
+          *ngFor="let trabajador of trabajadoresFiltrados"
+          [class.selected]="estaSeleccionado(trabajador.TrabajadorID)"
+          (click)="toggleTrabajador(trabajador.TrabajadorID)"
+        >
+          <div class="trabajador-card__header">
+            <div class="avatar">
+              {{ trabajador.NombreCompleto?.charAt(0) || 'T' }}
+            </div>
+            <div class="info">
+              <h4 class="nombre">{{ trabajador.NombreCompleto }}</h4>
+              <p class="dni">DNI: {{ trabajador.DNI }}</p>
+              <p class="cargo">{{ trabajador.Cargo }}</p>
+            </div>
+            <div class="checkbox-indicator">
+              <span class="checkmark" *ngIf="estaSeleccionado(trabajador.TrabajadorID)">✓</span>
+            </div>
+          </div>
+
+          <div class="trabajador-card__body">
+            <div class="detalle-item">
+              <span class="detalle-item__label">Régimen Laboral:</span>
+              <span class="detalle-item__value">{{ trabajador.RegimenLaboral }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-item__label">Remuneración:</span>
+              <span class="detalle-item__value">{{ formatearMoneda(trabajador.SalarioBase) }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-item__label">Sistema:</span>
+              <span class="detalle-item__value">
+                {{ trabajador.SistemaPension }}
+                <span *ngIf="trabajador.AFP"> - {{ trabajador.AFP }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div class="empty-state" *ngIf="trabajadoresFiltrados.length === 0">
+          <span class="empty-state__icon">🔍</span>
+          <p class="empty-state__text">No se encontraron trabajadores</p>
+          <button class="btn btn--sm btn--outline" (click)="limpiarFiltros()">Limpiar filtros</button>
+        </div>
+      </div>
+
+      <!-- TODOS SELECCIONADOS -->
+      <div class="todos-seleccionados" *ngIf="filtros.incluirTodos && !cargandoTrabajadores">
+        <div class="todos-seleccionados__icon">✅</div>
+        <h3 class="todos-seleccionados__title">Todos los trabajadores seleccionados</h3>
+        <p class="todos-seleccionados__text">
+          Se incluirán <strong>{{ trabajadoresFiltrados.length }} trabajadores</strong> en la planilla
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 3: PROCESAMIENTO -->
+  <div class="paso-container" *ngIf="pasoActual === 3">
+    <div class="paso-header">
+      <h2 class="paso-title">⚙️ Procesando Planilla</h2>
+      <p class="paso-subtitle">Calculando remuneraciones, descuentos y aportes</p>
+    </div>
+
+    <div class="procesamiento-container">
+      <div class="loading-animation">
+        <div class="spinner"></div>
+        <h3 class="loading-title">Generando planilla...</h3>
+        <p class="loading-text">Por favor espere mientras se procesan los cálculos</p>
+
+        <!-- BARRA DE PROGRESO -->
+        <div class="progress-bar">
+          <div class="progress-bar__fill" [style.width.%]="porcentajeProceso"></div>
+        </div>
+        <div class="progress-percentage">{{ porcentajeProceso }}%</div>
+
+        <!-- PASOS -->
+        <div class="loading-steps">
+          <div class="loading-step" [class.completed]="porcentajeProceso >= 10" [class.active]="porcentajeProceso >= 10 && porcentajeProceso < 30">
+            <span class="loading-step__icon">{{ porcentajeProceso >= 10 ? '✓' : '○' }}</span>
+            <span class="loading-step__text">Validando datos de trabajadores</span>
+          </div>
+          <div class="loading-step" [class.completed]="porcentajeProceso >= 30" [class.active]="porcentajeProceso >= 30 && porcentajeProceso < 50">
+            <span class="loading-step__icon">{{ porcentajeProceso >= 30 ? '✓' : '○' }}</span>
+            <span class="loading-step__text">Calculando ingresos</span>
+          </div>
+          <div class="loading-step" [class.completed]="porcentajeProceso >= 50" [class.active]="porcentajeProceso >= 50 && porcentajeProceso < 70">
+            <span class="loading-step__icon">{{ porcentajeProceso >= 50 ? '✓' : '○' }}</span>
+            <span class="loading-step__text">Calculando descuentos</span>
+          </div>
+          <div class="loading-step" [class.completed]="porcentajeProceso >= 70" [class.active]="porcentajeProceso >= 70 && porcentajeProceso < 85">
+            <span class="loading-step__icon">{{ porcentajeProceso >= 70 ? '✓' : '○' }}</span>
+            <span class="loading-step__text">Calculando aportes del empleador</span>
+          </div>
+          <div class="loading-step" [class.completed]="porcentajeProceso >= 85">
+            <span class="loading-step__icon">{{ porcentajeProceso >= 85 ? '✓' : '○' }}</span>
+            <span class="loading-step__text">Generando resumen</span>
+          </div>
+        </div>
+
+        <p class="loading-current-step">{{ progresoActual }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 4: RESULTADO -->
+  <div class="paso-container" *ngIf="pasoActual === 4 && planillaGenerada">
+    <div class="paso-header">
+      <div class="success-badge">✅</div>
+      <h2 class="paso-title">Planilla Generada Exitosamente</h2>
+      <p class="paso-subtitle">
+        Código: <strong>{{ planillaGenerada.Codigo }}</strong> | 
+        Estado: <span class="badge badge--success">{{ planillaGenerada.Estado }}</span>
+      </p>
+    </div>
+
+    <!-- RESUMEN GENERAL -->
+    <div class="resumen-general">
+      <div class="resumen-card resumen-card--trabajadores">
+        <div class="resumen-card__icon">👥</div>
+        <div class="resumen-card__content">
+          <span class="resumen-card__label">Total Trabajadores</span>
+          <span class="resumen-card__value">{{ planillaGenerada.NumeroTrabajadores || resumen?.totalTrabajadores }}</span>
+        </div>
+      </div>
+
+      <div class="resumen-card resumen-card--ingresos">
+        <div class="resumen-card__icon">💵</div>
+        <div class="resumen-card__content">
+          <span class="resumen-card__label">Total Ingresos</span>
+          <span class="resumen-card__value">{{ formatearMoneda(planillaGenerada.TotalIngresos) }}</span>
+        </div>
+      </div>
+
+      <div class="resumen-card resumen-card--descuentos">
+        <div class="resumen-card__icon">➖</div>
+        <div class="resumen-card__content">
+          <span class="resumen-card__label">Total Descuentos</span>
+          <span class="resumen-card__value">{{ formatearMoneda(planillaGenerada.TotalDescuentos) }}</span>
+        </div>
+      </div>
+
+      <div class="resumen-card resumen-card--aportes">
+        <div class="resumen-card__icon">🏛️</div>
+        <div class="resumen-card__content">
+          <span class="resumen-card__label">Total Aportes Empleador</span>
+          <span class="resumen-card__value">{{ formatearMoneda(planillaGenerada.TotalAportes) }}</span>
+        </div>
+      </div>
+
+      <div class="resumen-card resumen-card--neto">
+        <div class="resumen-card__icon">💰</div>
+        <div class="resumen-card__content">
+          <span class="resumen-card__label">Total Neto a Pagar</span>
+          <span class="resumen-card__value resumen-card__value--highlight">
+            {{ formatearMoneda(planillaGenerada.NetoPagar) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESTADÍSTICAS ADICIONALES -->
+    <div class="estadisticas-grid" *ngIf="resumen">
+      <div class="estadistica-panel">
+        <h3 class="panel__title">📊 Sistema de Pensiones</h3>
+        <div class="pensiones-stats">
+          <div class="pension-stat">
+            <div class="pension-stat__header">
+              <span class="pension-stat__label">AFP</span>
+              <span class="pension-stat__value">{{ resumen.trabajadoresAFP }} trabajadores</span>
+            </div>
+            <div class="pension-stat__monto">{{ formatearMoneda(resumen.totalAporteAFP) }}</div>
+          </div>
+          <div class="pension-stat">
+            <div class="pension-stat__header">
+              <span class="pension-stat__label">ONP</span>
+              <span class="pension-stat__value">{{ resumen.trabajadoresONP }} trabajadores</span>
+            </div>
+            <div class="pension-stat__monto">{{ formatearMoneda(resumen.totalAporteONP) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="estadistica-panel">
+        <h3 class="panel__title">📋 Por Régimen</h3>
+        <div class="regimen-stats">
+          <div class="regimen-stat" *ngFor="let item of resumen.desglosePorRegimen">
+            <div class="regimen-stat__header">
+              <span class="regimen-stat__nombre">{{ item.regimen }}</span>
+              <span class="regimen-stat__cantidad">{{ item.cantidad }} trabajador{{ item.cantidad !== 1 ? 'es' : '' }}</span>
+            </div>
+            <div class="regimen-stat__monto">{{ formatearMoneda(item.total) }}</div>
+          </div>
+          <div class="regimen-stat--empty" *ngIf="!resumen.desglosePorRegimen || resumen.desglosePorRegimen.length === 0">
+            <span class="empty-message">No hay datos disponibles</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="estadistica-panel">
+        <h3 class="panel__title">👔 Por Cargo</h3>
+        <div class="cargo-stats">
+          <div class="cargo-stat" *ngFor="let item of resumen.desglosePorCargo">
+            <div class="cargo-stat__header">
+              <span class="cargo-stat__nombre">{{ item.cargo }}</span>
+              <span class="cargo-stat__cantidad">{{ item.cantidad }} trabajador{{ item.cantidad !== 1 ? 'es' : '' }}</span>
+            </div>
+            <div class="cargo-stat__monto">{{ formatearMoneda(item.total) }}</div>
+          </div>
+          <div class="cargo-stat--empty" *ngIf="!resumen.desglosePorCargo || resumen.desglosePorCargo.length === 0">
+            <span class="empty-message">No hay datos disponibles</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLA DETALLADA -->
+    <div class="tabla-detalle">
+      <div class="tabla-detalle__header">
+        <h3 class="tabla-detalle__title">📋 Detalle de Planilla</h3>
+        <div class="tabla-detalle__actions">
+          <button class="btn btn--sm btn--outline" (click)="exportarExcel()">
+            📊 Excel
+          </button>
+          <button class="btn btn--sm btn--outline" (click)="exportarPDF()">
+            📄 PDF
+          </button>
+          <button class="btn btn--sm btn--outline" (click)="exportarTXT()">
+            💾 TXT (Bancos)
+          </button>
+        </div>
+      </div>
+
+      <div class="tabla-scroll">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>DNI</th>
+              <th>Trabajador</th>
+              <th>Cargo</th>
+              <th class="text-right">Días</th>
+              <th class="text-right">Rem. Básica</th>
+              <th class="text-right">Total Ingresos</th>
+              <th class="text-right">Total Descuentos</th>
+              <th class="text-right">Neto a Pagar</th>
+              <th>Banco</th>
+              <th>Cuenta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let detalle of planillaGenerada.detalle">
+              <td class="td-dni">{{ detalle.DNI }}</td>
+              <td class="td-trabajador">
+                <div class="trabajador-info">
+                  <span class="trabajador-info__nombre">{{ detalle.NombreCompleto }}</span>
+                  <span class="trabajador-info__area">{{ detalle.Area }}</span>
+                </div>
+              </td>
+              <td class="td-cargo">{{ detalle.Cargo }}</td>
+              <td class="td-numero text-right">{{ detalle.DiasLaborados }}</td>
+              <td class="td-monto text-right">{{ formatearMoneda(detalle.RemuneracionBasica) }}</td>
+              <td class="td-monto td-monto--success text-right">{{ formatearMoneda(detalle.TotalIngresos) }}</td>
+              <td class="td-monto td-monto--danger text-right">{{ formatearMoneda(detalle.TotalDescuentos) }}</td>
+              <td class="td-monto td-monto--primary text-right">
+                <strong>{{ formatearMoneda(detalle.NetoPagar) }}</strong>
+              </td>
+              <td class="td-banco">{{ detalle.Banco }}</td>
+              <td class="td-cuenta">{{ detalle.NumeroCuenta }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="tabla-totales">
+              <td colspan="5" class="text-right"><strong>TOTALES:</strong></td>
+              <td class="td-monto td-monto--success text-right">
+                <strong>{{ formatearMoneda(planillaGenerada.TotalIngresos) }}</strong>
+              </td>
+              <td class="td-monto td-monto--danger text-right">
+                <strong>{{ formatearMoneda(planillaGenerada.TotalDescuentos) }}</strong>
+              </td>
+              <td class="td-monto td-monto--primary text-right">
+                <strong>{{ formatearMoneda(planillaGenerada.NetoPagar) }}</strong>
+              </td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACCIONES FINALES -->
+    <div class="acciones-finales">
+      <button class="btn btn--outline" (click)="volverAEditar()">
+        ← Volver a editar
+      </button>
+      <button class="btn btn--success" (click)="verDetallePlanilla()">
+        📋 Ver en Historial
+      </button>
+    </div>
+  </div>
+
+  <!-- NAVEGACIÓN -->
+  <div class="wizard-navigation" *ngIf="pasoActual < 3">
+    <button class="btn btn--outline" (click)="anterior()" [disabled]="pasoActual === 1">
+      ← Anterior
+    </button>
+    <button class="btn btn--primary" (click)="siguiente()">
+      Siguiente →
+    </button>
+  </div>
+</div>

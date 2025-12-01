@@ -1,0 +1,1158 @@
+<!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <button class="btn btn--ghost" (click)="cancelar()">
+        <span class="btn__icon">←</span>
+        Volver
+      </button>
+      <h1 class="page-title">
+        <span class="page-title__icon">✏️</span>
+        Editar Trabajador
+      </h1>
+    </div>
+    <div class="page-header__right">
+      <button 
+        class="btn btn--primary" 
+        (click)="actualizarTrabajador()"
+        [disabled]="guardando"
+      >
+        <span class="btn__icon" *ngIf="!guardando">💾</span>
+        <span class="btn__icon" *ngIf="guardando">⏳</span>
+        {{ guardando ? 'Guardando...' : 'Actualizar' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-container" *ngIf="cargando">
+    <div class="loading-spinner"></div>
+    <p>Cargando datos del trabajador...</p>
+  </div>
+
+  <!-- FORMULARIO -->
+  <form [formGroup]="trabajadorForm" class="form-container" *ngIf="!cargando">
+    
+    <!-- PROGRESS BAR -->
+    <div class="progress-bar">
+      <div class="progress-bar__steps">
+        <div 
+          class="progress-step" 
+          *ngFor="let step of [1,2,3,4,5]; let i = index"
+          [class.active]="paso === step"
+          [class.completed]="paso > step"
+        >
+          <span class="progress-step__number">{{ step }}</span>
+          <span class="progress-step__label">
+            {{ ['Datos Personales', 'Contacto', 'Laborales', 'Remuneración', 'Bancarios'][i] }}
+          </span>
+        </div>
+      </div>
+      <div class="progress-bar__line">
+        <div class="progress-bar__fill" [style.width]="((paso - 1) / (totalPasos - 1) * 100) + '%'"></div>
+      </div>
+    </div>
+
+    <!-- PASO 1: DATOS PERSONALES -->
+    <div class="form-step" *ngIf="paso === 1">
+      <div class="step-header">
+        <h2 class="step-title">📋 Datos Personales</h2>
+        <p class="step-description">Información básica del trabajador</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- DNI -->
+        <div class="form-group form-group--featured">
+          <label class="form-label">
+            DNI <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="dni"
+            placeholder="12345678"
+            maxlength="8"
+            [class.invalid]="isInvalid('dni')"
+          />
+          <span class="form-error" *ngIf="isInvalid('dni')">{{ getError('dni') }}</span>
+        </div>
+
+        <!-- Apellido Paterno -->
+        <div class="form-group">
+          <label class="form-label">
+            Apellido Paterno <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="apellidoPaterno"
+            placeholder="GARCÍA"
+            [class.invalid]="isInvalid('apellidoPaterno')"
+          />
+          <span class="form-error" *ngIf="isInvalid('apellidoPaterno')">{{ getError('apellidoPaterno') }}</span>
+        </div>
+
+        <!-- Apellido Materno -->
+        <div class="form-group">
+          <label class="form-label">
+            Apellido Materno <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="apellidoMaterno"
+            placeholder="PÉREZ"
+            [class.invalid]="isInvalid('apellidoMaterno')"
+          />
+          <span class="form-error" *ngIf="isInvalid('apellidoMaterno')">{{ getError('apellidoMaterno') }}</span>
+        </div>
+
+        <!-- Nombres -->
+        <div class="form-group form-group--full">
+          <label class="form-label">
+            Nombres <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="nombres"
+            placeholder="JUAN CARLOS"
+            [class.invalid]="isInvalid('nombres')"
+          />
+          <span class="form-error" *ngIf="isInvalid('nombres')">{{ getError('nombres') }}</span>
+        </div>
+
+        <!-- Fecha de Nacimiento -->
+        <div class="form-group">
+          <label class="form-label">
+            Fecha de Nacimiento <span class="required">*</span>
+          </label>
+          <input
+            type="date"
+            class="form-input"
+            formControlName="fechaNacimiento"
+            [class.invalid]="isInvalid('fechaNacimiento')"
+          />
+          <span class="form-hint" *ngIf="calcularEdad() > 0">
+            Edad: {{ calcularEdad() }} años
+          </span>
+          <span class="form-error" *ngIf="isInvalid('fechaNacimiento')">{{ getError('fechaNacimiento') }}</span>
+        </div>
+
+        <!-- Sexo -->
+        <div class="form-group">
+          <label class="form-label">
+            Sexo <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="sexo"
+            [class.invalid]="isInvalid('sexo')"
+          >
+            <option value="">Seleccionar</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('sexo')">{{ getError('sexo') }}</span>
+        </div>
+
+        <!-- Estado Civil -->
+        <div class="form-group">
+          <label class="form-label">
+            Estado Civil <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="estadoCivil"
+            [class.invalid]="isInvalid('estadoCivil')"
+          >
+            <option value="">Seleccionar</option>
+            <option value="Soltero(a)">Soltero(a)</option>
+            <option value="Casado(a)">Casado(a)</option>
+            <option value="Divorciado(a)">Divorciado(a)</option>
+            <option value="Viudo(a)">Viudo(a)</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('estadoCivil')">{{ getError('estadoCivil') }}</span>
+        </div>
+
+        <!-- Nacionalidad -->
+        <div class="form-group">
+          <label class="form-label">
+            Nacionalidad
+          </label>
+          <select class="form-select" formControlName="nacionalidad">
+            <option value="">Seleccione</option>
+            <option value="Peruana">🇵🇪 Peruana</option>
+            <option value="Argentina">🇦🇷 Argentina</option>
+            <option value="Boliviana">🇧🇴 Boliviana</option>
+            <option value="Brasileña">🇧🇷 Brasileña</option>
+            <option value="Chilena">🇨🇱 Chilena</option>
+            <option value="Colombiana">🇨🇴 Colombiana</option>
+            <option value="Ecuatoriana">🇪🇨 Ecuatoriana</option>
+            <option value="Venezolana">🇻🇪 Venezolana</option>
+            <option value="Otra">🌎 Otra</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 2: CONTACTO -->
+    <div class="form-step" *ngIf="paso === 2">
+      <div class="step-header">
+        <h2 class="step-title">📞 Información de Contacto</h2>
+        <p class="step-description">Datos de contacto y ubicación</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- Celular -->
+        <div class="form-group form-group--featured">
+          <label class="form-label">
+            Celular <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="celular"
+            placeholder="987654321"
+            [class.invalid]="isInvalid('celular')"
+          />
+          <span class="form-error" *ngIf="isInvalid('celular')">{{ getError('celular') }}</span>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="telefono"
+            placeholder="044-123456"
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="form-group form-group--full">
+          <label class="form-label">
+            Email <span class="required">*</span>
+          </label>
+          <input
+            type="email"
+            class="form-input"
+            formControlName="email"
+            placeholder="trabajador@municipalidad.com"
+            [class.invalid]="isInvalid('email')"
+          />
+          <span class="form-error" *ngIf="isInvalid('email')">{{ getError('email') }}</span>
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-group form-group--full">
+          <label class="form-label">
+            Dirección <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="direccion"
+            placeholder="Av. Principal 123, Huanchaco"
+            [class.invalid]="isInvalid('direccion')"
+          />
+          <span class="form-error" *ngIf="isInvalid('direccion')">{{ getError('direccion') }}</span>
+        </div>
+
+        <!-- Departamento -->
+        <div class="form-group">
+          <label class="form-label">
+            Departamento <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="departamento"
+            (change)="onDepartamentoChange($event)"
+            [class.invalid]="isInvalid('departamento')"
+          >
+            <option value="">Seleccionar departamento</option>
+            <option *ngFor="let dept of departamentos" [value]="dept.codigo">
+              {{ dept.nombre }}
+            </option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('departamento')">{{ getError('departamento') }}</span>
+        </div>
+
+        <!-- Provincia -->
+        <div class="form-group">
+          <label class="form-label">
+            Provincia <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="provincia"
+            (change)="onProvinciaChange($event)"
+            [class.invalid]="isInvalid('provincia')"
+            [disabled]="provincias.length === 0"
+          >
+            <option value="">Seleccionar provincia</option>
+            <option *ngFor="let prov of provincias" [value]="prov.codigo">
+              {{ prov.nombre }}
+            </option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('provincia')">{{ getError('provincia') }}</span>
+          <small class="form-hint" *ngIf="provincias.length === 0">
+            Primero selecciona un departamento
+          </small>
+        </div>
+
+        <!-- Distrito -->
+        <div class="form-group">
+          <label class="form-label">
+            Distrito <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="distrito"
+            [class.invalid]="isInvalid('distrito')"
+            [disabled]="distritos.length === 0"
+          >
+            <option value="">Seleccionar distrito</option>
+            <option *ngFor="let dist of distritos" [value]="dist">
+              {{ dist }}
+            </option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('distrito')">{{ getError('distrito') }}</span>
+          <small class="form-hint" *ngIf="distritos.length === 0">
+            Primero selecciona una provincia
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 3: DATOS LABORALES -->
+    <div class="form-step" *ngIf="paso === 3">
+      <div class="step-header">
+        <h2 class="step-title">💼 Datos Laborales</h2>
+        <p class="step-description">Información del puesto y contrato</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- Cargo -->
+        <div class="form-group">
+          <label class="form-label">
+            Cargo <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="cargo"
+            [class.invalid]="isInvalid('cargo')"
+          >
+            <option value="">Seleccionar Cargo</option>
+            <option *ngFor="let cargo of cargos" [value]="cargo.id">
+              {{ cargo.nombre }}
+            </option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('cargo')">{{ getError('cargo') }}</span>
+        </div>
+
+        <!-- Subgerencia -->
+        <div class="form-group">
+          <label class="form-label">Subgerencia</label>
+          <select class="form-select" formControlName="subgerencia">
+            <option value="">Seleccione (opcional)</option>
+            <option *ngFor="let sub of subgerencias" [value]="sub.SubgerenciaID">
+              {{ sub.Nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Unidad -->
+        <div class="form-group">
+          <label class="form-label">Unidad</label>
+          <select class="form-select" formControlName="unidad">
+            <option value="">Seleccione (opcional)</option>
+            <option *ngFor="let unid of unidades" [value]="unid.UnidadID">
+              {{ unid.Nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Gerencia -->
+        <div class="form-group">
+          <label class="form-label">Gerencia</label>
+          <select class="form-select" formControlName="gerencia">
+            <option value="">Seleccione (opcional)</option>
+            <option *ngFor="let ger of gerencias" [value]="ger.GerenciaID">
+              {{ ger.Nombre }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: CLASIFICACIÓN -->
+      <div class="section-divider">
+        <div class="section-divider__icon">📊</div>
+        <h3 class="section-divider__title">Clasificación</h3>
+      </div>
+
+      <div class="form-grid">
+        <!-- Estado -->
+        <div class="form-group">
+          <label class="form-label">
+            Estado
+          </label>
+          <select
+            class="form-select"
+            formControlName="estado"
+            [class.invalid]="isInvalid('estado')"
+          >
+            <option value="">Seleccione</option>
+            <option value="Activo">✅ Activo</option>
+            <option value="Licencia">🏖️ Licencia</option>
+            <option value="Suspendido">⏸️ Suspendido</option>
+            <option value="Destacado">🔄 Destacado</option>
+            <option value="Comisionado">📋 Comisionado</option>
+            <option value="Cesado">❌ Cesado</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('estado')">{{ getError('estado') }}</span>
+        </div>
+
+        <!-- Condición Laboral -->
+        <div class="form-group">
+          <label class="form-label">
+            Condición Laboral
+          </label>
+          <select
+            class="form-select"
+            formControlName="condicion"
+            [class.invalid]="isInvalid('condicion')"
+          >
+            <option value="">Seleccione</option>
+            <option *ngFor="let condicion of condicionesLaborales" [value]="condicion.Nombre">
+              {{ condicion.Nombre }}
+              <span *ngIf="condicion.Descripcion"> - {{ condicion.Descripcion }}</span>
+            </option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('condicion')">{{ getError('condicion') }}</span>
+        </div>
+
+        <!-- Nivel / Categoría -->
+        <div class="form-group">
+          <label class="form-label">
+            Nivel / Categoría <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="nivel"
+            [class.invalid]="isInvalid('nivel')"
+          >
+            <option value="">Seleccione</option>
+            <optgroup label="🏛️ Funcionarios">
+              <option value="F-8">F-8 (Alcalde)</option>
+              <option value="F-7">F-7 (Gerente Municipal)</option>
+              <option value="F-6">F-6 (Gerente)</option>
+              <option value="F-5">F-5 (Sub Gerente)</option>
+              <option value="F-4">F-4</option>
+              <option value="F-3">F-3</option>
+              <option value="F-2">F-2</option>
+              <option value="F-1">F-1</option>
+            </optgroup>
+            <optgroup label="👔 Empleados de Confianza">
+              <option value="EC">EC (Empleado de Confianza)</option>
+            </optgroup>
+            <optgroup label="📋 Servidores Públicos">
+              <option value="SP-ES">SP-ES (Especialista)</option>
+              <option value="SP-AP">SP-AP (Apoyo)</option>
+              <option value="STA">STA (Técnico Administrativo)</option>
+              <option value="SAP">SAP (Servidor de Apoyo)</option>
+            </optgroup>
+            <optgroup label="🔧 Obreros">
+              <option value="O-1">O-1 (Obrero Nivel 1)</option>
+              <option value="O-2">O-2 (Obrero Nivel 2)</option>
+              <option value="O-3">O-3 (Obrero Nivel 3)</option>
+            </optgroup>
+            <optgroup label="📌 Otros">
+              <option value="PRE">PRE (Practicante)</option>
+              <option value="CAS">CAS (Contrato Administrativo)</option>
+              <option value="LOC">LOC (Locación de Servicios)</option>
+            </optgroup>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('nivel')">{{ getError('nivel') }}</span>
+        </div>
+
+        <!-- Tipo de Plaza -->
+        <div class="form-group">
+          <label class="form-label">
+            Tipo de Plaza
+          </label>
+          <select
+            class="form-select"
+            formControlName="tipoPlaza"
+            [class.invalid]="isInvalid('tipoPlaza')"
+          >
+            <option value="">Seleccione</option>
+            <option value="Permanente">🏛️ Plaza Permanente</option>
+            <option value="Temporal">⏰ Plaza Temporal</option>
+            <option value="Confianza">👔 Plaza de Confianza</option>
+            <option value="Supernumeraria">➕ Plaza Supernumeraria</option>
+            <option value="Sin Plaza">❌ Sin Plaza (Locación)</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('tipoPlaza')">{{ getError('tipoPlaza') }}</span>
+        </div>
+
+        <!-- Grupo Ocupacional -->
+        <div class="form-group">
+          <label class="form-label">
+            Grupo Ocupacional
+          </label>
+          <select
+            class="form-select"
+            formControlName="grupoOcupacional"
+            [class.invalid]="isInvalid('grupoOcupacional')"
+          >
+            <option value="">Seleccione</option>
+            <option value="Funcionario">👔 Funcionario</option>
+            <option value="Directivo">📊 Directivo</option>
+            <option value="Profesional">🎓 Profesional</option>
+            <option value="Tecnico">🔧 Técnico</option>
+            <option value="Auxiliar">📋 Auxiliar</option>
+            <option value="Obrero">🏗️ Obrero</option>
+            <option value="Practicante">📚 Practicante</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('grupoOcupacional')">{{ getError('grupoOcupacional') }}</span>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: CONTRATO Y RÉGIMEN -->
+      <div class="section-divider">
+        <div class="section-divider__icon">📝</div>
+        <h3 class="section-divider__title">Contrato y Régimen</h3>
+      </div>
+
+      <div class="form-grid">
+        <!-- Tipo de Contrato -->
+        <div class="form-group">
+          <label class="form-label">
+            Tipo de Contrato <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="tipoContrato"
+            [class.invalid]="isInvalid('tipoContrato')"
+          >
+            <option value="">Seleccione un tipo de contrato</option>
+            <option *ngFor="let tipo of tiposContrato" [value]="tipo.TipoContratoID">
+              {{ tipo.Nombre }}
+            </option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('tipoContrato')">{{ getError('tipoContrato') }}</span>
+        </div>
+
+        <!-- Régimen Laboral -->
+        <div class="form-group">
+          <label class="form-label">
+            Régimen Laboral <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="regimenLaboral"
+            [class.invalid]="isInvalid('regimenLaboral')"
+          >
+            <option value="">Seleccione un régimen laboral</option>
+            <option *ngFor="let regimen of regimenesLaborales" [value]="regimen.RegimenID">
+              {{ regimen.Nombre }}
+            </option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('regimenLaboral')">{{ getError('regimenLaboral') }}</span>
+        </div>
+
+        <!-- Fecha de Ingreso -->
+        <div class="form-group">
+          <label class="form-label">
+            Fecha de Ingreso <span class="required">*</span>
+          </label>
+          <input
+            type="date"
+            class="form-input"
+            formControlName="fechaIngreso"
+            [class.invalid]="isInvalid('fechaIngreso')"
+          />
+          <span class="form-error" *ngIf="isInvalid('fechaIngreso')">{{ getError('fechaIngreso') }}</span>
+        </div>
+
+        <!-- Fecha Inicio Contrato -->
+        <div class="form-group">
+          <label class="form-label">
+            Fecha Inicio Contrato <span class="required">*</span>
+          </label>
+          <input
+            type="date"
+            class="form-input"
+            formControlName="fechaInicioContrato"
+            [class.invalid]="isInvalid('fechaInicioContrato')"
+          />
+          <span class="form-error" *ngIf="isInvalid('fechaInicioContrato')">{{ getError('fechaInicioContrato') }}</span>
+        </div>
+
+        <!-- Fecha Fin Contrato -->
+        <div class="form-group">
+          <label class="form-label">
+            Fecha Fin Contrato <span class="required">*</span>
+          </label>
+          <input
+            type="date"
+            class="form-input"
+            formControlName="fechaFinContrato"
+            [class.invalid]="isInvalid('fechaFinContrato')"
+          />
+          <span class="form-error" *ngIf="isInvalid('fechaFinContrato')">{{ getError('fechaFinContrato') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 4: REMUNERACIÓN -->
+    <div class="form-step" *ngIf="paso === 4">
+      <div class="step-header">
+        <h2 class="step-title">💰 Remuneración y Beneficios</h2>
+        <p class="step-description">Salarios y beneficios del trabajador</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- Remuneración Básica -->
+        <div class="form-group form-group--featured">
+          <label class="form-label">
+            Remuneración Básica <span class="required">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="remuneracionBasica"
+              placeholder="0.00"
+              min="1025"
+              step="0.01"
+              [class.invalid]="isInvalid('remuneracionBasica')"
+            />
+          </div>
+          <span class="form-error" *ngIf="isInvalid('remuneracionBasica')">{{ getError('remuneracionBasica') }}</span>
+        </div>
+
+        <!-- Asignación Familiar -->
+        <div class="form-group">
+          <label class="form-label">Asignación Familiar</label>
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="tieneAsignacionFamiliar"
+              formControlName="tieneAsignacionFamiliar"
+            />
+            <label for="tieneAsignacionFamiliar">Tiene asignación familiar</label>
+          </div>
+        </div>
+
+        <!-- Número de Hijos -->
+        <div class="form-group">
+          <label class="form-label">Número de Hijos</label>
+          <input
+            type="number"
+            class="form-input"
+            formControlName="numeroHijos"
+            placeholder="0"
+            min="0"
+          />
+        </div>
+
+        <!-- Bono de Productividad -->
+        <div class="form-group">
+          <label class="form-label">Bono de Productividad</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="bonoProductividad"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Otros Ingresos -->
+        <div class="form-group">
+          <label class="form-label">Otros Ingresos</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="otrosIngresos"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Costo de Vida -->
+        <div class="form-group">
+          <label class="form-label">Costo de Vida</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="costoVida"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Movilidad -->
+        <div class="form-group">
+          <label class="form-label">Movilidad</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="movilidad"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Horas Extras -->
+        <div class="form-group">
+          <label class="form-label">Horas Extras</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="horasExtras"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- P.C (2015-2016) -->
+        <div class="form-group">
+          <label class="form-label">P.C (2015-2016)</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="pc_2015_2016"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- R.A (829-2011-MDH) -->
+        <div class="form-group">
+          <label class="form-label">R.A (829-2011-MDH)</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="ra_829_2011_mdh"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Otras y/o Reintegros -->
+        <div class="form-group">
+          <label class="form-label">Otras y/o Reintegros</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="otrasReintegros"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Conv. Centralizado (2022-2023) -->
+        <div class="form-group">
+          <label class="form-label">Conv. Centralizado (2022-2023)</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="convenio_2022_2023"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Conv. Centralizado (2023-2024) -->
+        <div class="form-group">
+          <label class="form-label">Conv. Centralizado (2023-2024)</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="convenio_2023_2024"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Conv. Centralizado (2024-2025) -->
+        <div class="form-group">
+          <label class="form-label">Conv. Centralizado (2024-2025)</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="convenio_2024_2025"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Homologación -->
+        <div class="form-group">
+          <label class="form-label">Homologación</label>
+          <div class="input-group">
+            <span class="input-group__prefix">S/</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="homologacion"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <!-- Sistema de Pensiones -->
+        <div class="form-group">
+          <label class="form-label">
+            Sistema de Pensiones <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="sistemasPensiones"
+            [class.invalid]="isInvalid('sistemasPensiones')"
+          >
+            <option value="">Seleccionar</option>
+            <option value="ONP">ONP</option>
+            <option value="AFP Integra">AFP Integra</option>
+            <option value="AFP Prima">AFP Prima</option>
+            <option value="AFP Profuturo">AFP Profuturo</option>
+            <option value="AFP Habitat">AFP Habitat</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('sistemasPensiones')">{{ getError('sistemasPensiones') }}</span>
+        </div>
+
+        <!-- CUSPP -->
+        <div class="form-group">
+          <label class="form-label">CUSPP</label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="cuspp"
+            placeholder="12345678901"
+            maxlength="12"
+          />
+        </div>
+
+        <!-- Tipo Comisión AFP -->
+        <div class="form-group">
+          <label class="form-label">Tipo Comisión AFP</label>
+          <select class="form-select" formControlName="tipoComisionAFP">
+            <option value="">Seleccionar</option>
+            <option value="Flujo">Flujo</option>
+            <option value="Mixta">Mixta</option>
+          </select>
+        </div>
+
+        <!-- Código ESSALUD -->
+        <div class="form-group">
+          <label class="form-label">Código ESSALUD</label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="codigoEssalud"
+            placeholder="6603180MCGIG005"
+            maxlength="20"
+            style="text-transform: uppercase;"
+          />
+          <span class="form-hint">Código de afiliación a ESSALUD (opcional)</span>
+        </div>
+
+        <!-- Es Sindicalizado -->
+        <div class="form-group">
+          <label class="form-label">Sindicalización</label>
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="esSindicalizado"
+              formControlName="esSindicalizado"
+            />
+            <label for="esSindicalizado">Es sindicalizado</label>
+          </div>
+        </div>
+
+        <!-- Rimac Seguros -->
+        <div class="form-group">
+          <label class="form-label">Rimac Seguros</label>
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="tieneRimacSeguros"
+              formControlName="tieneRimacSeguros"
+            />
+            <label for="tieneRimacSeguros">Tiene Rimac Seguros</label>
+          </div>
+          <div class="input-group" *ngIf="trabajadorForm.get('tieneRimacSeguros')?.value" style="margin-top: 8px;">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="aporteRimacSeguros"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+          </div>
+          <span class="form-hint" *ngIf="trabajadorForm.get('tieneRimacSeguros')?.value">
+            Monto que aporta mensualmente (opcional)
+          </span>
+        </div>
+
+        <!-- Descuento Judicial -->
+        <div class="form-group">
+          <label class="form-label">Descuento Judicial</label>
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="tieneDescuentoJudicial"
+              formControlName="tieneDescuentoJudicial"
+            />
+            <label for="tieneDescuentoJudicial">Tiene descuento judicial</label>
+          </div>
+          <div class="input-group" *ngIf="trabajadorForm.get('tieneDescuentoJudicial')?.value" style="margin-top: 8px;">
+            <span class="input-prefix">S/.</span>
+            <input
+              type="number"
+              class="form-input"
+              formControlName="montoDescuentoJudicial"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+          </div>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="numeroCuentaDescuento"
+            placeholder="Número de cuenta (opcional)"
+            *ngIf="trabajadorForm.get('tieneDescuentoJudicial')?.value"
+            style="margin-top: 8px;"
+          />
+          <span class="form-hint" *ngIf="trabajadorForm.get('tieneDescuentoJudicial')?.value">
+            Monto del descuento judicial mensual (opcional)
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 5: DATOS BANCARIOS -->
+    <div class="form-step" *ngIf="paso === 5">
+      <div class="step-header">
+        <h2 class="step-title">🏦 Datos Bancarios</h2>
+        <p class="step-description">Información para pagos</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- Banco -->
+        <div class="form-group">
+          <label class="form-label">
+            Banco <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="banco"
+            [class.invalid]="isInvalid('banco')"
+          >
+            <option value="">Seleccionar Banco</option>
+            <option value="BANCO DE LA NACION">Banco de la Nación</option>
+            <option value="BCP">Banco de Crédito del Perú</option>
+            <option value="BBVA">BBVA</option>
+            <option value="Interbank">Interbank</option>
+            <option value="Scotiabank">Scotiabank</option>
+            <option value="BanBif">BanBif</option>
+            <option value="Pichincha">Banco Pichincha</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('banco')">{{ getError('banco') }}</span>
+        </div>
+
+        <!-- Tipo de Cuenta -->
+        <div class="form-group">
+          <label class="form-label">
+            Tipo de Cuenta <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="tipoCuenta"
+            [class.invalid]="isInvalid('tipoCuenta')"
+          >
+            <option value="">Seleccionar</option>
+            <option value="Ahorros">Ahorros</option>
+            <option value="Corriente">Corriente</option>
+          </select>
+          <span class="form-error" *ngIf="isInvalid('tipoCuenta')">{{ getError('tipoCuenta') }}</span>
+        </div>
+
+        <!-- Número de Cuenta -->
+        <div class="form-group">
+          <label class="form-label">
+            Número de Cuenta <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="numeroCuenta"
+            placeholder="1234567890123456"
+            [class.invalid]="isInvalid('numeroCuenta')"
+          />
+          <span class="form-error" *ngIf="isInvalid('numeroCuenta')">{{ getError('numeroCuenta') }}</span>
+        </div>
+
+        <!-- CCI -->
+        <div class="form-group form-group--full">
+          <label class="form-label">
+            CCI <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="cci"
+            placeholder="12345678901234567890"
+            maxlength="20"
+            [class.invalid]="isInvalid('cci')"
+          />
+          <span class="form-hint">Código de Cuenta Interbancario (20 dígitos)</span>
+          <span class="form-error" *ngIf="isInvalid('cci')">{{ getError('cci') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVEGACIÓN -->
+    <div class="form-navigation">
+      <button 
+        type="button" 
+        class="btn btn--outline" 
+        (click)="pasoAnterior()"
+        [disabled]="paso === 1"
+      >
+        <span class="btn__icon">←</span>
+        Anterior
+      </button>
+
+      <div class="form-navigation__center">
+        <span class="form-navigation__info">
+          Paso {{ paso }} de {{ totalPasos }}
+        </span>
+      </div>
+
+      <button 
+        type="button" 
+        class="btn btn--primary" 
+        (click)="siguientePaso()"
+        [disabled]="paso === totalPasos"
+        *ngIf="paso < totalPasos"
+      >
+        Siguiente
+        <span class="btn__icon">→</span>
+      </button>
+    </div>
+  </form>
+
+  <!-- MODAL DE CONFIRMACIÓN PARA CANCELAR -->
+  <div class="modal-overlay" *ngIf="mostrarModalCancelar" (click)="cerrarModalCancelar()">
+    <div class="modal-confirm" (click)="$event.stopPropagation()">
+      <div class="modal-confirm__header">
+        <div class="modal-confirm__icon">
+          <span>⚠️</span>
+        </div>
+        <h3 class="modal-confirm__title">¿Cancelar edición?</h3>
+      </div>
+      <div class="modal-confirm__body">
+        <p class="modal-confirm__message">
+          Los cambios no guardados se perderán permanentemente.
+        </p>
+        <p class="modal-confirm__submessage">
+          ¿Estás seguro de que deseas salir sin guardar?
+        </p>
+      </div>
+      <div class="modal-confirm__footer">
+        <button 
+          class="btn btn--ghost" 
+          (click)="cerrarModalCancelar()"
+        >
+          <span class="btn__icon">✕</span>
+          Mantener edición
+        </button>
+        <button 
+          class="btn btn--danger" 
+          (click)="confirmarCancelar()"
+        >
+          <span class="btn__icon">→</span>
+          Sí, cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ÉXITO ACTUALIZACIÓN -->
+  <div class="modal modal--exito" *ngIf="mostrarModalExitoActualizacion">
+    <div class="modal__content modal__content--exito" (click)="$event.stopPropagation()">
+      <div class="exito-actualizacion">
+        <!-- Círculo de carga -->
+        <div class="exito-actualizacion__loader" *ngIf="guardando">
+          <div class="spinner"></div>
+        </div>
+        
+        <!-- Check de éxito -->
+        <div class="exito-actualizacion__check" *ngIf="actualizacionCompletada">
+          <svg class="checkmark checkmark--actualizacion" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
+        
+        <h3 class="exito-actualizacion__title">Trabajador actualizado exitosamente</h3>
+        <p class="exito-actualizacion__message" *ngIf="actualizacionCompletada">
+          Los cambios se han guardado correctamente.
+        </p>
+      </div>
+    </div>
+  </div>

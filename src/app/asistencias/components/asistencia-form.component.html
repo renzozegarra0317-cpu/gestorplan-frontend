@@ -1,0 +1,78 @@
+<div class="modal-backdrop" *ngIf="show">
+  <div class="modal">
+    <div class="modal-header">
+      <span>REGISTRO DE ASISTENCIA</span>
+      <button class="close-btn" (click)="onClose()">×</button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="onSave()">
+        <!-- PASO 1 -->
+        <div *ngIf="step === 1">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>TRABAJADOR:</label>
+              <input [(ngModel)]="asistencia.trabajadorId" name="trabajadorId" type="text" placeholder="Nombre o ID">
+            </div>
+            <div class="form-group">
+              <label>FECHA:</label>
+              <input [(ngModel)]="asistencia.fecha" name="fecha" type="date" required>
+            </div>
+            <div class="form-group">
+              <label>TIPO:</label>
+              <select [(ngModel)]="asistencia.tipo" name="tipo">
+                <option>Presente</option>
+                <option>Tardanza</option>
+                <option>Falta</option>
+                <option>Permiso</option>
+                <option>Licencia</option>
+                <option>Vacaciones</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>ESTADO:</label>
+              <select [(ngModel)]="asistencia.estado" name="estado">
+                <option>Pendiente</option>
+                <option>Validado</option>
+                <option>Observado</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="guardar" (click)="goToNextStep()">SIGUIENTE</button>
+            <button type="button" class="cancelar" (click)="onClose()">CANCELAR</button>
+          </div>
+        </div>
+        <!-- PASO 2 -->
+        <div *ngIf="step === 2">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>HORA ENTRADA:</label>
+              <input [(ngModel)]="asistencia.horaEntrada" name="horaEntrada" type="time">
+            </div>
+            <div class="form-group">
+              <label>HORA SALIDA:</label>
+              <input [(ngModel)]="asistencia.horaSalida" name="horaSalida" type="time">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label>MOTIVO:</label>
+              <input [(ngModel)]="asistencia.motivo" name="motivo" type="text" placeholder="Si aplica (ej. tardanza, permiso)">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label>OBSERVACIONES:</label>
+              <input [(ngModel)]="asistencia.observaciones" name="observaciones" type="text">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label>EVIDENCIA (URL):</label>
+              <input [(ngModel)]="asistencia.evidenciaUrl" name="evidenciaUrl" type="text" placeholder="Link a archivo o foto (opcional)">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="cancelar" (click)="goToPrevStep()">ANTERIOR</button>
+            <button type="submit" class="guardar">GUARDAR</button>
+            <button type="button" class="cancelar" (click)="onClose()">CANCELAR</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

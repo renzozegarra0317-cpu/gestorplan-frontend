@@ -1,0 +1,702 @@
+/* Tailwind CSS Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Angular Material Theme */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+/* PrimeNG Styles - v20 usa estilos integrados, no requiere imports CSS globales */
+/* Los estilos se cargan automáticamente al usar los componentes */
+/* PrimeIcons se carga automáticamente con los componentes */
+
+/* Toastr Styles */
+@import 'ngx-toastr/toastr';
+
+/* Spinner Styles - ngx-spinner no requiere import global, se carga dinámicamente */
+
+/* Tema y base global: modo oscuro por defecto, modo claro preparado */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+/* Fuente para la MARCA del sidebar (look "tech"). Cambia si quieres otra. */
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap');
+
+/* ============================
+   TOKENS / VARIABLES GLOBALES
+   ============================ */
+
+/* Tokens base (fallbacks si no hay data-theme) */
+:root {
+  --radius-sm: 12px;
+  --radius: 16px;
+  --radius-lg: 20px;
+
+  --gap-1: 8px;
+  --gap-2: 12px;
+  --gap-3: 16px;
+  --gap-4: 24px;
+
+  /* Sombras por defecto */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.35);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.35);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.35);
+
+  /* Brillos por defecto */
+  --glow-accent: 0 0 18px rgba(34,197,94,.25), 0 0 6px rgba(34,197,94,.35);
+  --glow-accent-soft: 0 0 12px rgba(34,197,94,.18);
+
+  /* Fuente/estilo para la marca (sidebar superior) */
+  --brand-font: 'Chakra Petch', Inter, 'Segoe UI', Arial, Helvetica, sans-serif;
+
+  /* Layout (sidebar/topbar) */
+  --sidebar-w: 300px;
+  --sidebar-w-collapsed: 80px;
+  --topbar-h: 80px;
+
+  /* Centrado del contenido principal */
+  --content-gutter: 24px;
+  --content-gap: 16px;
+  
+  /* Grosor de bordes */
+  --border-width: 2px;
+}
+
+/* ======================
+   THEME: DARK / LIGHT
+   ====================== */
+
+/* DARK (por defecto). Aplica si el body NO tiene data-theme o si es dark */
+:root, [data-theme="dark"] {
+  --bg: #0b1220;
+  --bg-2: #0f172a;
+  --panel: #111827;
+  --panel-2: #0f1b2d;
+  --sidebar: #0b1220;
+  --border: #1f2937;
+  --line-soft: #162235;
+
+  --text-1: #e5e7eb;
+  --text-2: #94a3b8;
+  --muted: #6b7280;
+
+  --accent: #22c55e;
+  --accent-2: #06b6d4;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+
+  --focus-ring: 0 0 0 3px rgba(34,197,94,.16);
+}
+
+/* LIGHT - PREMIUM & PROFESIONAL */
+[data-theme="light"] {
+  /* Fondos con tonos cálidos y suaves */
+  --bg: #fafaf9;           /* Fondo principal - blanco piedra cálido */
+  --bg-2: #f5f5f4;         /* Fondo secundario - gris piedra */
+  --panel: #ffffff;        /* Paneles blancos puros para contraste */
+  --panel-2: #fefefe;      /* Paneles secundarios con sutileza */
+  --sidebar: #ffffff;      /* Sidebar blanco limpio */
+  --border: #e7e5e4;       /* Bordes suaves color piedra */
+  --line-soft: #f5f5f4;    /* Líneas muy sutiles */
+
+  /* Textos con excelente contraste y legibilidad */
+  --text-1: #0c0a09;       /* Texto principal - negro piedra */
+  --text-2: #57534e;       /* Texto secundario - gris piedra oscuro */
+  --muted: #78716c;        /* Texto atenuado - gris piedra medio */
+
+  /* Colores de acento vibrantes pero profesionales */
+  --accent: #059669;       /* Verde esmeralda profesional */
+  --accent-2: #0284c7;     /* Azul cielo corporativo */
+  --warn: #ea580c;         /* Naranja cálido para advertencias */
+  --danger: #dc2626;       /* Rojo intenso para peligro */
+
+  /* Sombras sutiles y elegantes */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.02);
+  --shadow-sm: 0 2px 4px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.03);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+
+  /* Brillos premium para elementos activos */
+  --glow-accent: 0 0 0 3px rgba(5,150,105,.08);
+  --glow-accent-soft: 0 0 0 2px rgba(5,150,105,.06);
+
+  /* Focus ring elegante */
+  --focus-ring: 0 0 0 3px rgba(5,150,105,.12), 0 0 0 1px rgba(5,150,105,.20);
+  
+  --border-width: 1px;
+  
+  /* Variables adicionales para modo claro */
+  --hover: #f5f5f4;        /* Hover sutil */
+  --active: #ecfdf5;       /* Active con toque verde */
+  --accent-light: #d1fae5; /* Verde claro para fondos */
+}
+
+/* ======================
+   BASE / RESETS
+   ====================== */
+
+* { 
+  box-sizing: border-box; 
+  margin: 0;
+  padding: 0;
+}
+
+html, body { 
+  height: 100%; 
+  width: 100%; 
+  margin: 0; 
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: Inter, 'Segoe UI', Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Scrollbar personalizado */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34,197,94,.3) transparent;
+}
+
+*::-webkit-scrollbar { 
+  height: 10px; 
+  width: 10px; 
+}
+
+*::-webkit-scrollbar-thumb { 
+  background: rgba(34,197,94,.3); 
+  border-radius: 12px;
+  
+  &:hover {
+    background: rgba(34,197,94,.5);
+  }
+}
+
+*::-webkit-scrollbar-track { 
+  background: transparent; 
+}
+
+/* Scrollbar en modo claro */
+[data-theme="light"] * {
+  scrollbar-color: rgba(148,163,184,.4) transparent;
+}
+
+[data-theme="light"] *::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,.4);
+  
+  &:hover {
+    background: rgba(148,163,184,.6);
+  }
+}
+
+#root, app-root {
+  min-height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ======================
+   UTILIDADES GLOBALES
+   ====================== */
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
+  transition: all 0.3s ease;
+}
+
+.card.elevated { 
+  box-shadow: var(--shadow-sm); 
+}
+
+.card:hover {
+  border-color: rgba(34,197,94,.3);
+}
+
+[data-theme="light"] .card:hover {
+  border-color: rgba(37,99,235,.3);
+}
+
+.hr-soft { 
+  height: 1px; 
+  background: var(--line-soft); 
+  border: 0; 
+  margin: 12px 0; 
+}
+
+.btn {
+  display: inline-flex; 
+  align-items: center; 
+  gap: 8px;
+  border-radius: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text-1);
+  cursor: pointer; 
+  transition: all .2s ease;
+  font-weight: 600;
+}
+
+.btn:hover { 
+  box-shadow: var(--shadow-xs);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border-color: transparent; 
+  color: #051B10;
+  box-shadow: var(--glow-accent);
+}
+
+.btn-accent:hover { 
+  filter: brightness(1.1);
+  box-shadow: 0 0 24px rgba(34,197,94,.4);
+}
+
+[data-theme="light"] .btn-accent {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+}
+
+.input, .select {
+  background: var(--panel-2);
+  color: var(--text-1) !important;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.input:focus, .select:focus {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+/* Asegurar que el texto en select siempre sea visible */
+select {
+  color: var(--text-1) !important;
+  
+  option {
+    background: var(--panel) !important;
+    color: var(--text-1) !important;
+    padding: 8px;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.table thead th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-2);
+  background: var(--panel-2);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--text-1);
+}
+
+.table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.table tbody tr:hover { 
+  background: var(--panel-2);
+}
+
+.badge {
+  display: inline-flex; 
+  align-items: center; 
+  gap: 6px;
+  font-size: 12px; 
+  padding: 4px 8px;
+  border-radius: 999px; 
+  border: 1px solid var(--border);
+  background: var(--panel-2); 
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.badge--ok { 
+  color: var(--accent); 
+  border-color: rgba(34,197,94,.35); 
+  background: rgba(34,197,94,.1);
+  box-shadow: var(--glow-accent-soft); 
+}
+
+.badge--warn { 
+  color: var(--warn);
+  border-color: rgba(245,158,11,.35);
+  background: rgba(245,158,11,.1);
+}
+
+.badge--danger { 
+  color: var(--danger);
+  border-color: rgba(239,68,68,.35);
+  background: rgba(239,68,68,.1);
+}
+
+/* ======================
+   RESPONSIVE
+   ====================== */
+
+@media (max-width: 1100px) { 
+  :root { 
+    --sidebar-w: 260px;
+    --content-gutter: 20px;
+  } 
+}
+
+@media (max-width: 900px) {
+  :root { 
+    --sidebar-w: 0px; /* Ocultar sidebar en móvil */
+    --topbar-h: 64px;
+    --content-gutter: 16px;
+  }
+  
+  /* Tablas responsive - scroll horizontal */
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Botones más grandes en móvil */
+  .btn {
+    padding: 12px 16px;
+    min-height: 44px;
+    font-size: 14px;
+  }
+  
+  /* Inputs más grandes en móvil */
+  .input, .select {
+    padding: 12px 14px;
+    min-height: 44px;
+    font-size: 16px; /* Evita zoom en iOS */
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --topbar-h: 60px;
+    --content-gutter: 12px;
+    --radius: 12px;
+    --radius-lg: 14px;
+  }
+  
+  /* Espaciado reducido en móvil */
+  .card {
+    padding: 16px;
+  }
+  
+  /* Grid de 1 columna en móvil */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --topbar-h: 56px;
+    --content-gutter: 8px;
+    --radius: 10px;
+  }
+  
+  /* Fuente más pequeña en móvil pequeño */
+  body {
+    font-size: 14px;
+  }
+  
+  .card {
+    padding: 12px;
+    border-radius: var(--radius);
+  }
+  
+  /* Botones full width en móvil pequeño */
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+/* Utilidades responsive */
+.hide-mobile {
+  @media (max-width: 900px) {
+    display: none !important;
+  }
+}
+
+.hide-desktop {
+  display: none !important;
+  
+  @media (max-width: 900px) {
+    display: block !important;
+  }
+}
+
+.show-mobile {
+  display: none !important;
+  
+  @media (max-width: 900px) {
+    display: block !important;
+  }
+}
+
+/* ============================
+   MODO CLARO - ESTILOS GLOBALES
+   ============================ */
+
+[data-theme="light"] {
+  /* Scrollbar para modo claro */
+  * {
+    scrollbar-color: rgba(16,185,129,.3) transparent;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: rgba(16,185,129,.3);
+    
+    &:hover {
+      background: rgba(16,185,129,.5);
+    }
+  }
+  
+  /* Cards y paneles */
+  .card {
+    background: var(--panel);
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  /* Inputs y selects - Estilo premium */
+  input, select, textarea {
+    background: var(--panel) !important;
+    border: 1.5px solid var(--border) !important;
+    color: var(--text-1) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      border-color: var(--accent) !important;
+      background: var(--panel) !important;
+    }
+    
+    &:focus {
+      border-color: var(--accent) !important;
+      box-shadow: var(--focus-ring) !important;
+      background: var(--panel) !important;
+      color: var(--text-1) !important;
+    }
+  }
+  
+  select option {
+    background: var(--panel) !important;
+    color: var(--text-1) !important;
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--muted) !important;
+    opacity: 0.6;
+  }
+  
+  /* Botones en modo claro */
+  .btn {
+    &--primary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-color: #10b981;
+      
+      &:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        box-shadow: 0 6px 20px rgba(16,185,129,.3);
+      }
+    }
+    
+    &--secondary {
+      background: var(--bg-2);
+      border-color: var(--border);
+      color: var(--text-1);
+      
+      &:hover {
+        background: var(--panel);
+        border-color: var(--accent);
+      }
+    }
+    
+    &--outline {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-1);
+      
+      &:hover {
+        background: var(--bg-2);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+    }
+  }
+  
+  /* Tablas - Estilo premium en modo claro */
+  table {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    
+    thead {
+      background: var(--bg);
+      
+      th {
+        color: var(--text-1);
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--border);
+        padding: 1rem;
+      }
+    }
+    
+    tbody {
+      tr {
+        border-bottom: 1px solid var(--line-soft);
+        transition: all 0.15s ease;
+        
+        &:hover {
+          background: var(--hover);
+          box-shadow: inset 3px 0 0 var(--accent);
+        }
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        td {
+          color: var(--text-1);
+          padding: 1rem;
+        }
+      }
+    }
+  }
+  
+  /* Badges - Estilo premium con gradientes sutiles en modo claro */
+  .badge {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.375rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    
+    &--success {
+      background: linear-gradient(135deg, rgba(5,150,105,.12) 0%, rgba(5,150,105,.08) 100%);
+      color: #047857;
+      border: 1.5px solid rgba(5,150,105,.25);
+      box-shadow: 0 2px 4px rgba(5,150,105,.08);
+    }
+    
+    &--warning {
+      background: linear-gradient(135deg, rgba(234,88,12,.12) 0%, rgba(234,88,12,.08) 100%);
+      color: #c2410c;
+      border: 1.5px solid rgba(234,88,12,.25);
+      box-shadow: 0 2px 4px rgba(234,88,12,.08);
+    }
+    
+    &--danger {
+      background: linear-gradient(135deg, rgba(220,38,38,.12) 0%, rgba(220,38,38,.08) 100%);
+      color: #b91c1c;
+      border: 1.5px solid rgba(220,38,38,.25);
+      box-shadow: 0 2px 4px rgba(220,38,38,.08);
+    }
+    
+    &--info {
+      background: linear-gradient(135deg, rgba(2,132,199,.12) 0%, rgba(2,132,199,.08) 100%);
+      color: #0369a1;
+      border: 1.5px solid rgba(2,132,199,.25);
+      box-shadow: 0 2px 4px rgba(2,132,199,.08);
+    }
+  }
+  
+  /* Modales en modo claro */
+  .modal-overlay {
+    background: rgba(15,23,42,.5);
+  }
+  
+  .modal-content {
+    background: var(--panel);
+    border-color: var(--border);
+    box-shadow: 0 20px 60px rgba(15,23,42,.2);
+  }
+  
+  .modal-header {
+    border-color: var(--border);
+    
+    h2, h3 {
+      color: var(--text-1);
+    }
+  }
+  
+  .modal-body {
+    color: var(--text-1);
+  }
+  
+  .modal-footer {
+    border-color: var(--border);
+  }
+  
+  /* Títulos y textos en modo claro */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-1);
+  }
+  
+  p, span, label {
+    color: var(--text-1);
+  }
+  
+  .text-muted {
+    color: var(--muted) !important;
+  }
+  
+  /* Enlaces en modo claro */
+  a {
+    color: var(--accent);
+    
+    &:hover {
+      color: var(--accent-2);
+    }
+  }
+  
+  /* Iconos y emojis - mantener visibilidad */
+  .icon, .emoji {
+    filter: none;
+  }
+}

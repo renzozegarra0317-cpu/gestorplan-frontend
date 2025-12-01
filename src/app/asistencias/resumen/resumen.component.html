@@ -1,0 +1,612 @@
+<div class="resumen-mensual">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">📊</span>
+        Resumen Mensual de Asistencias
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Análisis estadístico de asistencia del personal municipal
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--outline btn-export btn-export--excel" (click)="exportarExcel()">
+        <img src="assets/excel.png" alt="Excel" class="btn-export__icon btn-export__icon--excel" />
+        <span class="btn-export__text">Excel</span>
+      </button>
+      <button class="btn btn--sm btn--outline btn-export btn-export--pdf" (click)="exportarPDF()">
+        <img src="assets/pdf.png" alt="PDF" class="btn-export__icon btn-export__icon--pdf" />
+        <span class="btn-export__text">PDF</span>
+      </button>
+    </div>
+  </div>
+
+
+  <!-- RESUMEN GENERAL -->
+  <div class="resumen-general" *ngIf="resumenGeneral">
+    <div class="resumen-card resumen-card--primary">
+      <div class="resumen-card__icon">👥</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Trabajadores</span>
+        <span class="resumen-card__value">{{ resumenGeneral?.totalTrabajadores || 0 }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--success">
+      <div class="resumen-card__icon">✅</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Promedio Asistencia</span>
+        <span class="resumen-card__value">{{ resumenGeneral?.promedioAsistencia || 0 }}%</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--info">
+      <div class="resumen-card__icon">⏰</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Promedio Puntualidad</span>
+        <span class="resumen-card__value">{{ resumenGeneral?.promedioPuntualidad || 0 }}%</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--warning">
+      <div class="resumen-card__icon">⚠️</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Tardanzas</span>
+        <span class="resumen-card__value">{{ resumenGeneral?.totalTardanzas || 0 }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--danger">
+      <div class="resumen-card__icon">❌</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Faltas</span>
+        <span class="resumen-card__value">{{ resumenGeneral?.totalFaltas || 0 }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--secondary">
+      <div class="resumen-card__icon">📅</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Días Hábiles</span>
+        <span class="resumen-card__value">{{ resumenGeneral?.diasHabiles || 0 }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRABAJADORES DESTACADOS Y ALERTAS -->
+  <div class="destacados-alertas" *ngIf="resumenGeneral">
+    <div class="panel panel--destacados">
+      <h3 class="panel__title">
+        <span class="panel__icon">🌟</span>
+        Trabajadores Destacados
+      </h3>
+      <div class="lista-destacados">
+        <div class="destacado-item" *ngFor="let trabajador of resumenGeneral?.trabajadoresDestacados || []">
+          <div class="destacado-item__avatar">{{ trabajador.nombreCompleto?.charAt(0) || '?' }}</div>
+          <div class="destacado-item__info">
+            <h4 class="destacado-item__nombre">{{ trabajador.nombreCompleto || 'Sin nombre' }}</h4>
+            <p class="destacado-item__cargo">{{ trabajador.cargo || 'Sin cargo' }}</p>
+            <p class="destacado-item__area">{{ trabajador.area || 'Sin área' }}</p>
+          </div>
+          <div class="destacado-item__stats">
+            <span class="stat stat--asistencia">{{ trabajador.porcentajeAsistencia }}% Asistencia</span>
+            <span class="stat stat--puntualidad">{{ trabajador.porcentajePuntualidad }}% Puntualidad</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel--alertas" *ngIf="resumenGeneral && resumenGeneral.trabajadoresAlerta && resumenGeneral.trabajadoresAlerta.length > 0">
+      <h3 class="panel__title">
+        <span class="panel__icon">⚠️</span>
+        Trabajadores en Alerta
+      </h3>
+      <div class="lista-alertas">
+        <div class="alerta-item" *ngFor="let trabajador of resumenGeneral?.trabajadoresAlerta || []">
+          <div class="alerta-item__avatar">{{ trabajador.nombreCompleto?.charAt(0) || '?' }}</div>
+          <div class="alerta-item__info">
+            <h4 class="alerta-item__nombre">{{ trabajador.nombreCompleto || 'Sin nombre' }}</h4>
+            <p class="alerta-item__cargo">{{ trabajador.cargo || 'Sin cargo' }}</p>
+          </div>
+          <div class="alerta-item__stats">
+            <span class="stat stat--asistencia-baja">{{ trabajador.porcentajeAsistencia }}% Asistencia</span>
+            <span class="stat stat--faltas">{{ trabajador.diasFalta }} Faltas</span>
+            <span class="stat stat--tardanzas">{{ trabajador.diasTardanza }} Tardanzas</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SELECTOR DE PERÍODO Y FILTROS -->
+  <div class="periodo-selector">
+    <div class="periodo-selector__top">
+      <div class="periodo-selector__controls">
+        <select class="select select--large" [(ngModel)]="filtros.mes" (change)="cambiarPeriodo()">
+          <option *ngFor="let mes of meses" [value]="mes.valor">{{ mes.nombre }}</option>
+        </select>
+        
+        <select class="select select--large" [(ngModel)]="filtros.anio" (change)="cambiarPeriodo()">
+          <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+        </select>
+
+        <div class="periodo-actual">
+          <span class="periodo-actual__label">Período:</span>
+          <span class="periodo-actual__value">{{ nombreMesActual }} {{ filtros.anio }}</span>
+        </div>
+      </div>
+
+      <div class="vista-toggle">
+        <button 
+          class="btn btn--sm btn--outline" 
+          [class.active]="vistaActual === 'resumen'"
+          (click)="vistaActual = 'resumen'"
+        >
+          📋 Resumen
+        </button>
+        <button 
+          class="btn btn--sm btn--outline" 
+          [class.active]="vistaActual === 'detalle'"
+          (click)="vistaActual = 'detalle'"
+        >
+          📅 Detalle
+        </button>
+        <button 
+          class="btn btn--sm btn--outline" 
+          [class.active]="vistaActual === 'grafico'"
+          (click)="cambiarVista('grafico')"
+        >
+          📈 Gráficos
+        </button>
+      </div>
+    </div>
+
+    <div class="periodo-selector__filtros">
+      <div class="filtros-bar__left">
+        <div class="search-box">
+          <span class="search-box__icon">🔍</span>
+          <input
+            type="text"
+            class="search-box__input"
+            placeholder="Buscar por DNI, nombre, área..."
+            [(ngModel)]="filtros.busqueda"
+            (input)="aplicarFiltros()"
+          />
+        </div>
+
+        <select class="select" [(ngModel)]="filtros.area" (change)="aplicarFiltros()">
+          <option value="">Todas las áreas</option>
+          <option *ngFor="let area of areas" [value]="area">{{ area }}</option>
+        </select>
+
+        <select class="select" [(ngModel)]="filtros.ordenarPor" (change)="aplicarFiltros()">
+          <option value="nombre">Ordenar por Nombre</option>
+          <option value="asistencia">Ordenar por Asistencia</option>
+          <option value="tardanzas">Ordenar por Tardanzas</option>
+          <option value="faltas">Ordenar por Faltas</option>
+        </select>
+
+        <button class="btn btn--ghost btn--sm" (click)="limpiarFiltros()" *ngIf="filtros.busqueda || filtros.area">
+          ✖️ Limpiar
+        </button>
+      </div>
+
+      <div class="filtros-bar__right">
+        <span class="resultados-count">{{ resumenTrabajadoresFiltrados.length }} trabajadores</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA RESUMEN -->
+  <div class="tabla-container" *ngIf="vistaActual === 'resumen'">
+    <div class="tabla-scroll">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>DNI</th>
+            <th>Trabajador</th>
+            <th>Área</th>
+            <th>Días Hábiles</th>
+            <th>Presente</th>
+            <th>Tardanzas</th>
+            <th>Faltas</th>
+            <th>Permisos</th>
+            <th>% Asistencia</th>
+            <th>% Puntualidad</th>
+            <th>Horas Trabajadas</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="cargando">
+            <td colspan="12" class="td-loading">
+              <div class="loading-spinner">Cargando...</div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!cargando && resumenTrabajadoresFiltrados.length === 0">
+            <td colspan="12" class="td-empty">
+              <div class="empty-state">
+                <span class="empty-state__icon">📭</span>
+                <p class="empty-state__text">No se encontraron registros</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let trabajador of resumenTrabajadoresFiltrados">
+            <td class="td-dni">{{ trabajador.dni }}</td>
+            <td class="td-trabajador">
+              <div class="trabajador-info">
+                <span class="trabajador-info__nombre">{{ trabajador.nombreCompleto }}</span>
+                <span class="trabajador-info__cargo">{{ trabajador.cargo }}</span>
+              </div>
+            </td>
+            <td class="td-area">{{ trabajador.area }}</td>
+            <td class="td-numero">{{ trabajador.diasHabiles }}</td>
+            <td class="td-numero td-numero--success">{{ trabajador.diasPresente }}</td>
+            <td class="td-numero td-numero--warning">
+              {{ trabajador.diasTardanza }}
+              <span class="justif-badge" *ngIf="trabajador.tardanzasJustificadas > 0">
+                ✓{{ trabajador.tardanzasJustificadas }}
+              </span>
+            </td>
+            <td class="td-numero td-numero--danger">
+              {{ trabajador.diasFalta }}
+              <span class="justif-badge" *ngIf="trabajador.faltasJustificadas > 0">
+                ✓{{ trabajador.faltasJustificadas }}
+              </span>
+            </td>
+            <td class="td-numero">{{ trabajador.diasPermiso + trabajador.diasLicencia }}</td>
+            <td class="td-porcentaje">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(trabajador.porcentajeAsistencia)">
+                {{ trabajador.porcentajeAsistencia }}%
+              </span>
+            </td>
+            <td class="td-porcentaje">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(trabajador.porcentajePuntualidad)">
+                {{ trabajador.porcentajePuntualidad }}%
+              </span>
+            </td>
+            <td class="td-horas">
+              {{ trabajador.totalHorasTrabajadas }}h
+              <span class="horas-extras" *ngIf="trabajador.totalHorasExtras > 0">
+                +{{ trabajador.totalHorasExtras }}h
+              </span>
+            </td>
+            <td class="td-actions">
+              <button class="btn-icon" title="Ver detalle" (click)="verDetalleTrabajador(trabajador)">
+                👁️
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- VISTA DETALLE (TABLA PROFESIONAL) -->
+  <div class="detalle-container" *ngIf="vistaActual === 'detalle'">
+    <!-- SELECTOR DE TRABAJADOR -->
+    <div class="detalle-header">
+      <div class="detalle-header__selector">
+        <label class="detalle-header__label">👤 Seleccionar Trabajador:</label>
+        <select 
+          class="select select--large select--premium" 
+          [(ngModel)]="trabajadorSeleccionadoIndex" 
+          (change)="seleccionarTrabajador()"
+        >
+          <option value="-1">-- Seleccione un trabajador para ver su detalle --</option>
+          <option *ngFor="let trabajador of resumenTrabajadoresFiltrados; let i = index" [value]="i">
+            {{ trabajador.nombreCompleto || trabajador.trabajadorNombre }} - DNI: {{ trabajador.dni || trabajador.trabajadorDni }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- INFORMACIÓN DEL TRABAJADOR SELECCIONADO -->
+    <div class="trabajador-info-card" *ngIf="trabajadorSeleccionado">
+      <div class="trabajador-info-card__header">
+        <div class="trabajador-info-card__avatar">
+          {{ (trabajadorSeleccionado.nombreCompleto || trabajadorSeleccionado.trabajadorNombre)?.charAt(0) || '?' }}
+        </div>
+        <div class="trabajador-info-card__data">
+          <h2 class="trabajador-info-card__nombre">
+            {{ trabajadorSeleccionado.nombreCompleto || trabajadorSeleccionado.trabajadorNombre }}
+          </h2>
+          <div class="trabajador-info-card__meta">
+            <span class="meta-item">
+              <strong>DNI:</strong> {{ trabajadorSeleccionado.dni || trabajadorSeleccionado.trabajadorDni }}
+            </span>
+            <span class="meta-item">
+              <strong>Cargo:</strong> {{ trabajadorSeleccionado.cargo || trabajadorSeleccionado.trabajadorCargo || 'Sin cargo' }}
+            </span>
+            <span class="meta-item">
+              <strong>Área:</strong> {{ trabajadorSeleccionado.area || trabajadorSeleccionado.trabajadorArea || 'Sin área' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESTADÍSTICAS RESUMEN -->
+      <div class="trabajador-stats">
+        <div class="stat-card stat-card--success">
+          <div class="stat-card__icon">✅</div>
+          <div class="stat-card__content">
+            <span class="stat-card__label">Días Presente</span>
+            <span class="stat-card__value">{{ trabajadorSeleccionado.diasPresente || 0 }}</span>
+          </div>
+        </div>
+        <div class="stat-card stat-card--warning">
+          <div class="stat-card__icon">⏰</div>
+          <div class="stat-card__content">
+            <span class="stat-card__label">Tardanzas</span>
+            <span class="stat-card__value">{{ trabajadorSeleccionado.diasTardanza || 0 }}</span>
+          </div>
+        </div>
+        <div class="stat-card stat-card--danger">
+          <div class="stat-card__icon">❌</div>
+          <div class="stat-card__content">
+            <span class="stat-card__label">Faltas</span>
+            <span class="stat-card__value">{{ trabajadorSeleccionado.diasFalta || 0 }}</span>
+          </div>
+        </div>
+        <div class="stat-card stat-card--info">
+          <div class="stat-card__icon">📊</div>
+          <div class="stat-card__content">
+            <span class="stat-card__label">% Asistencia</span>
+            <span class="stat-card__value">{{ trabajadorSeleccionado.porcentajeAsistencia || 0 }}%</span>
+          </div>
+        </div>
+        <div class="stat-card stat-card--primary">
+          <div class="stat-card__icon">⏱️</div>
+          <div class="stat-card__content">
+            <span class="stat-card__label">% Puntualidad</span>
+            <span class="stat-card__value">{{ trabajadorSeleccionado.porcentajePuntualidad || 0 }}%</span>
+          </div>
+        </div>
+        <div class="stat-card stat-card--secondary">
+          <div class="stat-card__icon">🕐</div>
+          <div class="stat-card__content">
+            <span class="stat-card__label">Horas Trabajadas</span>
+            <span class="stat-card__value">{{ trabajadorSeleccionado.totalHorasTrabajadas || 0 }}h</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLA DETALLADA DÍA POR DÍA -->
+    <div class="detalle-tabla-container" *ngIf="trabajadorSeleccionado">
+      <div class="detalle-tabla-header">
+        <h3 class="detalle-tabla-title">
+          📅 Registro Detallado - {{ nombreMesActual }} {{ filtros.anio }}
+        </h3>
+        <div class="detalle-tabla-info">
+          <span class="info-badge">
+            📊 {{ trabajadorSeleccionado.diasHabiles || 0 }} días hábiles
+          </span>
+        </div>
+      </div>
+
+      <div class="tabla-scroll">
+        <table class="tabla tabla--detalle">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Día</th>
+              <th>Estado</th>
+              <th>Entrada Mañana</th>
+              <th>Salida Mañana</th>
+              <th>Entrada Tarde</th>
+              <th>Salida Tarde</th>
+              <th>Horas Trabajadas</th>
+              <th>Tardanza</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="!trabajadorSeleccionado.detallesDiarios || trabajadorSeleccionado.detallesDiarios.length === 0">
+              <td colspan="10" class="td-empty">
+                <div class="empty-state">
+                  <span class="empty-state__icon">📭</span>
+                  <p class="empty-state__text">No hay registros detallados disponibles para este trabajador</p>
+                  <p class="empty-state__hint">Los detalles día por día se cargarán próximamente</p>
+                </div>
+              </td>
+            </tr>
+
+            <tr *ngFor="let detalle of trabajadorSeleccionado.detallesDiarios || []" 
+                [class.fila--presente]="detalle.estado === 'Presente'"
+                [class.fila--tardanza]="detalle.estado === 'Tardanza'"
+                [class.fila--falta]="detalle.estado === 'Falta'"
+                [class.fila--permiso]="detalle.estado === 'Permiso'"
+                [class.fila--licencia]="detalle.estado === 'Licencia'">
+              <td class="td-fecha">
+                {{ formatearFecha(detalle.fecha) }}
+              </td>
+              <td class="td-dia">
+                {{ detalle.diaSemana || 'N/A' }}
+              </td>
+              <td class="td-estado">
+                <span class="badge" [ngClass]="'badge--' + (detalle.estado?.toLowerCase() || 'sin-registro')">
+                  {{ detalle.estado || 'Sin registro' }}
+                </span>
+              </td>
+              <td class="td-hora">
+                {{ detalle.horaEntradaManana || detalle.horaEntrada || '---' }}
+              </td>
+              <td class="td-hora">
+                {{ detalle.horaSalidaManana || detalle.horaSalida || '---' }}
+              </td>
+              <td class="td-hora">
+                {{ detalle.horaEntradaTarde || '---' }}
+              </td>
+              <td class="td-hora">
+                {{ detalle.horaSalidaTarde || '---' }}
+              </td>
+              <td class="td-horas">
+                {{ detalle.horasTrabajadas || 0 }}h
+                <span class="horas-extras" *ngIf="detalle.horasExtras > 0">
+                  +{{ detalle.horasExtras }}h
+                </span>
+              </td>
+              <td class="td-tardanza">
+                <span class="tardanza-badge" *ngIf="detalle.minutosRetraso > 0 || detalle.minutosTardanza > 0">
+                  +{{ detalle.minutosRetraso || detalle.minutosTardanza }}min
+                </span>
+                <span class="tardanza-badge tardanza-badge--none" *ngIf="!detalle.minutosRetraso && !detalle.minutosTardanza">
+                  ---
+                </span>
+              </td>
+              <td class="td-observaciones">
+                {{ detalle.observaciones || detalle.justificacion || '---' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MENSAJE CUANDO NO HAY TRABAJADOR SELECCIONADO -->
+    <div class="detalle-empty" *ngIf="!trabajadorSeleccionado">
+      <div class="empty-state empty-state--large">
+        <span class="empty-state__icon">👤</span>
+        <h3 class="empty-state__title">Selecciona un Trabajador</h3>
+        <p class="empty-state__text">
+          Por favor, selecciona un trabajador del menú desplegable para ver su registro detallado de asistencia
+          para el período de <strong>{{ nombreMesActual }} {{ filtros.anio }}</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA GRÁFICOS -->
+  <div class="graficos-container" *ngIf="vistaActual === 'grafico'">
+    <div class="grafico-principal">
+      <div class="grafico-card grafico-card--large">
+        <div class="grafico-card__header">
+          <h3 class="grafico-card__title">📊 Resumen Mensual de Asistencia - {{ nombreMesActual }} {{ filtros.anio }}</h3>
+          <p class="grafico-card__subtitle">Análisis completo de asistencia, tardanzas y faltas del mes</p>
+        </div>
+        <div class="grafico-card__body">
+          <canvas id="grafico-mensual"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE TRABAJADOR -->
+  <div class="modal" *ngIf="mostrarModalDetalle" (click)="cerrarModalDetalle()">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">📊 Detalle de Asistencia - {{ nombreMesActual }} {{ filtros.anio }}</h3>
+        <button class="modal__close" (click)="cerrarModalDetalle()">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="trabajadorSeleccionado">
+        <div class="trabajador-card">
+          <div class="avatar-large">{{ (trabajadorSeleccionado.trabajadorNombre || trabajadorSeleccionado.nombreCompleto || '?').charAt(0) }}</div>
+          <div class="trabajador-data">
+            <h2>{{ trabajadorSeleccionado.trabajadorNombre || trabajadorSeleccionado.nombreCompleto || 'Sin nombre' }}</h2>
+            <p><strong>DNI:</strong> {{ trabajadorSeleccionado.trabajadorDni || trabajadorSeleccionado.dni || 'N/A' }}</p>
+            <p><strong>Cargo:</strong> {{ trabajadorSeleccionado.trabajadorCargo || trabajadorSeleccionado.cargo || 'Sin cargo' }}</p>
+            <p><strong>Area:</strong> {{ trabajadorSeleccionado.trabajadorArea || trabajadorSeleccionado.area || 'Sin área' }}</p>
+          </div>
+        </div>
+
+        <div class="estadisticas-detalle">
+          <div class="stat-box">
+            <span class="stat-box__label">Dias Presente</span>
+            <span class="stat-box__value stat-box__value--success">{{ trabajadorSeleccionado.diasPresente }}</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box__label">Tardanzas</span>
+            <span class="stat-box__value stat-box__value--warning">{{ trabajadorSeleccionado.diasTardanza }}</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box__label">Faltas</span>
+            <span class="stat-box__value stat-box__value--danger">{{ trabajadorSeleccionado.diasFalta }}</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box__label">% Asistencia</span>
+            <span class="stat-box__value">{{ trabajadorSeleccionado.porcentajeAsistencia }}%</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box__label">% Puntualidad</span>
+            <span class="stat-box__value">{{ trabajadorSeleccionado.porcentajePuntualidad }}%</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box__label">Horas Trabajadas</span>
+            <span class="stat-box__value">{{ trabajadorSeleccionado.totalHorasTrabajadas }}h</span>
+          </div>
+        </div>
+
+        <div class="registro-detallado-modal" *ngIf="trabajadorSeleccionado.detallesDiarios && trabajadorSeleccionado.detallesDiarios.length > 0">
+          <h4 class="registro-detallado-title">📅 Registro Detallado:</h4>
+          <div class="tabla-detalle-scroll">
+            <table class="tabla tabla--detalle-modal">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Día</th>
+                  <th>Estado</th>
+                  <th>Entrada Mañana</th>
+                  <th>Salida Mañana</th>
+                  <th>Entrada Tarde</th>
+                  <th>Salida Tarde</th>
+                  <th>Horas</th>
+                  <th>Retraso</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let detalle of trabajadorSeleccionado.detallesDiarios"
+                    [class.fila--presente]="detalle.estado === 'Presente'"
+                    [class.fila--tardanza]="detalle.estado === 'Tardanza'"
+                    [class.fila--falta]="detalle.estado === 'Falta'"
+                    [class.fila--permiso]="detalle.estado === 'Permiso'"
+                    [class.fila--licencia]="detalle.estado === 'Licencia'">
+                  <td>{{ formatearFecha(detalle.fecha) }}</td>
+                  <td>{{ detalle.diaSemana || 'N/A' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="'badge--' + (detalle.estado?.toLowerCase() || 'sin-registro')">
+                      {{ detalle.estado || 'Sin registro' }}
+                    </span>
+                  </td>
+                  <td>{{ detalle.horaEntradaManana || detalle.horaEntrada || '---' }}</td>
+                  <td>{{ detalle.horaSalidaManana || detalle.horaSalida || '---' }}</td>
+                  <td>{{ detalle.horaEntradaTarde || '---' }}</td>
+                  <td>{{ detalle.horaSalidaTarde || '---' }}</td>
+                  <td>
+                    {{ detalle.horasTrabajadas || 0 }}h
+                    <span class="horas-extras" *ngIf="detalle.horasExtras > 0">
+                      +{{ detalle.horasExtras }}h
+                    </span>
+                  </td>
+                  <td>
+                    <span class="tardanza-badge" *ngIf="detalle.minutosRetraso > 0 || detalle.minutosTardanza > 0">
+                      +{{ detalle.minutosRetraso || detalle.minutosTardanza }}min
+                    </span>
+                    <span class="tardanza-badge tardanza-badge--none" *ngIf="!detalle.minutosRetraso && !detalle.minutosTardanza">
+                      ---
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="registro-detallado-empty" *ngIf="!trabajadorSeleccionado.detallesDiarios || trabajadorSeleccionado.detallesDiarios.length === 0">
+          <p>📭 No hay registros detallados disponibles para este período</p>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalDetalle = false">Cerrar</button>
+        <button class="btn btn--primary" (click)="imprimirReporte()">📄 Imprimir Reporte</button>
+      </div>
+    </div>
+  </div>
+</div>

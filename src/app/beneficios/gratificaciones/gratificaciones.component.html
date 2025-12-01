@@ -1,0 +1,976 @@
+<div class="gratificaciones-container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">
+        <span class="page-title__icon">🎁</span>
+        Gratificaciones
+      </h1>
+      <p class="page-subtitle">
+        <span class="page-subtitle__dots">
+          <span class="page-subtitle__dot page-subtitle__dot--large"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--medium"></span>
+          <span class="page-subtitle__dot page-subtitle__dot--small"></span>
+        </span>
+        Calculo y gestion de gratificaciones de Julio y Diciembre
+      </p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn--sm btn--outline" (click)="exportarExcel()">
+        📊 Exportar Excel
+      </button>
+      <button class="btn btn--sm btn--primary" (click)="abrirCalculoMasivo()">
+        ➕ Calcular Gratificacion
+      </button>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="resumen-gratificaciones" *ngIf="resumen">
+    <div class="resumen-card resumen-card--total">
+      <div class="resumen-card__icon">📋</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Registros</span>
+        <span class="resumen-card__value">{{ resumen.totalRegistros }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--trabajadores">
+      <div class="resumen-card__icon">👥</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Trabajadores</span>
+        <span class="resumen-card__value">{{ resumen.totalTrabajadores }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--gratificacion">
+      <div class="resumen-card__icon">💰</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Gratificacion Total</span>
+        <span class="resumen-card__value">S/. {{ resumen.totalGratificacionCalculada.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--bonificacion">
+      <div class="resumen-card__icon">🎯</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Bonif. Extraord. (9%)</span>
+        <span class="resumen-card__value">S/. {{ resumen.totalBonificacionExtraordinaria.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--descuentos">
+      <div class="resumen-card__icon">➖</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Total Descuentos</span>
+        <span class="resumen-card__value">S/. {{ resumen.totalDescuentos.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="resumen-card resumen-card--neto">
+      <div class="resumen-card__icon">✅</div>
+      <div class="resumen-card__content">
+        <span class="resumen-card__label">Neto Pagado</span>
+        <span class="resumen-card__value">S/. {{ resumen.totalNetoPagado.toFixed(2) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-section">
+    <div class="filtros-header">
+      <div class="filtros-header__left">
+        <h3 class="filtros-title">🔍 Filtros de Busqueda</h3>
+      </div>
+      <div class="filtros-header__right">
+        <button class="btn btn--ghost btn--sm" (click)="limpiarFiltros()">
+          ✖️ Limpiar
+        </button>
+      </div>
+    </div>
+
+    <div class="filtros-grid">
+      <div class="filtro-item">
+        <label class="filtro-label">Año:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.anio" (change)="aplicarFiltros()">
+          <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Periodo:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.periodo" (change)="aplicarFiltros()">
+          <option *ngFor="let periodo of periodosGratificacion" [value]="periodo">{{ periodo }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Estado:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.estado" (change)="aplicarFiltros()">
+          <option *ngFor="let estado of estadosGratificacion" [value]="estado">{{ estado }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label class="filtro-label">Area:</label>
+        <select class="filtro-select" [(ngModel)]="filtros.area" (change)="aplicarFiltros()">
+          <option *ngFor="let area of areas" [value]="area">{{ area }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-item filtro-item--search">
+        <div class="search-box-wrapper">
+          <div class="search-box">
+            <label class="filtro-label">Buscar:</label>
+            <div class="search-box__input-wrapper">
+              <span class="search-box__icon">🔍</span>
+              <input
+                type="text"
+                class="search-box__input"
+                placeholder="Buscar por DNI, nombre, codigo..."
+                [(ngModel)]="filtros.busqueda"
+                (input)="aplicarFiltros()"
+              />
+            </div>
+          </div>
+        </div>
+        <span class="resultado-texto">
+          Mostrando <strong>{{ registrosFiltrados.length }}</strong> registros
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE REGISTROS -->
+  <div class="tabla-container">
+    <div class="tabla-scroll">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Codigo</th>
+            <th>Trabajador</th>
+            <th>DNI</th>
+            <th>Area</th>
+            <th>Periodo</th>
+            <th>Rem. Computable</th>
+            <th>Gratificacion</th>
+            <th>Bonif. 9%</th>
+            <th>Total</th>
+            <th>Descuentos</th>
+            <th>Neto a Pagar</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="cargando">
+            <td colspan="13" class="td-loading">
+              <div class="loading-spinner">Cargando...</div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!cargando && registrosPaginados.length === 0">
+            <td colspan="13" class="td-empty">
+              <div class="empty-state">
+                <span class="empty-state__icon">📭</span>
+                <p class="empty-state__text">No se encontraron registros de gratificaciones</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let registro of registrosPaginados">
+            <td class="td-codigo">
+              <span class="codigo-badge">{{ registro.codigo }}</span>
+            </td>
+            <td class="td-trabajador">
+              <div class="trabajador-info">
+                <span class="trabajador-info__nombre">{{ registro.trabajadorNombre }}</span>
+                <span class="trabajador-info__cargo">{{ registro.trabajadorCargo }}</span>
+              </div>
+            </td>
+            <td class="td-dni">{{ registro.trabajadorDni }}</td>
+            <td class="td-area">{{ registro.trabajadorArea }}</td>
+            <td class="td-periodo">
+              <div class="periodo-badge" [class.periodo-badge--julio]="registro.periodo === 'Julio'" [class.periodo-badge--diciembre]="registro.periodo === 'Diciembre'">
+                <span class="periodo-icon">{{ getPeriodoInfo(registro.periodo)?.icon }}</span>
+                <span class="periodo-texto">{{ registro.periodo }} {{ registro.anio }}</span>
+              </div>
+            </td>
+            <td class="td-monto">S/. {{ registro.totalRemuneracionComputable.toFixed(2) }}</td>
+            <td class="td-monto">S/. {{ registro.montoGratificacion.toFixed(2) }}</td>
+            <td class="td-monto td-monto--bonif">S/. {{ registro.bonificacionExtraordinaria.toFixed(2) }}</td>
+            <td class="td-monto td-monto--total">
+              <strong>S/. {{ registro.totalGratificacion.toFixed(2) }}</strong>
+            </td>
+            <td class="td-monto td-monto--descuento">S/. {{ registro.totalDescuentos.toFixed(2) }}</td>
+            <td class="td-monto td-monto--neto">
+              <strong>S/. {{ registro.netoAPagar.toFixed(2) }}</strong>
+            </td>
+            <td class="td-estado">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(registro.estado)">
+                {{ registro.estado }}
+              </span>
+            </td>
+            <td class="td-acciones">
+              <div class="acciones-menu">
+                <button 
+                  class="btn-icon" 
+                  title="Ver Detalle"
+                  (click)="verDetalle(registro)"
+                >
+                  👁️
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Aprobar"
+                  (click)="aprobarRegistro(registro)"
+                  *ngIf="registro.estado === 'Calculado'"
+                >
+                  ✅
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Pagar"
+                  (click)="abrirPago(registro)"
+                  *ngIf="registro.estado === 'Aprobado'"
+                >
+                  💳
+                </button>
+                <button 
+                  class="btn-icon" 
+                  title="Descargar Boleta"
+                  (click)="descargarBoleta(registro)"
+                  *ngIf="registro.estado === 'Pagado'"
+                >
+                  📥
+                </button>
+                <button 
+                  class="btn-icon btn-icon--danger" 
+                  title="Eliminar Gratificación"
+                  (click)="abrirModalEliminar(registro)"
+                >
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINACION -->
+    <div class="paginacion" *ngIf="totalPaginas > 1">
+      <button 
+        class="paginacion-btn" 
+        (click)="cambiarPagina(paginaActual - 1)"
+        [disabled]="paginaActual === 1"
+      >
+        ← Anterior
+      </button>
+
+      <div class="paginacion-numeros">
+        <button
+          *ngFor="let p of [].constructor(totalPaginas); let i = index"
+          class="paginacion-numero"
+          [class.active]="paginaActual === i + 1"
+          (click)="cambiarPagina(i + 1)"
+        >
+          {{ i + 1 }}
+        </button>
+      </div>
+
+      <button 
+        class="paginacion-btn" 
+        (click)="cambiarPagina(paginaActual + 1)"
+        [disabled]="paginaActual === totalPaginas"
+      >
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: CALCULO MASIVO -->
+  <div class="modal" *ngIf="mostrarModalCalculo" (click)="mostrarModalCalculo = false">
+    <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">🧮 Calculo Masivo de Gratificacion</h3>
+        <button class="modal__close" (click)="mostrarModalCalculo = false">✖️</button>
+      </div>
+      <div class="modal__body">
+        <div class="calculo-info">
+          <div class="calculo-info__icon">🎁</div>
+          <div class="calculo-info__content">
+            <h4>Configuracion del Calculo</h4>
+            <p>Seleccione el periodo y los trabajadores para calcular la gratificacion</p>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4 class="form-section__title">📅 Periodo de Gratificacion</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Periodo *</label>
+              <select class="form-select" [(ngModel)]="periodoCalculoMasivo">
+                <option value="Julio">🇵🇪 Julio (Fiestas Patrias)</option>
+                <option value="Diciembre">🎄 Diciembre (Navidad)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ano *</label>
+              <select class="form-select" [(ngModel)]="anioCalculoMasivo">
+                <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="periodo-detalle">
+            <span class="periodo-detalle__icon">{{ getPeriodoInfo(periodoCalculoMasivo)?.icon }}</span>
+            <div class="periodo-detalle__info">
+              <span class="periodo-detalle__label">Periodo a calcular:</span>
+              <span class="periodo-detalle__value">
+                {{ getPeriodoInfo(periodoCalculoMasivo)?.descripcion }} {{ anioCalculoMasivo }}
+              </span>
+              <span class="periodo-detalle__fecha">
+                <ng-container *ngIf="periodoCalculoMasivo === 'Julio'">
+                  (01/01/{{ anioCalculoMasivo }} - 30/06/{{ anioCalculoMasivo }})
+                </ng-container>
+                <ng-container *ngIf="periodoCalculoMasivo === 'Diciembre'">
+                  (01/07/{{ anioCalculoMasivo }} - 31/12/{{ anioCalculoMasivo }})
+                </ng-container>
+              </span>
+            </div>
+          </div>
+
+          <div class="bonificacion-info">
+            <div class="bonificacion-info__item">
+              <span class="bonificacion-info__label">Gratificacion:</span>
+              <span class="bonificacion-info__valor">Remuneracion Computable</span>
+            </div>
+            <div class="bonificacion-info__item">
+              <span class="bonificacion-info__label">Bonificacion Extraordinaria:</span>
+              <span class="bonificacion-info__valor">{{ config.porcentajeBonificacion }}% de la Gratificacion</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4 class="form-section__title">👥 Seleccion de Trabajadores</h4>
+          <div class="trabajadores-seleccion">
+            <div class="seleccion-header">
+              <span class="seleccion-count">
+                {{ trabajadoresSeleccionados.length }} de {{ trabajadoresDisponibles.length }} seleccionados
+              </span>
+            </div>
+
+            <div class="trabajadores-grid">
+              <div 
+                class="trabajador-card" 
+                *ngFor="let trabajador of trabajadoresDisponibles"
+                [class.selected]="estaTrabajadorSeleccionado(trabajador)"
+                (click)="toggleSeleccionTrabajador(trabajador)"
+              >
+                <div class="trabajador-card__header">
+                  <div class="checkbox-indicator">
+                    <span class="checkmark" *ngIf="estaTrabajadorSeleccionado(trabajador)">✓</span>
+                  </div>
+                  <div class="trabajador-card__info">
+                    <h5 class="trabajador-nombre">{{ trabajador.nombre }}</h5>
+                    <p class="trabajador-dni">DNI: {{ trabajador.dni }}</p>
+                    <p class="trabajador-cargo">{{ trabajador.cargo }}</p>
+                  </div>
+                </div>
+                <div class="trabajador-card__body">
+                  <div class="dato-item">
+                    <span class="dato-label">Area:</span>
+                    <span class="dato-value">{{ trabajador.area }}</span>
+                  </div>
+                  <div class="dato-item">
+                    <span class="dato-label">Rem. Basica:</span>
+                    <span class="dato-value">S/. {{ trabajador.remuneracionBasica.toFixed(2) }}</span>
+                  </div>
+                  <div class="dato-item">
+                    <span class="dato-label">Sistema:</span>
+                    <span class="dato-value">{{ trabajador.sistemaPensiones }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalCalculo = false">Cancelar</button>
+        <button 
+          class="btn btn--primary" 
+          (click)="confirmarCalculoMasivo()"
+          [disabled]="trabajadoresSeleccionados.length === 0"
+        >
+          🧮 Calcular Gratificacion ({{ trabajadoresSeleccionados.length }})
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE GRATIFICACION -->
+  <div class="modal modal--detalle-gratificacion" *ngIf="mostrarModalDetalle" (click)="mostrarModalDetalle = false">
+    <div class="modal__content modal__content--xlarge" (click)="$event.stopPropagation()">
+      <div class="modal__header modal__header--detalle">
+        <div class="header-detalle">
+          <div class="header-detalle__icon">🎁</div>
+          <div class="header-detalle__content">
+            <h3 class="modal__title">Detalle de Gratificación</h3>
+            <p class="modal__subtitle">{{ registroSeleccionado?.codigo }}</p>
+          </div>
+        </div>
+        <button class="modal__close" (click)="mostrarModalDetalle = false">✖️</button>
+      </div>
+      <div class="modal__body modal__body--detalle" *ngIf="registroSeleccionado">
+        <div class="detalle-gratificacion">
+          
+          <!-- INFORMACION DEL TRABAJADOR -->
+          <div class="detalle-seccion detalle-seccion--trabajador">
+            <div class="seccion-header">
+              <div class="seccion-icon">👤</div>
+              <h4 class="seccion-titulo">Información del Trabajador</h4>
+            </div>
+            <div class="seccion-content">
+              <div class="info-grid">
+                <div class="info-item">
+                  <div class="info-label">Código</div>
+                  <div class="info-value info-value--codigo">{{ registroSeleccionado.codigo }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Nombre Completo</div>
+                  <div class="info-value">{{ registroSeleccionado.trabajadorNombre }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">DNI</div>
+                  <div class="info-value">{{ registroSeleccionado.trabajadorDni }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Cargo</div>
+                  <div class="info-value">{{ registroSeleccionado.trabajadorCargo || 'No especificado' }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Área</div>
+                  <div class="info-value">{{ registroSeleccionado.trabajadorArea || 'No especificada' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PERIODO DE GRATIFICACIÓN -->
+          <div class="detalle-seccion detalle-seccion--periodo">
+            <div class="seccion-header">
+              <div class="seccion-icon">📅</div>
+              <h4 class="seccion-titulo">Período de Gratificación</h4>
+            </div>
+            <div class="seccion-content">
+              <div class="periodo-banner" [class.periodo-banner--julio]="registroSeleccionado.periodo === 'Julio'" [class.periodo-banner--diciembre]="registroSeleccionado.periodo === 'Diciembre'">
+                <div class="periodo-banner__icon">{{ getPeriodoInfo(registroSeleccionado.periodo)?.icon }}</div>
+                <div class="periodo-banner__content">
+                  <div class="periodo-banner__titulo">{{ registroSeleccionado.periodo }} {{ registroSeleccionado.anio }}</div>
+                  <div class="periodo-banner__subtitulo">{{ getPeriodoInfo(registroSeleccionado.periodo)?.descripcion }}</div>
+                  <div class="periodo-banner__fecha">
+                    <span class="fecha-label">Período:</span>
+                    <span class="fecha-value">{{ formatearFecha(registroSeleccionado.fechaInicio) }} - {{ formatearFecha(registroSeleccionado.fechaFin) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="periodo-detalle">
+                <div class="periodo-item">
+                  <div class="periodo-item__label">Meses Completos Trabajados</div>
+                  <div class="periodo-item__value">{{ registroSeleccionado.mesesCompletos }} meses</div>
+                  <div class="periodo-item__descripcion">Tiempo trabajado en el semestre</div>
+                </div>
+                <div class="periodo-item">
+                  <div class="periodo-item__label">Días Adicionales</div>
+                  <div class="periodo-item__value">{{ registroSeleccionado.diasAdicionales }} días</div>
+                  <div class="periodo-item__descripcion">Días adicionales al período completo</div>
+                </div>
+                <div class="periodo-item periodo-item--total">
+                  <div class="periodo-item__label">Total de Días</div>
+                  <div class="periodo-item__value periodo-item__value--total">{{ registroSeleccionado.totalDias }} días</div>
+                  <div class="periodo-item__descripcion">Total de días trabajados en el período</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- REMUNERACIÓN COMPUTABLE -->
+          <div class="detalle-seccion detalle-seccion--remuneracion">
+            <div class="seccion-header">
+              <div class="seccion-icon">💰</div>
+              <h4 class="seccion-titulo">Remuneración Computable</h4>
+              <div class="seccion-descripcion">Base para el cálculo de la gratificación</div>
+            </div>
+            <div class="seccion-content">
+              <div class="conceptos-lista conceptos-lista--detallada">
+                <div class="concepto-item">
+                  <div class="concepto-item__header">
+                    <span class="concepto-item__nombre">Remuneración Básica</span>
+                    <span class="concepto-item__monto">S/. {{ registroSeleccionado.remuneracionBasica.toFixed(2) }}</span>
+                  </div>
+                  <div class="concepto-item__descripcion">Sueldo base mensual del trabajador</div>
+                </div>
+                <div class="concepto-item" *ngIf="registroSeleccionado.asignacionFamiliar > 0">
+                  <div class="concepto-item__header">
+                    <span class="concepto-item__nombre">Asignación Familiar</span>
+                    <span class="concepto-item__monto">S/. {{ registroSeleccionado.asignacionFamiliar.toFixed(2) }}</span>
+                  </div>
+                  <div class="concepto-item__descripcion">Asignación familiar mensual (S/. 102.50)</div>
+                </div>
+                <div class="concepto-item" *ngIf="registroSeleccionado.promedioHorasExtras > 0">
+                  <div class="concepto-item__header">
+                    <span class="concepto-item__nombre">Promedio de Horas Extras</span>
+                    <span class="concepto-item__monto">S/. {{ registroSeleccionado.promedioHorasExtras.toFixed(2) }}</span>
+                  </div>
+                  <div class="concepto-item__descripcion">Promedio de horas extras del semestre ({{ registroSeleccionado.periodo === 'Julio' ? 'Enero-Junio' : 'Julio-Diciembre' }})</div>
+                </div>
+                <div class="concepto-item concepto-item--total">
+                  <div class="concepto-item__header">
+                    <span class="concepto-item__nombre concepto-item__nombre--total">Total Remuneración Computable</span>
+                    <span class="concepto-item__monto concepto-item__monto--total">S/. {{ registroSeleccionado.totalRemuneracionComputable.toFixed(2) }}</span>
+                  </div>
+                  <div class="concepto-item__descripcion concepto-item__descripcion--total">Suma de todos los conceptos computables</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CÁLCULO DE GRATIFICACIÓN -->
+          <div class="detalle-seccion detalle-seccion--calculo">
+            <div class="seccion-header">
+              <div class="seccion-icon">🧮</div>
+              <h4 class="seccion-titulo">Cálculo de Gratificación</h4>
+              <div class="seccion-descripcion">Desglose del monto de gratificación</div>
+            </div>
+            <div class="seccion-content">
+              <div class="calculo-lista">
+                <div class="calculo-item">
+                  <div class="calculo-item__header">
+                    <div class="calculo-item__info">
+                      <span class="calculo-item__nombre">Gratificación</span>
+                      <span class="calculo-item__formula">= Remuneración Computable</span>
+                    </div>
+                    <span class="calculo-item__monto">S/. {{ registroSeleccionado.montoGratificacion.toFixed(2) }}</span>
+                  </div>
+                  <div class="calculo-item__descripcion">La gratificación es igual a la remuneración computable del semestre</div>
+                </div>
+                <div class="calculo-item">
+                  <div class="calculo-item__header">
+                    <div class="calculo-item__info">
+                      <span class="calculo-item__nombre">Bonificación Extraordinaria</span>
+                      <span class="calculo-item__formula">{{ registroSeleccionado.porcentajeBonificacion }}% de EsSalud sobre la gratificación</span>
+                    </div>
+                    <span class="calculo-item__monto">S/. {{ registroSeleccionado.bonificacionExtraordinaria.toFixed(2) }}</span>
+                  </div>
+                  <div class="calculo-item__descripcion">Bonificación del {{ registroSeleccionado.porcentajeBonificacion }}% sobre la gratificación (EsSalud)</div>
+                </div>
+                <div class="calculo-item calculo-item--total">
+                  <div class="calculo-item__header">
+                    <div class="calculo-item__info">
+                      <span class="calculo-item__nombre calculo-item__nombre--total">Total Gratificación</span>
+                      <span class="calculo-item__formula">= Gratificación + Bonificación</span>
+                    </div>
+                    <span class="calculo-item__monto calculo-item__monto--total">S/. {{ registroSeleccionado.totalGratificacion.toFixed(2) }}</span>
+                  </div>
+                  <div class="calculo-item__descripcion calculo-item__descripcion--total">Monto total de gratificación antes de descuentos</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DESCUENTOS -->
+          <div class="detalle-seccion detalle-seccion--descuentos">
+            <div class="seccion-header">
+              <div class="seccion-icon">➖</div>
+              <h4 class="seccion-titulo">Descuentos Aplicados</h4>
+              <div class="seccion-descripcion">
+                ⚠️ Según la Ley 30334, las gratificaciones NO están sujetas a descuentos de AFP, ONP, Essalud ni 5ta categoría.
+                Solo se pueden descontar préstamos, embargos, cuotas sindicales, adelantos y convenios autorizados (agregados manualmente).
+              </div>
+            </div>
+            <div class="seccion-content">
+              <div class="descuentos-lista" *ngIf="registroSeleccionado.descuentos && registroSeleccionado.descuentos.length > 0">
+                <div class="descuento-item" *ngFor="let descuento of registroSeleccionado.descuentos">
+                  <div class="descuento-item__header">
+                    <div class="descuento-item__info">
+                      <span class="descuento-item__nombre">{{ descuento.nombre }}</span>
+                    </div>
+                    <span class="descuento-item__monto">- S/. {{ descuento.monto.toFixed(2) }}</span>
+                  </div>
+                  <div class="descuento-item__descripcion">
+                    Descuento manual agregado (préstamo, embargo, cuota sindical, adelanto o convenio autorizado)
+                  </div>
+                </div>
+                <div class="descuento-item descuento-item--total" *ngIf="registroSeleccionado.totalDescuentos > 0">
+                  <div class="descuento-item__header">
+                    <div class="descuento-item__info">
+                      <span class="descuento-item__nombre descuento-item__nombre--total">Total de Descuentos</span>
+                    </div>
+                    <span class="descuento-item__monto descuento-item__monto--total">- S/. {{ registroSeleccionado.totalDescuentos.toFixed(2) }}</span>
+                  </div>
+                  <div class="descuento-item__descripcion descuento-item__descripcion--total">Suma de todos los descuentos manuales aplicados</div>
+                </div>
+              </div>
+              <div class="descuentos-vacio" *ngIf="!registroSeleccionado.descuentos || registroSeleccionado.descuentos.length === 0 || registroSeleccionado.totalDescuentos === 0">
+                <div class="vacio-icon">✅</div>
+                <div class="vacio-mensaje">
+                  <strong>No se aplicaron descuentos a esta gratificación</strong>
+                  <p class="vacio-descripcion">
+                    Según la Ley 30334, las gratificaciones no están sujetas a descuentos automáticos de AFP, ONP, Essalud ni 5ta categoría.
+                    Solo se pueden descontar préstamos, embargos, cuotas sindicales, adelantos y convenios autorizados (agregados manualmente).
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- NETO A PAGAR -->
+          <div class="detalle-seccion detalle-seccion--neto">
+            <div class="neto-pagar">
+              <div class="neto-pagar__header">
+                <div class="neto-pagar__icon">💵</div>
+                <div class="neto-pagar__info">
+                  <div class="neto-pagar__label">Neto a Pagar</div>
+                  <div class="neto-pagar__formula">= Total Gratificación - Total Descuentos</div>
+                </div>
+              </div>
+              <div class="neto-pagar__monto">S/. {{ registroSeleccionado.netoAPagar.toFixed(2) }}</div>
+              <div class="neto-pagar__descripcion">Monto final que recibirá el trabajador</div>
+            </div>
+          </div>
+
+          <!-- DATOS BANCARIOS -->
+          <div class="detalle-seccion detalle-seccion--bancario">
+            <div class="seccion-header">
+              <div class="seccion-icon">🏦</div>
+              <h4 class="seccion-titulo">Datos de Pago</h4>
+              <div class="seccion-descripcion">Información bancaria para el depósito</div>
+            </div>
+            <div class="seccion-content">
+              <div class="info-grid">
+                <div class="info-item">
+                  <div class="info-label">Banco</div>
+                  <div class="info-value">{{ registroSeleccionado.banco || 'No especificado' }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Tipo de Cuenta</div>
+                  <div class="info-value">{{ registroSeleccionado.tipoCuenta || 'No especificado' }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Número de Cuenta</div>
+                  <div class="info-value">{{ registroSeleccionado.numeroCuenta || 'No especificado' }}</div>
+                </div>
+                <div class="info-item" *ngIf="registroSeleccionado.cci">
+                  <div class="info-label">CCI</div>
+                  <div class="info-value">{{ registroSeleccionado.cci }}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Moneda</div>
+                  <div class="info-value">{{ registroSeleccionado.moneda || 'Soles' }}</div>
+                </div>
+                <div class="info-item" *ngIf="registroSeleccionado.fechaPago">
+                  <div class="info-label">Fecha de Pago</div>
+                  <div class="info-value info-value--fecha">{{ formatearFecha(registroSeleccionado.fechaPago) }}</div>
+                </div>
+                <div class="info-item" *ngIf="registroSeleccionado.numeroComprobante">
+                  <div class="info-label">Número de Comprobante</div>
+                  <div class="info-value info-value--comprobante">{{ registroSeleccionado.numeroComprobante }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ESTADO -->
+          <div class="detalle-seccion detalle-seccion--estado">
+            <div class="seccion-header">
+              <div class="seccion-icon">📊</div>
+              <h4 class="seccion-titulo">Estado del Registro</h4>
+            </div>
+            <div class="seccion-content">
+              <div class="estado-container">
+                <div class="estado-badge">
+                  <span class="badge badge--large" [ngClass]="getEstadoBadgeClass(registroSeleccionado.estado)">
+                    {{ registroSeleccionado.estado }}
+                  </span>
+                </div>
+                <div class="estado-fechas">
+                  <div class="estado-fecha-item" *ngIf="registroSeleccionado.fechaCalculo">
+                    <div class="estado-fecha-label">Calculado el:</div>
+                    <div class="estado-fecha-value">{{ formatearFecha(registroSeleccionado.fechaCalculo) }}</div>
+                    <div class="estado-fecha-usuario" *ngIf="registroSeleccionado.calculadoPor">por {{ registroSeleccionado.calculadoPor }}</div>
+                  </div>
+                  <div class="estado-fecha-item" *ngIf="registroSeleccionado.fechaPago">
+                    <div class="estado-fecha-label">Pagado el:</div>
+                    <div class="estado-fecha-value">{{ formatearFecha(registroSeleccionado.fechaPago) }}</div>
+                    <div class="estado-fecha-usuario" *ngIf="registroSeleccionado.pagadoPor">por {{ registroSeleccionado.pagadoPor }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="modal__footer modal__footer--detalle">
+        <button class="btn btn--ghost" (click)="mostrarModalDetalle = false">Cerrar</button>
+        <button class="btn btn--primary" (click)="descargarBoleta(registroSeleccionado!)" *ngIf="registroSeleccionado">
+          📥 Descargar Boleta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PAGO -->
+  <div class="modal" *ngIf="mostrarModalPago" (click)="mostrarModalPago = false">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">💳 Confirmar Pago de Gratificacion</h3>
+        <button class="modal__close" (click)="mostrarModalPago = false">✖️</button>
+      </div>
+      <div class="modal__body" *ngIf="registroSeleccionado">
+        <div class="pago-info">
+          <div class="pago-info__icon">🎁</div>
+          <div class="pago-info__content">
+            <h4>{{ registroSeleccionado.trabajadorNombre }}</h4>
+            <p class="pago-periodo">{{ registroSeleccionado.periodo }} {{ registroSeleccionado.anio }}</p>
+            <p class="pago-monto">S/. {{ registroSeleccionado.netoAPagar.toFixed(2) }}</p>
+          </div>
+        </div>
+
+        <div class="pago-detalle">
+          <div class="detalle-row">
+            <span class="detalle-label">Gratificacion:</span>
+            <span class="detalle-value">S/. {{ registroSeleccionado.montoGratificacion.toFixed(2) }}</span>
+          </div>
+          <div class="detalle-row">
+            <span class="detalle-label">Bonificacion (9%):</span>
+            <span class="detalle-value">S/. {{ registroSeleccionado.bonificacionExtraordinaria.toFixed(2) }}</span>
+          </div>
+          <div class="detalle-row">
+            <span class="detalle-label">Descuentos:</span>
+            <span class="detalle-value detalle-value--descuento">- S/. {{ registroSeleccionado.totalDescuentos.toFixed(2) }}</span>
+          </div>
+          <div class="detalle-row detalle-row--total">
+            <span class="detalle-label">Neto a Pagar:</span>
+            <span class="detalle-value">S/. {{ registroSeleccionado.netoAPagar.toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="pago-banco">
+          <div class="banco-row">
+            <span class="banco-label">Banco:</span>
+            <span class="banco-value">{{ registroSeleccionado.banco }}</span>
+          </div>
+          <div class="banco-row">
+            <span class="banco-label">Cuenta:</span>
+            <span class="banco-value">{{ registroSeleccionado.numeroCuenta }}</span>
+          </div>
+        </div>
+
+        <div class="pago-warning">
+          <p>⚠️ Esta accion registrara el pago de la gratificacion. Asegurese de haber realizado la transferencia bancaria.</p>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--ghost" (click)="mostrarModalPago = false">Cancelar</button>
+        <button class="btn btn--success" (click)="confirmarPago()">
+          💳 Confirmar Pago
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ERROR CARGA TRABAJADORES -->
+  <div class="modal modal--error-carga" *ngIf="mostrarModalErrorCarga">
+    <div class="modal__content modal__content--error-carga" (click)="$event.stopPropagation()">
+      <div class="error-carga">
+        <div class="error-carga__icon">❌</div>
+        <h3 class="error-carga__title">Error al cargar trabajadores</h3>
+        <p class="error-carga__message">
+          {{ mensajeErrorCarga }}
+        </p>
+        <button class="btn btn--primary" (click)="cerrarModalErrorCarga()">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ÉXITO PAGO -->
+  <div class="modal modal--exito" *ngIf="mostrarModalExitoPago">
+    <div class="modal__content modal__content--exito" (click)="$event.stopPropagation()">
+      <div class="exito-pago">
+        <!-- Círculo de carga -->
+        <div class="exito-pago__loader" *ngIf="pagando">
+          <div class="spinner spinner--success"></div>
+        </div>
+        
+        <!-- Check de éxito -->
+        <div class="exito-pago__check" *ngIf="pagoCompletado">
+          <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
+        
+        <h3 class="exito-pago__title">Pago confirmado exitosamente</h3>
+        <p class="exito-pago__message" *ngIf="pagoCompletado">
+          La gratificación ha sido marcada como pagada correctamente.
+        </p>
+        <p class="exito-pago__message" *ngIf="pagando">
+          Procesando pago...
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ELIMINAR GRATIFICACIÓN -->
+  <div class="modal modal--delete" *ngIf="mostrarModalEliminar" (click)="cerrarModalEliminar()" [class.modal--shaking]="mensajeError">
+    <div class="modal__content modal__content--delete" (click)="$event.stopPropagation()">
+      <!-- Header compacto -->
+      <div class="modal__header modal__header--delete">
+        <div class="delete-header__icon">⚠️</div>
+        <div class="delete-header__text">
+          <h3 class="modal__title">Eliminar Gratificación</h3>
+          <p class="modal__subtitle">Esta acción no se puede deshacer</p>
+        </div>
+        <button class="modal__close" (click)="cerrarModalEliminar()" [disabled]="eliminando">✖️</button>
+      </div>
+
+      <div class="modal__body modal__body--delete" *ngIf="gratificacionAEliminar">
+        <!-- Mensaje de error -->
+        <div class="alert alert--error" *ngIf="mensajeError && !eliminando && !eliminacionCompletada">
+          <span class="alert__icon">❌</span>
+          <span class="alert__message">{{ mensajeError }}</span>
+        </div>
+        
+        <!-- Estado de carga y éxito -->
+        <div class="delete-exito-container" *ngIf="eliminando || eliminacionCompletada">
+          <div class="delete-exito">
+            <!-- Círculo de carga -->
+            <div class="delete-exito__loader" *ngIf="eliminando">
+              <div class="spinner spinner--delete"></div>
+            </div>
+            
+            <!-- Check de éxito -->
+            <div class="delete-exito__check" *ngIf="eliminacionCompletada">
+              <svg class="checkmark checkmark--delete" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="50" height="50">
+                <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+              </svg>
+            </div>
+            
+            <h3 class="delete-exito__title" *ngIf="eliminacionCompletada">{{ mensajeExito }}</h3>
+            <p class="delete-exito__text" *ngIf="eliminando">Eliminando gratificación...</p>
+            <p class="delete-exito__text" *ngIf="eliminacionCompletada">La gratificación ha sido eliminada permanentemente.</p>
+          </div>
+        </div>
+
+        <div class="delete-content" *ngIf="!eliminando && !eliminacionCompletada">
+          <!-- Información de la gratificación -->
+          <div class="delete-planilla-info">
+            <div class="delete-planilla-info__item">
+              <span class="delete-planilla-info__label">Código:</span>
+              <span class="delete-planilla-info__value">{{ gratificacionAEliminar.codigo }}</span>
+            </div>
+            <div class="delete-planilla-info__item">
+              <span class="delete-planilla-info__label">Trabajador:</span>
+              <span class="delete-planilla-info__value">{{ gratificacionAEliminar.trabajadorNombre }}</span>
+            </div>
+            <div class="delete-planilla-info__item">
+              <span class="delete-planilla-info__label">Período:</span>
+              <span class="delete-planilla-info__value">{{ gratificacionAEliminar.periodo }} {{ gratificacionAEliminar.anio }}</span>
+            </div>
+            <div class="delete-planilla-info__item">
+              <span class="delete-planilla-info__label">Monto:</span>
+              <span class="delete-planilla-info__value">S/. {{ (gratificacionAEliminar.netoAPagar || 0).toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <!-- Advertencia compacta -->
+          <div class="delete-warning">
+            <p class="delete-warning__text">
+              Se eliminarán <strong>permanentemente</strong> todos los datos, cálculos y registros de esta gratificación.
+            </p>
+          </div>
+
+          <!-- Campo de confirmación -->
+          <div class="delete-confirmation">
+            <label class="delete-confirmation__label">
+              Escriba <strong>"ELIMINAR"</strong> para confirmar:
+            </label>
+            <input 
+              type="text" 
+              class="delete-confirmation__input"
+              [class.delete-confirmation__input--error]="confirmacionEliminar && confirmacionEliminar.toUpperCase() !== 'ELIMINAR'"
+              [class.delete-confirmation__input--success]="confirmacionEliminar.toUpperCase() === 'ELIMINAR'"
+              placeholder="ELIMINAR"
+              [(ngModel)]="confirmacionEliminar"
+              [disabled]="eliminando"
+              autocomplete="off"
+              (keyup.enter)="confirmarEliminacion()"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer compacto -->
+      <div class="modal__footer modal__footer--delete" *ngIf="!eliminando && !eliminacionCompletada">
+        <button class="btn btn--outline" (click)="cerrarModalEliminar()" [disabled]="eliminando">
+          Cancelar
+        </button>
+        <button 
+          class="btn btn--danger" 
+          (click)="confirmarEliminacion()"
+          [disabled]="confirmacionEliminar.toUpperCase() !== 'ELIMINAR' || eliminando"
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RESULTADO CÁLCULO MASIVO -->
+  <div class="modal modal--resultado-calculo" *ngIf="mostrarModalResultadoCalculo">
+    <div class="modal__content modal__content--resultado-calculo" (click)="$event.stopPropagation()">
+      <div class="resultado-calculo">
+        <div class="resultado-calculo__icon" *ngIf="resultadoCalculoMasivo?.calculadas > 0">✅</div>
+        <div class="resultado-calculo__icon resultado-calculo__icon--error" *ngIf="resultadoCalculoMasivo?.calculadas === 0">⚠️</div>
+        
+        <h3 class="resultado-calculo__title">
+          <span *ngIf="resultadoCalculoMasivo?.calculadas > 0">Cálculo completado</span>
+          <span *ngIf="resultadoCalculoMasivo?.calculadas === 0">Error en el cálculo</span>
+        </h3>
+        
+        <div class="resultado-calculo__resumen">
+          <div class="resumen-item resumen-item--success" *ngIf="resultadoCalculoMasivo?.calculadas > 0">
+            <span class="resumen-item__label">Gratificaciones calculadas:</span>
+            <span class="resumen-item__value">{{ resultadoCalculoMasivo?.calculadas }}</span>
+          </div>
+          <div class="resumen-item resumen-item--error" *ngIf="resultadoCalculoMasivo?.errores > 0">
+            <span class="resumen-item__label">Errores:</span>
+            <span class="resumen-item__value">{{ resultadoCalculoMasivo?.errores }}</span>
+          </div>
+        </div>
+
+        <div class="resultado-calculo__errores" *ngIf="resultadoCalculoMasivo?.errores > 0 && resultadoCalculoMasivo?.erroresDetalle?.length > 0">
+          <h4 class="errores-title">Detalles de errores:</h4>
+          <div class="errores-list">
+            <div class="error-item" *ngFor="let error of resultadoCalculoMasivo.erroresDetalle">
+              <div class="error-item__trabajador">{{ error.trabajador }}</div>
+              <div class="error-item__mensaje">{{ error.error }}</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn--primary" (click)="cerrarModalResultadoCalculo()">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

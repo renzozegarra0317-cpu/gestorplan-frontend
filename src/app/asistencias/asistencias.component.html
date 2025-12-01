@@ -1,0 +1,53 @@
+<div class="gestion-contenedor">
+  <div class="gestion-header">
+    <h1 class="gestion-title">Gestión de Asistencias</h1>
+    <button (click)="abrirModalAsistencia()" class="btn-nueva-asistencia">
+      + Nueva Asistencia
+    </button>
+  </div>
+
+  <div class="asistencias-table-container">
+    <table class="asistencias-table" *ngIf="asistencias.length > 0; else noAsistencias">
+      <thead>
+        <tr>
+          <th>Trabajador</th>
+          <th>Fecha</th>
+          <th>Entrada</th>
+          <th>Salida</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th>Motivo</th>
+          <th>Observación</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let asistencia of asistencias">
+          <td>{{ asistencia.trabajadorId }}</td>
+          <td>{{ asistencia.fecha }}</td>
+          <td>{{ asistencia.horaEntrada }}</td>
+          <td>{{ asistencia.horaSalida }}</td>
+          <td>{{ asistencia.tipo }}</td>
+          <td>
+            <span [ngClass]="{
+              'estado-validado': asistencia.estado === 'Validado',
+              'estado-pendiente': asistencia.estado === 'Pendiente',
+              'estado-observado': asistencia.estado === 'Observado'
+            }">{{ asistencia.estado }}</span>
+          </td>
+          <td>{{ asistencia.motivo || '-' }}</td>
+          <td>{{ asistencia.observaciones || '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noAsistencias>
+      <div class="sin-asistencias">No hay asistencias registradas.</div>
+    </ng-template>
+  </div>
+
+  <!-- MODAL DE ASISTENCIA -->
+  <app-asistencia-form
+    [show]="mostrarModalAsistencia"
+    (close)="cerrarModalAsistencia()"
+    (save)="guardarAsistencia($event)">
+  </app-asistencia-form>
+</div>

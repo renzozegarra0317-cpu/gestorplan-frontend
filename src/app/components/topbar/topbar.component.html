@@ -1,0 +1,155 @@
+<header class="topbar" role="banner">
+  <!-- IZQUIERDA: Botón menú móvil y botón sidebar colapsado -->
+  <div class="topbar__left">
+    <button 
+      class="menu-toggle hide-desktop"
+      (click)="toggleMobileMenu()"
+      aria-label="Abrir menú"
+      title="Menú"
+    >
+      <span class="menu-icon">☰</span>
+    </button>
+    
+    <!-- Botón para expandir sidebar cuando está colapsado (modo claro y oscuro) -->
+    <button 
+      class="sidebar-expand-btn"
+      *ngIf="isSidebarCollapsed"
+      (click)="toggleSidebar()"
+      aria-label="Expandir menú"
+      title="Expandir menú lateral"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M3 4h14M3 10h14M3 16h14"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- DERECHA: Acciones centradas -->
+  <div class="topbar__right">
+    <!-- Notificaciones -->
+    <div class="topbar__notifications" [class.active]="showNotifications">
+      <button 
+        class="notification-btn"
+        (click)="toggleNotifications()"
+        aria-label="Notificaciones"
+      >
+        <span class="notification-icon">🔔</span>
+        <span class="notification-badge" *ngIf="notificationCount > 0">
+          {{ notificationCount }}
+        </span>
+      </button>
+
+      <!-- Dropdown Notificaciones -->
+      <div class="notification-dropdown" *ngIf="showNotifications">
+        <div class="dropdown-header">
+          <h3>Notificaciones</h3>
+          <button class="btn-clear" (click)="markAllAsRead()">
+            Marcar todas
+          </button>
+        </div>
+        <div class="dropdown-body">
+          <div 
+            *ngFor="let notif of notifications" 
+            class="notification-item"
+            [class.unread]="!notif.read"
+            (click)="onNotificationClick(notif)"
+          >
+            <span class="notif-icon">{{ notif.icon }}</span>
+            <div class="notif-content">
+              <h4>{{ notif.title }}</h4>
+              <p>{{ notif.message }}</p>
+              <span class="notif-time">{{ getTimeAgo(notif) }}</span>
+            </div>
+          </div>
+          <div class="no-notifications" *ngIf="notifications.length === 0">
+            <span>📭</span>
+            <p>No tienes notificaciones</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ayuda -->
+    <button 
+      class="topbar__help"
+      (click)="showHelp()"
+      aria-label="Ayuda"
+      title="Centro de ayuda"
+    >
+      <span class="help-icon">❓</span>
+    </button>
+
+    <!-- Toggle Tema -->
+    <button 
+      class="topbar__theme" 
+      (click)="toggleTheme()" 
+      [attr.aria-label]="'Cambiar a modo ' + (theme==='dark' ? 'claro' : 'oscuro')"
+      title="Cambiar tema"
+    >
+      <span class="topbar__theme-icon">{{ theme === 'dark' ? '🌙' : '☀️' }}</span>
+      <span class="topbar__theme-text">{{ theme === 'dark' ? 'Oscuro' : 'Claro' }}</span>
+    </button>
+
+    <!-- Usuario -->
+    <div 
+      class="topbar__user" 
+      [class.active]="showUserMenu"
+      (click)="toggleUserMenu()"
+      [title]="userName"
+    >
+      <div class="avatar" *ngIf="userAvatar; else initialsTmpl">
+        <img [src]="userAvatar" alt="Avatar de usuario" />
+        <span class="user-status" [class.online]="userStatus === 'online'"></span>
+      </div>
+      <ng-template #initialsTmpl>
+        <div class="avatar avatar--initials">
+          {{ initials }}
+          <span class="user-status" [class.online]="userStatus === 'online'"></span>
+        </div>
+      </ng-template>
+
+      <div class="user-text">
+        <div class="user-name">{{ userName }}</div>
+        <div class="user-meta">{{ userRole }}</div>
+      </div>
+      
+      <svg class="user-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+
+      <!-- Dropdown Usuario - ALINEADO A LA DERECHA -->
+      <div class="user-dropdown" *ngIf="showUserMenu">
+        <div class="user-dropdown-header">
+          <div class="user-avatar-large">
+            <div class="avatar avatar--initials">{{ initials }}</div>
+          </div>
+          <div class="user-details">
+            <h4>{{ userName }}</h4>
+            <p>{{ userEmail }}</p>
+            <span class="user-badge">{{ userRole }}</span>
+          </div>
+        </div>
+
+        <div class="user-dropdown-body">
+          <button class="menu-item" (click)="navigateTo('/perfil')">
+            <span class="item-icon">👤</span>
+            <span class="item-text">Mi Perfil</span>
+          </button>
+          <button class="menu-item" (click)="navigateTo('/configuracion')">
+            <span class="item-icon">⚙️</span>
+            <span class="item-text">Configuración</span>
+          </button>
+          <button class="menu-item" (click)="navigateTo('/ayuda')">
+            <span class="item-icon">❓</span>
+            <span class="item-text">Ayuda</span>
+          </button>
+          <div class="menu-divider"></div>
+          <button class="menu-item danger" (click)="logout()">
+            <span class="item-icon">🚪</span>
+            <span class="item-text">Cerrar Sesión</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

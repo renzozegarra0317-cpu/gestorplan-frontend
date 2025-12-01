@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verificar Token</title>
+</head>
+<body>
+    <h1>Verificar Token en localStorage</h1>
+    <div id="resultado"></div>
+    
+    <script>
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        document.getElementById('resultado').innerHTML = `
+            <p><strong>Token:</strong> ${token ? 'SÍ encontrado' : 'NO encontrado'}</p>
+            <p><strong>Usuario:</strong> ${user ? JSON.parse(user).username : 'NO encontrado'}</p>
+            <p><strong>Token completo:</strong> ${token || 'No hay token'}</p>
+        `;
+    </script>
+</body>
+</html>
+

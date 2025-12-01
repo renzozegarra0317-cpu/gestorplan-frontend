@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>GESTORPLAN - Sistema de Planillas</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Preconnect para Google Fonts (mejora rendimiento y reduce errores) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Cargar tema INMEDIATAMENTE para evitar parpadeo -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      console.log('🎨 Tema cargado (index.html):', savedTheme);
+      
+      // NOTA: El manejo de service workers ahora se hace en ConsoleErrorHandlerService
+      // para mantener el código más organizado y escalable
+    })();
+  </script>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

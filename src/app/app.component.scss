@@ -1,0 +1,109 @@
+/* Estilos globales del componente raíz */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Contenedor del login - pantalla completa */
+.login-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Contenedor de la aplicación - oculto cuando no está autenticado */
+.app-container {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.app-container.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Clase para ocultar elementos */
+.hidden {
+  display: none !important;
+}
+
+/* Pantalla de carga */
+.loading-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-spinner {
+  text-align: center;
+  color: white;
+  
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+  }
+  
+  p {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.app-main {
+  margin-left: var(--sidebar-w);
+  padding-top: calc(80px + var(--content-gap));
+  padding-bottom: var(--content-gap);
+  min-height: 100dvh;
+  width: calc(100% - var(--sidebar-w));
+  
+  display: grid;
+  grid-template-columns: var(--content-gutter) 1fr var(--content-gutter);
+  column-gap: 0;
+  
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.page {
+  grid-column: 2;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .app-main {
+    margin-left: 0;
+    width: 100%;
+    padding-top: calc(64px + var(--content-gap));
+  }
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    padding-top: calc(60px + var(--content-gap));
+  }
+}
