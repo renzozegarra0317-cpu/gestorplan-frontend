@@ -606,83 +606,87 @@ export class NuevoComponent implements OnInit {
   }
 
   cargarGerencias(): void {
-    console.log('📋 Cargando TODAS las Gerencias y Oficinas según organigrama...');
+    console.log('📋 Cargando TODAS las Gerencias desde la base de datos...');
     
-    // TODAS las entidades principales según el organigrama:
-    // 5 Oficinas + 6 Gerencias de Línea = 11 en total
-    const entidadesOficiales = [
-      // OFICINAS (5)
-      { Nombre: 'Oficina de Administración y Finanzas', Tipo: 'Oficina' },
-      { Nombre: 'Oficina de Administración Tributaria', Tipo: 'Oficina' },
-      { Nombre: 'Oficina de Ejecutoría Coactiva', Tipo: 'Oficina' },
-      { Nombre: 'Oficina de Planeamiento y Presupuesto', Tipo: 'Oficina' },
-      { Nombre: 'Oficina de Asesoría Jurídica', Tipo: 'Oficina' },
-      // GERENCIAS DE LÍNEA (6)
-      { Nombre: 'Gerencia de Desarrollo Urbano y Rural', Tipo: 'Gerencia' },
-      { Nombre: 'Gerencia de Obras Públicas', Tipo: 'Gerencia' },
-      { Nombre: 'Gerencia de Salud y Gestión Ambiental', Tipo: 'Gerencia' },
-      { Nombre: 'Gerencia de Seguridad Ciudadana y Defensa Civil', Tipo: 'Gerencia' },
-      { Nombre: 'Gerencia de Desarrollo Económico Local', Tipo: 'Gerencia' },
-      { Nombre: 'Gerencia de Desarrollo e Inclusión Social', Tipo: 'Gerencia' }
-    ];
-    
-    // Intentar cargar desde backend y buscar estas 11 entidades
-    this.http.get<any[]>(`${this.apiBaseUrl}/api/areas`).subscribe({
+    // Intentar primero con /api/gerencias (ruta principal)
+    this.http.get<any>(`${this.apiBaseUrl}/api/gerencias`).subscribe({
       next: (response: any) => {
-        const areasData = response.data || response;
-        const areasArray = Array.isArray(areasData) ? areasData : [];
+        // La respuesta puede venir como { success: true, data: [...] } o directamente como array
+        const gerenciasData = response.data || response;
+        const gerenciasArray = Array.isArray(gerenciasData) ? gerenciasData : [];
         
-        // Buscar las 11 entidades en las áreas del backend
-        this.gerencias = entidadesOficiales.map((entidadOficial, index) => {
-          // Buscar en las áreas del backend
-          const areaEncontrada = areasArray.find((area: any) => {
-            const nombreArea = (area.Nombre || area.nombre || '').toLowerCase().trim();
-            const nombreEntidad = entidadOficial.Nombre.toLowerCase().trim();
-            // Buscar coincidencia exacta o parcial
-            return nombreArea === nombreEntidad || 
-                   nombreArea.includes(nombreEntidad.replace(/^(oficina de |gerencia de )/i, ''));
-          });
+        // Mapear todas las gerencias de la base de datos
+        this.gerencias = gerenciasArray.map((gerencia: any) => {
+          // Determinar el tipo basado en el nombre
+          const nombre = (gerencia.Nombre || gerencia.nombre || '').trim();
+          const esOficina = nombre.toLowerCase().includes('oficina de') || nombre.toLowerCase().includes('oficina');
+          const tipo = esOficina ? 'Oficina' : 'Gerencia';
           
-          if (areaEncontrada) {
-            return {
-              GerenciaID: areaEncontrada.AreaID || areaEncontrada.id,
-              Nombre: entidadOficial.Nombre,
-              Descripcion: areaEncontrada.Descripcion || areaEncontrada.descripcion || '',
-              AreaID: areaEncontrada.AreaID || areaEncontrada.id,
-              Tipo: entidadOficial.Tipo
-            };
-          } else {
-            // Si no se encuentra, usar ID aproximado (6-16 según el organigrama)
-            return {
-              GerenciaID: 6 + index,
-              Nombre: entidadOficial.Nombre,
-              Descripcion: '',
-              AreaID: 6 + index,
-              Tipo: entidadOficial.Tipo
-            };
-          }
+          return {
+            GerenciaID: gerencia.GerenciaID || gerencia.id,
+            Nombre: nombre,
+            Descripcion: gerencia.Descripcion || gerencia.descripcion || '',
+            AreaID: gerencia.AreaID || gerencia.areaId || gerencia.GerenciaID || gerencia.id,
+            Tipo: tipo,
+            Activa: gerencia.Activa !== undefined ? gerencia.Activa : (gerencia.Activo !== undefined ? gerencia.Activo : true)
+          };
         });
         
-        console.log('✅ 11 Gerencias/Oficinas cargadas:', this.gerencias.length);
-        console.log('📋 Lista:', this.gerencias.map(g => `${g.Nombre} (${g.Tipo})`));
+        // Filtrar solo las gerencias activas
+        this.gerencias = this.gerencias.filter(g => g.Activa !== false);
+        
+        // Ordenar por nombre
+        this.gerencias.sort((a, b) => {
+          const nombreA = (a.Nombre || '').toLowerCase();
+          const nombreB = (b.Nombre || '').toLowerCase();
+          return nombreA.localeCompare(nombreB);
+        });
+        
+        console.log(`✅ ${this.gerencias.length} Gerencias/Oficinas cargadas desde la base de datos`);
+        console.log('📋 Primeras 5:', this.gerencias.slice(0, 5).map(g => `${g.Nombre} (${g.Tipo})`));
       },
       error: (error) => {
-        console.error('❌ Error al cargar áreas, usando lista hardcodeada:', error);
-        // Fallback: lista hardcodeada con las 11 entidades
-        this.gerencias = [
-          { GerenciaID: 6, Nombre: 'Oficina de Administración y Finanzas', AreaID: 6, Tipo: 'Oficina' },
-          { GerenciaID: 7, Nombre: 'Oficina de Administración Tributaria', AreaID: 7, Tipo: 'Oficina' },
-          { GerenciaID: 8, Nombre: 'Oficina de Ejecutoría Coactiva', AreaID: 8, Tipo: 'Oficina' },
-          { GerenciaID: 9, Nombre: 'Oficina de Planeamiento y Presupuesto', AreaID: 9, Tipo: 'Oficina' },
-          { GerenciaID: 10, Nombre: 'Oficina de Asesoría Jurídica', AreaID: 10, Tipo: 'Oficina' },
-          { GerenciaID: 11, Nombre: 'Gerencia de Desarrollo Urbano y Rural', AreaID: 11, Tipo: 'Gerencia' },
-          { GerenciaID: 12, Nombre: 'Gerencia de Obras Públicas', AreaID: 12, Tipo: 'Gerencia' },
-          { GerenciaID: 13, Nombre: 'Gerencia de Salud y Gestión Ambiental', AreaID: 13, Tipo: 'Gerencia' },
-          { GerenciaID: 14, Nombre: 'Gerencia de Seguridad Ciudadana y Defensa Civil', AreaID: 14, Tipo: 'Gerencia' },
-          { GerenciaID: 15, Nombre: 'Gerencia de Desarrollo Económico Local', AreaID: 15, Tipo: 'Gerencia' },
-          { GerenciaID: 16, Nombre: 'Gerencia de Desarrollo e Inclusión Social', AreaID: 16, Tipo: 'Gerencia' }
-        ];
-        console.log('✅ 11 Gerencias/Oficinas hardcodeadas cargadas');
+        console.error('❌ Error al cargar gerencias desde /api/gerencias, intentando ruta alternativa:', error);
+        
+        // Intentar con la ruta alternativa /api/estructura/gerencias
+        this.http.get<any>(`${this.apiBaseUrl}/api/estructura/gerencias`).subscribe({
+          next: (responseAlt: any) => {
+            const gerenciasData = responseAlt.data || responseAlt;
+            const gerenciasArray = Array.isArray(gerenciasData) ? gerenciasData : [];
+            
+            this.gerencias = gerenciasArray.map((gerencia: any) => {
+              const nombre = (gerencia.Nombre || gerencia.nombre || '').trim();
+              const esOficina = nombre.toLowerCase().includes('oficina de') || nombre.toLowerCase().includes('oficina');
+              const tipo = esOficina ? 'Oficina' : 'Gerencia';
+              
+              return {
+                GerenciaID: gerencia.GerenciaID || gerencia.id,
+                Nombre: nombre,
+                Descripcion: gerencia.Descripcion || gerencia.descripcion || '',
+                AreaID: gerencia.AreaID || gerencia.areaId || gerencia.GerenciaID || gerencia.id,
+                Tipo: tipo,
+                Activa: gerencia.Activa !== undefined ? gerencia.Activa : (gerencia.Activo !== undefined ? gerencia.Activo : true)
+              };
+            });
+            
+            this.gerencias = this.gerencias.filter(g => g.Activa !== false);
+            this.gerencias.sort((a, b) => {
+              const nombreA = (a.Nombre || '').toLowerCase();
+              const nombreB = (b.Nombre || '').toLowerCase();
+              return nombreA.localeCompare(nombreB);
+            });
+            
+            console.log(`✅ ${this.gerencias.length} Gerencias cargadas desde ruta alternativa /api/estructura/gerencias`);
+          },
+          error: (errorAlt) => {
+            console.error('❌ Error también en ruta alternativa, usando lista fallback:', errorAlt);
+            // Fallback: lista mínima
+            this.gerencias = [
+              { GerenciaID: 1, Nombre: 'Gerencia Municipal', AreaID: 1, Tipo: 'Gerencia', Activa: true }
+            ];
+            console.log('⚠️ Usando lista fallback mínima');
+          }
+        });
       }
     });
   }
