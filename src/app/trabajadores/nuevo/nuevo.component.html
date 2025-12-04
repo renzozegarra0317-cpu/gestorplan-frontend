@@ -510,7 +510,7 @@
             Sexo
           </label>
           <select class="form-select" formControlName="sexo" [class.invalid]="isInvalid('sexo')">
-            <option value="">Seleccione</option>
+            <option [value]="null">Seleccione</option>
             <option value="M">Masculino</option>
             <option value="F">Femenino</option>
           </select>

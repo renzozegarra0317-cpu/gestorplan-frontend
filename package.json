@@ -8,7 +8,8 @@
     "postbuild": "node scripts/copy-404.js",
     "build:prod": "ng build --configuration production",
     "postbuild:prod": "node scripts/copy-404.js",
-    "deploy": "ng build --configuration production && node scripts/copy-404.js && node scripts/preserve-cname.js && node scripts/invalidate-sw.js && npx angular-cli-ghpages --dir=dist/frontend/browser",
+    "deploy": "node scripts/deploy-completo.js",
+    "deploy:simple": "ng build --configuration production && node scripts/copy-404.js && node scripts/preserve-cname.js && node scripts/invalidate-sw.js && npx angular-cli-ghpages --dir=dist/frontend/browser",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

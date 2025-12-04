@@ -1210,7 +1210,7 @@ export class NuevoComponent implements OnInit {
       apellidoMaterno: [''],
       nombres: ['', [Validators.required, Validators.minLength(2)]],
       fechaNacimiento: [''],  // OPCIONAL
-      sexo: [''],  // OPCIONAL
+      sexo: [null],  // OPCIONAL - null para mostrar "Seleccione"
       estadoCivil: [''],  // OPCIONAL
       nacionalidad: ['Peruana'],  // OPCIONAL - Por defecto "Peruana"
 
@@ -1656,7 +1656,7 @@ export class NuevoComponent implements OnInit {
           datosMapeados.apellidoPaterno = (datos.apellidoPaterno || '').toUpperCase();
           datosMapeados.apellidoMaterno = (datos.apellidoMaterno || '').toUpperCase();
           datosMapeados.fechaNacimiento = datos.fechaNacimiento || '';
-          datosMapeados.sexo = (datos.sexo || '').toUpperCase();
+          datosMapeados.sexo = datos.sexo ? (datos.sexo || '').toUpperCase() : null;
           
           console.log('[buscarDNI] Datos mapeados al formulario:', datosMapeados);
           
@@ -1891,7 +1891,7 @@ export class NuevoComponent implements OnInit {
       apellidoMaterno: (form.apellidoMaterno || '').toUpperCase(),
       nombres: (form.nombres || '').toUpperCase(),
       fechaNacimiento: form.fechaNacimiento,
-      sexo: form.sexo,
+      sexo: form.sexo || '',
       estadoCivil: form.estadoCivil,
       emailPersonal: form.emailPersonal ? form.emailPersonal.toLowerCase() : '', // Correo personal en minúsculas
       emailCorporativo: form.emailCorporativo ? form.emailCorporativo.toLowerCase() : '', // Correo corporativo en minúsculas
@@ -2075,7 +2075,7 @@ export class NuevoComponent implements OnInit {
       apellidoMaterno: form.apellidoMaterno,
       nombres: form.nombres,
       fechaNacimiento: form.fechaNacimiento ? form.fechaNacimiento.split('T')[0] : null,
-      sexo: form.sexo,
+      sexo: form.sexo || '',
       estadoCivil: form.estadoCivil,
       nacionalidad: form.nacionalidad || 'Peruana',
       emailPersonal: form.emailPersonal || '',
