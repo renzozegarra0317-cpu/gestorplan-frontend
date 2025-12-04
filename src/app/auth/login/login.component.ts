@@ -178,12 +178,12 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
-          // Guardar datos de autenticación usando el servicio
+         
           this.authService.saveAuthData(response.token, response.user, rememberMe);
 
           this.successMessage = '¡Inicio de sesión exitoso!';
           
-          // Redirigir después de un breve delay
+          
           setTimeout(() => {
             this.router.navigate(['/dashboard']);
           }, 1500);

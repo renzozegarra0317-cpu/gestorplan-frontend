@@ -26,6 +26,26 @@ export interface BoletaPago {
   horasTrabajadas: number;
   horasExtras: number;
   
+  // Campos de ingresos individuales
+  remuneracionBasica?: number;
+  costoVida?: number;
+  asignacionFamiliar?: number;
+  movilidad?: number;
+  bonoProductividad?: number;
+  otrosIngresos?: number;
+  convenio_2022_2023?: number;
+  convenio_2023_2024?: number;
+  convenio_2024_2025?: number;
+  pc_2015_2016?: number;
+  ra_829_2011_mdh?: number;
+  otrasReintegros?: number;
+  homologacion?: number;
+  
+  // Campos de descuentos individuales
+  tardanzas?: number;
+  faltas?: number;
+  otrosDescuentos?: number;
+  
   // INGRESOS
   ingresos: ConceptoBoleta[];
   totalIngresos: number;
@@ -49,10 +69,15 @@ export interface BoletaPago {
   // Datos adicionales del trabajador para la boleta
   codigoEssalud?: string;
   sistemaPension?: string;
-  afp?: string;
+  afp?: number; // Monto del descuento AFP
+  afpTrabajador?: string; // Nombre de la AFP del trabajador
+  onp?: number; // Monto del descuento ONP
+  impuestosRenta?: number; // Monto del impuesto a la renta
+  aporteEsSalud?: number; // Monto del aporte EsSalud
   cuspp?: string;
   condicion?: string;
   fechaIngreso?: Date;
+  regimenLaboral?: string;
   
   // Estado
   estado: EstadoBoleta;

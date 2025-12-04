@@ -486,13 +486,17 @@
                 <h3 class="conceptos-titulo">INGRESOS S/.</h3>
               </div>
               <div class="conceptos-lista">
-                <div class="concepto-fila" *ngFor="let ingreso of boletaSeleccionada.ingresos">
+                <div class="concepto-fila" *ngFor="let ingreso of boletaSeleccionada?.ingresos || []">
                   <span class="concepto-nombre">{{ ingreso.nombre }}</span>
                   <span class="concepto-monto">{{ formatearMonto(ingreso.monto) }}</span>
                 </div>
+                <div class="concepto-fila concepto-fila--subtotal" *ngIf="(!boletaSeleccionada?.ingresos || boletaSeleccionada.ingresos.length === 0) && boletaSeleccionada?.totalIngresos > 0">
+                  <span class="concepto-nombre">Compensación económica</span>
+                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada.totalIngresos) }}</span>
+                </div>
                 <div class="concepto-fila concepto-fila--subtotal">
                   <span class="concepto-nombre">Sub-Total de Ingresos</span>
-                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada.totalIngresos) }}</span>
+                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada?.totalIngresos || 0) }}</span>
                 </div>
               </div>
             </div>
@@ -503,17 +507,17 @@
                 <h3 class="conceptos-titulo">DESCUENTOS S/.</h3>
               </div>
               <div class="conceptos-lista">
-                <div class="concepto-fila" *ngFor="let descuento of boletaSeleccionada.descuentos">
+                <div class="concepto-fila" *ngFor="let descuento of boletaSeleccionada?.descuentos || []">
                   <span class="concepto-nombre">{{ descuento.nombre }}</span>
                   <span class="concepto-monto">{{ formatearMonto(descuento.monto) }}</span>
                 </div>
-                <div class="concepto-fila concepto-fila--subtotal" *ngIf="boletaSeleccionada.descuentos.length === 0">
-                  <span class="concepto-nombre">SNP 13%</span>
-                  <span class="concepto-monto">0,00</span>
+                <div class="concepto-fila concepto-fila--subtotal" *ngIf="(!boletaSeleccionada?.descuentos || boletaSeleccionada.descuentos.length === 0) && boletaSeleccionada?.totalDescuentos > 0">
+                  <span class="concepto-nombre">Descuentos aplicados</span>
+                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada.totalDescuentos) }}</span>
                 </div>
                 <div class="concepto-fila concepto-fila--subtotal">
                   <span class="concepto-nombre">TOTAL DESCUENTO S/.</span>
-                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada.totalDescuentos) }}</span>
+                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada?.totalDescuentos || 0) }}</span>
                 </div>
               </div>
             </div>
@@ -524,17 +528,17 @@
                 <h3 class="conceptos-titulo">APORTES S/.</h3>
               </div>
               <div class="conceptos-lista">
-                <div class="concepto-fila" *ngFor="let aporte of boletaSeleccionada.aportesEmpleador">
+                <div class="concepto-fila" *ngFor="let aporte of boletaSeleccionada?.aportesEmpleador || []">
                   <span class="concepto-nombre">{{ aporte.nombre }}</span>
                   <span class="concepto-monto">{{ formatearMonto(aporte.monto) }}</span>
                 </div>
-                <div class="concepto-fila concepto-fila--subtotal" *ngIf="boletaSeleccionada.aportesEmpleador.length === 0">
+                <div class="concepto-fila concepto-fila--subtotal" *ngIf="(!boletaSeleccionada?.aportesEmpleador || boletaSeleccionada.aportesEmpleador.length === 0) && (boletaSeleccionada?.totalAportesEmpleador > 0 || boletaSeleccionada?.aporteEsSalud > 0)">
                   <span class="concepto-nombre">ESSALUD 9%</span>
-                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada.totalAportesEmpleador) }}</span>
+                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada?.totalAportesEmpleador || boletaSeleccionada?.aporteEsSalud || 0) }}</span>
                 </div>
                 <div class="concepto-fila concepto-fila--subtotal">
                   <span class="concepto-nombre">TOTAL APORTES</span>
-                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada.totalAportesEmpleador) }}</span>
+                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada?.totalAportesEmpleador || 0) }}</span>
                 </div>
               </div>
             </div>

@@ -228,17 +228,43 @@ export class BoletasComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           this.boletaSeleccionada = response.data;
+          
+          // Asegurar que los arrays siempre estén inicializados
+          if (!this.boletaSeleccionada.ingresos) {
+            this.boletaSeleccionada.ingresos = [];
+          }
+          if (!this.boletaSeleccionada.descuentos) {
+            this.boletaSeleccionada.descuentos = [];
+          }
+          if (!this.boletaSeleccionada.aportesEmpleador) {
+            this.boletaSeleccionada.aportesEmpleador = [];
+          }
+          
           this.mostrarModalDetalle = true;
           console.log('✅ Boleta cargada:', this.boletaSeleccionada);
+          console.log('📊 Ingresos:', this.boletaSeleccionada.ingresos);
+          console.log('📊 Descuentos:', this.boletaSeleccionada.descuentos);
+          console.log('📊 Aportes:', this.boletaSeleccionada.aportesEmpleador);
+          console.log('💰 Total Ingresos:', this.boletaSeleccionada.totalIngresos);
+          console.log('💰 Total Descuentos:', this.boletaSeleccionada.totalDescuentos);
+          console.log('💰 Total Aportes:', this.boletaSeleccionada.totalAportesEmpleador);
         } else {
           console.error('❌ Error al cargar boleta:', response);
           this.boletaSeleccionada = boleta;
+          // Asegurar arrays inicializados
+          if (!this.boletaSeleccionada.ingresos) this.boletaSeleccionada.ingresos = [];
+          if (!this.boletaSeleccionada.descuentos) this.boletaSeleccionada.descuentos = [];
+          if (!this.boletaSeleccionada.aportesEmpleador) this.boletaSeleccionada.aportesEmpleador = [];
           this.mostrarModalDetalle = true;
         }
       },
       error: (error) => {
         console.error('❌ Error al cargar boleta:', error);
         this.boletaSeleccionada = boleta;
+        // Asegurar arrays inicializados
+        if (!this.boletaSeleccionada.ingresos) this.boletaSeleccionada.ingresos = [];
+        if (!this.boletaSeleccionada.descuentos) this.boletaSeleccionada.descuentos = [];
+        if (!this.boletaSeleccionada.aportesEmpleador) this.boletaSeleccionada.aportesEmpleador = [];
         this.mostrarModalDetalle = true;
       }
     });
@@ -464,9 +490,9 @@ export class BoletasComponent implements OnInit {
   obtenerAfiliacion(boleta: BoletaPago): string {
     if (boleta.sistemaPension === 'ONP') {
       return 'ONP';
-    } else if (boleta.afp) {
-      return boleta.afp.toUpperCase();
-    } else if (boleta.sistemaPension) {
+    } else if (boleta.afpTrabajador && typeof boleta.afpTrabajador === 'string') {
+      return boleta.afpTrabajador.toUpperCase();
+    } else if (boleta.sistemaPension && typeof boleta.sistemaPension === 'string') {
       return boleta.sistemaPension.toUpperCase();
     }
     return 'INTEGRA FLUJO';
