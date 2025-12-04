@@ -406,128 +406,168 @@
           <button class="modal__close" (click)="mostrarModalDetalle = false">✖️</button>
         </div>
       </div>
-      <div class="modal__body" *ngIf="boletaSeleccionada">
-        <div class="boleta-detalle">
+      <div class="modal__body modal__body--boleta" *ngIf="boletaSeleccionada">
+        <div class="boleta-pago-container">
           <!-- HEADER DE LA BOLETA -->
-          <div class="boleta-detalle__header">
-            <div class="header-logo">
-              <div class="logo-placeholder">🏛️</div>
-              <div class="header-info">
-                <h2>MUNICIPALIDAD DISTRITAL</h2>
-                <p>Boleta de Pago Electronica</p>
-              </div>
+          <div class="boleta-header">
+            <div class="boleta-header-left">
+              <div class="boleta-direccion">Av. La Ribera N° 165 - Huanchaco</div>
+              <div class="boleta-ruc">R.U.C. 20167736468</div>
             </div>
-            <div class="header-periodo">
-              <span class="periodo-label">Periodo:</span>
-              <span class="periodo-value">{{ boletaSeleccionada.periodo }}</span>
-              <span class="codigo-boleta">{{ boletaSeleccionada.codigo }}</span>
+            <div class="boleta-header-center">
+              <h1 class="boleta-titulo">Municipalidad Distrital de Huanchaco</h1>
+              <div class="boleta-subtitulo">BOLETA DE PAGO</div>
+            </div>
+            <div class="boleta-header-right">
+              <img src="assets/escudo.png" alt="Escudo de Huanchaco" class="boleta-logo">
             </div>
           </div>
 
           <!-- DATOS DEL TRABAJADOR -->
-          <div class="boleta-detalle__seccion">
-            <h3 class="seccion-title">👤 Datos del Trabajador</h3>
-            <div class="datos-grid">
-              <div class="dato-item">
-                <span class="dato-label">Nombre:</span>
-                <span class="dato-value">{{ boletaSeleccionada.trabajadorNombre }}</span>
+          <div class="boleta-datos-trabajador">
+            <div class="datos-columna-izq">
+              <div class="dato-fila">
+                <span class="dato-numero">{{ boletaSeleccionada.trabajadorId || '1' }}</span>
               </div>
-              <div class="dato-item">
-                <span class="dato-label">DNI:</span>
-                <span class="dato-value">{{ boletaSeleccionada.trabajadorDni }}</span>
+              <div class="dato-fila">
+                <span class="dato-label">Apellidos y Nombres:</span>
+                <span class="dato-valor">{{ boletaSeleccionada.trabajadorNombre }}</span>
               </div>
-              <div class="dato-item">
-                <span class="dato-label">Cargo:</span>
-                <span class="dato-value">{{ boletaSeleccionada.trabajadorCargo }}</span>
+              <div class="dato-fila">
+                <span class="dato-label">Fecha de Ingreso:</span>
+                <span class="dato-valor">{{ formatearFecha(boletaSeleccionada.fechaIngreso) || formatearFecha(boletaSeleccionada.fechaGeneracion) }}</span>
               </div>
-              <div class="dato-item">
-                <span class="dato-label">Area:</span>
-                <span class="dato-value">{{ boletaSeleccionada.trabajadorArea }}</span>
+              <div class="dato-fila">
+                <span class="dato-label">Ocupación ó Cargo:</span>
+                <span class="dato-valor">{{ boletaSeleccionada.trabajadorCargo }}</span>
               </div>
-              <div class="dato-item">
-                <span class="dato-label">Dias Trabajados:</span>
-                <span class="dato-value">{{ boletaSeleccionada.diasTrabajados }} / {{ boletaSeleccionada.diasHabiles }}</span>
+              <div class="dato-fila">
+                <span class="dato-label">Días Trabajados:</span>
+                <span class="dato-valor">{{ boletaSeleccionada.diasTrabajados }}</span>
               </div>
-              <div class="dato-item">
-                <span class="dato-label">Horas Extras:</span>
-                <span class="dato-value">{{ boletaSeleccionada.horasExtras }}</span>
+            </div>
+            <div class="datos-columna-der">
+              <div class="dato-fila">
+                <span class="dato-label">D.N.I</span>
+                <span class="dato-valor">{{ boletaSeleccionada.trabajadorDni }}</span>
+              </div>
+              <div class="dato-fila">
+                <span class="dato-label">ESSALUD:</span>
+                <span class="dato-valor">{{ boletaSeleccionada.codigoEssalud || '0' }}</span>
+              </div>
+              <div class="dato-fila">
+                <span class="dato-label">AFILIACION:</span>
+                <span class="dato-valor">{{ obtenerAfiliacion(boletaSeleccionada) }}</span>
+              </div>
+              <div class="dato-fila">
+                <span class="dato-label">CUSPP :</span>
+                <span class="dato-valor">{{ boletaSeleccionada.cuspp || '-' }}</span>
+              </div>
+              <div class="dato-fila">
+                <span class="dato-label">CONDICION:</span>
+                <span class="dato-valor">{{ boletaSeleccionada.condicion || 'FUNCIONARIO' }}</span>
+              </div>
+              <div class="dato-fila">
+                <span class="dato-label">MES DE PAGO:</span>
+                <span class="dato-valor">{{ obtenerNombreMes(boletaSeleccionada.mes) }}</span>
+              </div>
+              <div class="dato-fila">
+                <span class="dato-label">AÑO</span>
+                <span class="dato-valor">{{ boletaSeleccionada.anio }}</span>
               </div>
             </div>
           </div>
 
-          <!-- DETALLE DE CONCEPTOS -->
-          <div class="boleta-detalle__conceptos">
-            <div class="conceptos-columna">
-              <h3 class="seccion-title">💵 Ingresos</h3>
+          <!-- SECCIÓN PRINCIPAL: INGRESOS, DESCUENTOS, APORTES -->
+          <div class="boleta-conceptos">
+            <!-- COLUMNA INGRESOS -->
+            <div class="conceptos-columna conceptos-columna--ingresos">
+              <div class="conceptos-header">
+                <h3 class="conceptos-titulo">INGRESOS S/.</h3>
+              </div>
               <div class="conceptos-lista">
-                <div class="concepto-item" *ngFor="let ingreso of boletaSeleccionada.ingresos">
+                <div class="concepto-fila" *ngFor="let ingreso of boletaSeleccionada.ingresos">
                   <span class="concepto-nombre">{{ ingreso.nombre }}</span>
-                  <span class="concepto-monto">S/. {{ ingreso.monto.toFixed(2) }}</span>
+                  <span class="concepto-monto">{{ formatearMonto(ingreso.monto) }}</span>
                 </div>
-                <div class="concepto-item concepto-item--total">
-                  <span class="concepto-nombre"><strong>Total Ingresos:</strong></span>
-                  <span class="concepto-monto"><strong>S/. {{ boletaSeleccionada.totalIngresos.toFixed(2) }}</strong></span>
+                <div class="concepto-fila concepto-fila--subtotal">
+                  <span class="concepto-nombre">Sub-Total de Ingresos</span>
+                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada.totalIngresos) }}</span>
                 </div>
               </div>
             </div>
 
-            <div class="conceptos-columna">
-              <h3 class="seccion-title">➖ Descuentos</h3>
+            <!-- COLUMNA DESCUENTOS -->
+            <div class="conceptos-columna conceptos-columna--descuentos">
+              <div class="conceptos-header">
+                <h3 class="conceptos-titulo">DESCUENTOS S/.</h3>
+              </div>
               <div class="conceptos-lista">
-                <div class="concepto-item" *ngFor="let descuento of boletaSeleccionada.descuentos">
+                <div class="concepto-fila" *ngFor="let descuento of boletaSeleccionada.descuentos">
                   <span class="concepto-nombre">{{ descuento.nombre }}</span>
-                  <span class="concepto-monto concepto-monto--descuento">S/. {{ descuento.monto.toFixed(2) }}</span>
+                  <span class="concepto-monto">{{ formatearMonto(descuento.monto) }}</span>
                 </div>
-                <div class="concepto-item concepto-item--total">
-                  <span class="concepto-nombre"><strong>Total Descuentos:</strong></span>
-                  <span class="concepto-monto concepto-monto--descuento"><strong>S/. {{ boletaSeleccionada.totalDescuentos.toFixed(2) }}</strong></span>
+                <div class="concepto-fila concepto-fila--subtotal" *ngIf="boletaSeleccionada.descuentos.length === 0">
+                  <span class="concepto-nombre">SNP 13%</span>
+                  <span class="concepto-monto">0,00</span>
+                </div>
+                <div class="concepto-fila concepto-fila--subtotal">
+                  <span class="concepto-nombre">TOTAL DESCUENTO S/.</span>
+                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada.totalDescuentos) }}</span>
                 </div>
               </div>
             </div>
 
-            <div class="conceptos-columna">
-              <h3 class="seccion-title">🏛️ Aportes Empleador</h3>
+            <!-- COLUMNA APORTES -->
+            <div class="conceptos-columna conceptos-columna--aportes">
+              <div class="conceptos-header">
+                <h3 class="conceptos-titulo">APORTES S/.</h3>
+              </div>
               <div class="conceptos-lista">
-                <div class="concepto-item" *ngFor="let aporte of boletaSeleccionada.aportesEmpleador">
+                <div class="concepto-fila" *ngFor="let aporte of boletaSeleccionada.aportesEmpleador">
                   <span class="concepto-nombre">{{ aporte.nombre }}</span>
-                  <span class="concepto-monto">S/. {{ aporte.monto.toFixed(2) }}</span>
+                  <span class="concepto-monto">{{ formatearMonto(aporte.monto) }}</span>
                 </div>
-                <div class="concepto-item concepto-item--total">
-                  <span class="concepto-nombre"><strong>Total Aportes:</strong></span>
-                  <span class="concepto-monto"><strong>S/. {{ boletaSeleccionada.totalAportesEmpleador.toFixed(2) }}</strong></span>
+                <div class="concepto-fila concepto-fila--subtotal" *ngIf="boletaSeleccionada.aportesEmpleador.length === 0">
+                  <span class="concepto-nombre">ESSALUD 9%</span>
+                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada.totalAportesEmpleador) }}</span>
+                </div>
+                <div class="concepto-fila concepto-fila--subtotal">
+                  <span class="concepto-nombre">TOTAL APORTES</span>
+                  <span class="concepto-monto">{{ formatearMonto(boletaSeleccionada.totalAportesEmpleador) }}</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- TOTALES -->
+          <div class="boleta-totales">
+            <div class="total-fila">
+              <span class="total-label">TOTAL INGRESOS S/.</span>
+              <span class="total-valor">{{ formatearMonto(boletaSeleccionada.totalIngresos) }}</span>
+            </div>
+            <div class="total-fila">
+              <span class="total-label">TOTAL DESCUENTO S/.</span>
+              <span class="total-valor">{{ formatearMonto(boletaSeleccionada.totalDescuentos) }}</span>
+            </div>
+            <div class="total-fila">
+              <span class="total-label">TOTAL APORTES</span>
+              <span class="total-valor">{{ formatearMonto(boletaSeleccionada.totalAportesEmpleador) }}</span>
             </div>
           </div>
 
           <!-- NETO A PAGAR -->
-          <div class="boleta-detalle__neto">
-            <div class="neto-container">
-              <span class="neto-label">NETO A PAGAR:</span>
-              <span class="neto-monto">S/. {{ boletaSeleccionada.netoAPagar.toFixed(2) }}</span>
+          <div class="boleta-neto">
+            <div class="neto-box">
+              <span class="neto-label">NETO A PAGAR S/.</span>
+              <span class="neto-valor">S/ {{ formatearMonto(boletaSeleccionada.netoAPagar) }}</span>
             </div>
           </div>
 
-          <!-- DATOS BANCARIOS -->
-          <div class="boleta-detalle__banco">
-            <div class="banco-info">
-              <span class="banco-label">Banco:</span>
-              <span class="banco-value">{{ boletaSeleccionada.banco }}</span>
-            </div>
-            <div class="banco-info">
-              <span class="banco-label">Cuenta:</span>
-              <span class="banco-value">{{ boletaSeleccionada.numeroCuenta }}</span>
-            </div>
-            <div class="banco-info" *ngIf="boletaSeleccionada.cci">
-              <span class="banco-label">CCI:</span>
-              <span class="banco-value">{{ boletaSeleccionada.cci }}</span>
-            </div>
-          </div>
-
-          <!-- PIE -->
-          <div class="boleta-detalle__pie">
-            <p>Este documento es una constancia de pago electronica</p>
-            <p>Fecha de emision: {{ formatearFecha(boletaSeleccionada.fechaEmision) }}</p>
+          <!-- FOOTER -->
+          <div class="boleta-footer">
+            <div class="footer-left">OFIC. RECURSOS HUMANOS</div>
+            <div class="footer-right">--&lt; Trabajador(a) &gt;---</div>
           </div>
         </div>
       </div>

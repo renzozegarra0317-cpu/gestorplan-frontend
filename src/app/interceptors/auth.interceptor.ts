@@ -13,6 +13,14 @@ export class AuthInterceptor implements HttpInterceptor {
     // Obtener el token del localStorage
     const token = localStorage.getItem('token');
     
+    // Headers base
+    const headers: { [key: string]: string } = {};
+    
+    // Agregar header para ngrok (evita el banner de advertencia)
+    if (req.url.includes('ngrok-free.dev') || req.url.includes('ngrok.io')) {
+      headers['ngrok-skip-browser-warning'] = 'true';
+    }
+    
     // Si hay token, agregarlo a los headers
     if (token) {
       // Verificar si el token está expirado antes de agregarlo
@@ -24,33 +32,32 @@ export class AuthInterceptor implements HttpInterceptor {
         return throwError(() => new Error('Token expirado'));
       }
       
-      const authReq = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      return next.handle(authReq).pipe(
-        catchError((error: HttpErrorResponse) => {
-          // Si el error es 401 o 403, limpiar sesión y redirigir
-          // EXCEPCIÓN: No redirigir si es un error de verificación de PIN
-          // Los errores de PIN son esperados y deben manejarse en el componente
-          const esVerificacionPIN = error.url?.includes('/verificar-pin');
-          
-          if ((error.status === 401 || error.status === 403) && !esVerificacionPIN) {
-            console.error('❌ Error de autenticación:', error.status);
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            this.router.navigate(['/login']);
-          }
-          return throwError(() => error);
-        })
-      );
+      headers['Authorization'] = `Bearer ${token}`;
     }
     
-    // Si no hay token y la ruta requiere autenticación, no agregar headers
-    // (el backend responderá con 401/403 si es necesario)
-    return next.handle(req);
+    // Clonar la request con los headers
+    const modifiedReq = req.clone({
+      setHeaders: headers
+    });
+    
+    return next.handle(modifiedReq).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // Si el error es 401 o 403, limpiar sesión y redirigir
+        // EXCEPCIONES: No redirigir si es un error de:
+        // 1. Verificación de PIN (errores esperados)
+        // 2. Consulta a RENIEC (errores de integración, no de autenticación)
+        const esVerificacionPIN = error.url?.includes('/verificar-pin');
+        const esConsultaRENIEC = error.url?.includes('/reniec/') || error.url?.includes('/trabajadores/reniec/');
+        
+        if ((error.status === 401 || error.status === 403) && !esVerificacionPIN && !esConsultaRENIEC) {
+          console.error('❌ Error de autenticación:', error.status);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          this.router.navigate(['/login']);
+        }
+        return throwError(() => error);
+      })
+    );
   }
   
   private isTokenExpired(token: string): boolean {

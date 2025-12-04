@@ -45,6 +45,33 @@
   
   // SIN fondo, bordes ni sombra - cada sección tendrá su propio contenedor
   background: transparent;
+  
+  // Estilos específicos para la página de trabajadores, dashboard, editar, nuevo, importar trabajador, registro, resumen, tardanzas de asistencias, generar planilla, historial, conceptos, boletas, cts, gratificaciones, vacaciones, utilidades, prestamos, reportes y configuracion - espacios reducidos
+  &:has(app-lista),
+  &:has(app-dashboard),
+  &:has(app-editar),
+  &:has(app-nuevo),
+  &:has(app-importar),
+  &:has(app-registro),
+  &:has(app-resumen),
+  &:has(app-tardanzas),
+  &:has(app-generar),
+  &:has(app-historial),
+  &:has(app-conceptos),
+  &:has(app-boletas),
+  &:has(app-cts),
+  &:has(app-gratificaciones),
+  &:has(app-vacaciones),
+  &:has(app-utilidades),
+  &:has(app-prestamos),
+  &:has(app-reportes),
+  &:has(app-configuracion) {
+    padding: 0.75rem; // Reducido a 12px - espacio pequeño
+    margin-left: 8px; // Reducido a 8px - espacio pequeño del sidebar
+    margin-right: 8px; // Reducido a 8px - espacio pequeño del lado derecho
+    margin-top: 8px; // Reducido a 8px - acercado al topbar
+    margin-bottom: 8px; // Reducido a 8px
+  }
 }
 
 // Responsive
@@ -101,5 +128,28 @@
   .app-main {
     background: #f3f4f6; /* Mismo gris que el dashboard */
     margin-top: 24px; /* Aumentar margen superior para más separación */
+    
+    // Estilos específicos para la página de trabajadores, dashboard, editar, nuevo, importar trabajador, registro, resumen, tardanzas de asistencias, generar planilla, historial, conceptos, boletas, cts, gratificaciones, vacaciones, utilidades, prestamos, reportes y configuracion en modo claro
+    &:has(app-lista),
+    &:has(app-dashboard),
+    &:has(app-editar),
+    &:has(app-nuevo),
+    &:has(app-importar),
+    &:has(app-registro),
+    &:has(app-resumen),
+    &:has(app-tardanzas),
+    &:has(app-generar),
+    &:has(app-historial),
+    &:has(app-conceptos),
+    &:has(app-boletas),
+    &:has(app-cts),
+    &:has(app-gratificaciones),
+    &:has(app-vacaciones),
+    &:has(app-utilidades),
+    &:has(app-prestamos),
+    &:has(app-reportes),
+    &:has(app-configuracion) {
+      margin-top: 8px; /* Reducido a 8px - acercado al topbar */
+    }
   }
 }

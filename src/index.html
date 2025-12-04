@@ -2,9 +2,67 @@
 <html lang="es" data-theme="dark">
 <head>
   <meta charset="utf-8">
-  <title>GESTORPLAN - Sistema de Planillas</title>
-  <base href="/">
+  
+  <!-- =================== SEO BÁSICO =================== -->
+  <title>GestorPlan – Sistema de Planillas y RR.HH. para Municipalidades del Perú</title>
+  
+  <meta name="description" content="GestorPlan es un sistema web de planillas y recursos humanos diseñado para municipalidades del Perú. Control de trabajadores, asistencias, beneficios, CTS, gratificaciones y reportes automáticos, todo en una sola plataforma.">
+  
+  <meta name="keywords" content="gestorplan, sistema de planillas, rrhh municipal, recursos humanos municipalidad, planillas trabajadores, sistema para municipalidades, CTS, gratificaciones, planillas Perú">
+  
+  <meta name="author" content="GestorPlan - Renzo Zegarra">
+  
+  <meta name="robots" content="index,follow">
+  
+  <!-- Vista en móviles -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- =================== OPEN GRAPH (para compartir en redes) =================== -->
+  <meta property="og:title" content="GestorPlan – Sistema de Planillas y RR.HH. para Municipalidades del Perú">
+  
+  <meta property="og:description" content="Sistema web para gestionar planillas, trabajadores, asistencias, beneficios y obligaciones laborales en municipalidades del Perú.">
+  
+  <meta property="og:type" content="website">
+  
+  <meta property="og:url" content="https://gestorplan.arcode-pe.com/">
+  
+  <!-- Si luego tienes un banner bonito, cambias esta URL de imagen -->
+  <meta property="og:image" content="https://gestorplan.arcode-pe.com/assets/gestorplan-banner.png">
+  
+  <!-- =================== TWITTER CARD =================== -->
+  <meta name="twitter:card" content="summary_large_image">
+  
+  <meta name="twitter:title" content="GestorPlan – Sistema de Planillas y RR.HH.">
+  
+  <meta name="twitter:description" content="Sistema de planillas y recursos humanos para municipalidades del Perú.">
+  
+  <meta name="twitter:image" content="https://gestorplan.arcode-pe.com/assets/gestorplan-banner.png">
+  
+  <!-- =================== CANONICAL =================== -->
+  <link rel="canonical" href="https://gestorplan.arcode-pe.com/">
+  
+  <!-- =================== FAVICON =================== -->
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  
+  <!-- =================== DATOS ESTRUCTURADOS (JSON-LD) =================== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "GestorPlan",
+    "operatingSystem": "Web",
+    "applicationCategory": "BusinessApplication",
+    "description": "GestorPlan es un sistema web de planillas y recursos humanos para municipalidades del Perú. Permite gestionar trabajadores, asistencias, beneficios, CTS, gratificaciones y obligaciones laborales.",
+    "url": "https://gestorplan.arcode-pe.com/",
+    "creator": {
+      "@type": "Person",
+      "name": "Renzo Zegarra"
+    },
+    "inLanguage": "es-PE"
+  }
+  </script>
+  
+  <base href="/">
   
   <!-- Preconnect para Google Fonts (mejora rendimiento y reduce errores) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,9 +74,52 @@
       const savedTheme = localStorage.getItem('theme') || 'dark';
       document.documentElement.setAttribute('data-theme', savedTheme);
       console.log('🎨 Tema cargado (index.html):', savedTheme);
-      
-      // NOTA: El manejo de service workers ahora se hace en ConsoleErrorHandlerService
-      // para mantener el código más organizado y escalable
+    })();
+  </script>
+  
+  <!-- =================== ELIMINAR SERVICE WORKERS (PWA) =================== -->
+  <!-- Este script elimina TODOS los service workers al cargar la página -->
+  <!-- Es necesario para evitar problemas de cacheo de APIs y congelamiento -->
+  <script>
+    (function() {
+      if ('serviceWorker' in navigator) {
+        // Eliminar todos los service workers registrados
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (let i = 0; i < registrations.length; i++) {
+            registrations[i].unregister().then(function(success) {
+              if (success) {
+                console.log('✅ Service Worker eliminado:', registrations[i].scope);
+              }
+            }).catch(function(error) {
+              console.warn('⚠️ Error al eliminar Service Worker:', error);
+            });
+          }
+        }).catch(function(error) {
+          console.warn('⚠️ Error al obtener registros de Service Workers:', error);
+        });
+
+        // Limpiar caches de ngsw y service workers
+        if ('caches' in window) {
+          caches.keys().then(function(cacheNames) {
+            return Promise.all(
+              cacheNames.map(function(cacheName) {
+                // Eliminar todos los caches relacionados con service workers
+                if (cacheName.startsWith('ngsw:') || 
+                    cacheName.includes('service-worker') ||
+                    cacheName.includes('ngsw')) {
+                  return caches.delete(cacheName).then(function(success) {
+                    if (success) {
+                      console.log('✅ Cache eliminado:', cacheName);
+                    }
+                  });
+                }
+              })
+            );
+          }).catch(function(error) {
+            console.warn('⚠️ Error al limpiar caches:', error);
+          });
+        }
+      }
     })();
   </script>
 </head>

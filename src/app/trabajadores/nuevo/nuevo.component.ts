@@ -97,6 +97,7 @@ export class NuevoComponent implements OnInit {
   dniValido: boolean = true;
   dniExiste: boolean = false;
   validandoDNI: boolean = false;
+  reniecHabilitado: boolean = true; // Por defecto habilitado
 
   private apiUrl = `${environment.apiUrl}/trabajadores`;
   private apiBaseUrl = environment.apiBaseUrl;
@@ -292,6 +293,9 @@ export class NuevoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Verificar estado de RENIEC al iniciar
+    this.verificarEstadoRENIEC();
+    
     // Cargar ubigeo primero
     this.http.get<any[]>('assets/ubigeo-peru.json').subscribe({
       next: (data) => {
@@ -1551,25 +1555,35 @@ export class NuevoComponent implements OnInit {
     
     // Verificar si el DNI no tiene 8 dígitos
     if (dni.length !== 8) {
-      this.mensajeDNI = 'El DNI debe tener exactamente 8 dígitos';
+      this.mensajeDNI = 'El DNI debe tener exactamente 8 dígitos. Ejemplo: 12345678';
       this.mostrarModalDNIInvalido = true;
       return;
     }
     
-    // Verificar si RENIEC está habilitado (primero desde localStorage)
+    // Si RENIEC está desactivada y el usuario presiona "Buscar RENIEC", mostrar el modal
+    if (!this.reniecHabilitado) {
+      console.log('[buscarDNI] RENIEC desactivada, mostrando modal informativo');
+      this.mostrarModalRENIECDeshabilitado = true;
+      return;
+    }
+    
+    // Si RENIEC está habilitada, proceder con la búsqueda
+    this.ejecutarBusquedaRENIEC(dni);
+  }
+  
+  verificarEstadoRENIEC(): void {
+    // Verificar primero desde localStorage
     const configGuardada = localStorage.getItem('configuracionSistema');
     if (configGuardada) {
       try {
         const config = JSON.parse(configGuardada);
-        if (config.integraciones && !config.integraciones.integrarRENIEC) {
-          this.mostrarModalRENIECDeshabilitado = true;
+        if (config.integraciones) {
+          this.reniecHabilitado = config.integraciones.integrarRENIEC === true;
+          console.log('[verificarEstadoRENIEC] RENIEC habilitado (localStorage):', this.reniecHabilitado);
           return;
         }
-        // Si está habilitado en localStorage, proceder directamente
-        this.ejecutarBusquedaRENIEC(dni);
-        return;
       } catch (error) {
-        console.error('Error al verificar configuración de RENIEC:', error);
+        console.error('Error al parsear configuración de localStorage:', error);
       }
     }
     
@@ -1580,21 +1594,30 @@ export class NuevoComponent implements OnInit {
     this.http.get(`${environment.apiUrl}/configuracion/INTEGRACIONES`, { headers }).subscribe({
       next: (response: any) => {
         if (response.success && response.data) {
-          if (!response.data.integrarRENIEC) {
-            this.mostrarModalRENIECDeshabilitado = true;
-            return;
+          this.reniecHabilitado = response.data.integrarRENIEC === true;
+          console.log('[verificarEstadoRENIEC] RENIEC habilitado (backend):', this.reniecHabilitado);
+          
+          // Guardar en localStorage para futuras consultas
+          if (configGuardada) {
+            try {
+              const config = JSON.parse(configGuardada);
+              if (!config.integraciones) config.integraciones = {};
+              config.integraciones.integrarRENIEC = this.reniecHabilitado;
+              localStorage.setItem('configuracionSistema', JSON.stringify(config));
+            } catch (error) {
+              console.error('Error al actualizar configuración en localStorage:', error);
+            }
           }
-          // Si está habilitado, proceder con la búsqueda
-          this.ejecutarBusquedaRENIEC(dni);
         } else {
-          // Si no hay configuración, permitir la búsqueda (comportamiento por defecto)
-          this.ejecutarBusquedaRENIEC(dni);
+          // Si no hay configuración, asumir que está habilitado (comportamiento por defecto)
+          this.reniecHabilitado = true;
+          console.log('[verificarEstadoRENIEC] Sin configuración, asumiendo RENIEC habilitado');
         }
       },
       error: (error) => {
         console.error('Error al verificar configuración de RENIEC desde backend:', error);
-        // En caso de error, permitir la búsqueda (comportamiento por defecto)
-        this.ejecutarBusquedaRENIEC(dni);
+        // En caso de error, asumir que está habilitado (comportamiento por defecto)
+        this.reniecHabilitado = true;
       }
     });
   }
@@ -1665,8 +1688,13 @@ export class NuevoComponent implements OnInit {
         
         // Manejar diferentes tipos de errores
         if (error.status === 403) {
-          // Si es error 403, mostrar el modal de RENIEC deshabilitado
-          this.mostrarModalRENIECDeshabilitado = true;
+          // Si es error 403, RENIEC está desactivada
+          console.log('[ejecutarBusquedaRENIEC] RENIEC desactivada (403), permitiendo ingreso manual');
+          this.reniecHabilitado = false;
+          // No mostrar modal, permitir que el usuario ingrese datos manualmente
+          this.dniValido = true;
+          this.dniExiste = false;
+          return;
         } else if (error.status === 404) {
           alert('❌ DNI no encontrado en RENIEC');
         } else if (error.status === 401) {
@@ -2428,12 +2456,23 @@ export class NuevoComponent implements OnInit {
       return;
     }
 
+    // Si RENIEC está desactivada, solo validar formato (8 dígitos) y marcar como válido
+    if (!this.reniecHabilitado) {
+      console.log('[validarDNIExistente] RENIEC desactivada, validando solo formato');
+      this.dniValido = true;
+      this.dniExiste = false;
+      this.validandoDNI = false;
+      return;
+    }
+
     this.validandoDNI = true;
     this.dniValido = true;
     this.dniExiste = false;
 
     try {
-      const response = await this.http.get<any>(`${this.apiUrl}/reniec/${dni}`).toPromise();
+      const token = localStorage.getItem('token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      const response = await this.http.get<any>(`${this.apiUrl}/reniec/${dni}`, { headers }).toPromise();
       
       if (response.success) {
         // DNI válido y no existe
@@ -2454,11 +2493,22 @@ export class NuevoComponent implements OnInit {
         this.dniValido = true;
         this.dniExiste = true;
         console.log('⚠️ DNI existe pero está inactivo');
-      } else {
-        // Error de conexión u otro error
-        this.dniValido = false;
+      } else if (error.status === 403) {
+        // RENIEC desactivada - solo validar formato
+        console.log('[validarDNIExistente] RENIEC desactivada (403), validando solo formato');
+        this.reniecHabilitado = false;
+        this.dniValido = true;
         this.dniExiste = false;
-        console.log('❌ Error al validar DNI');
+      } else {
+        // Error de conexión u otro error - si RENIEC está desactivada, solo validar formato
+        if (!this.reniecHabilitado) {
+          this.dniValido = true;
+          this.dniExiste = false;
+        } else {
+          this.dniValido = false;
+          this.dniExiste = false;
+          console.log('❌ Error al validar DNI');
+        }
       }
     } finally {
       this.validandoDNI = false;
@@ -2492,7 +2542,21 @@ export class NuevoComponent implements OnInit {
     this.dniValido = true;
     this.dniExiste = false;
     
-    // Validar DNI si tiene 8 dígitos
+    // Si RENIEC está desactivada, solo validar formato (8 dígitos)
+    if (!this.reniecHabilitado) {
+      if (dniSoloNumeros && dniSoloNumeros.length === 8) {
+        this.dniValido = true;
+        this.dniExiste = false;
+        this.validandoDNI = false;
+        console.log('[onDNIChange] RENIEC desactivada, DNI válido (8 dígitos)');
+      } else if (dniSoloNumeros && dniSoloNumeros.length > 0 && dniSoloNumeros.length < 8) {
+        this.dniValido = true; // No mostrar error mientras se escribe
+        this.validandoDNI = false;
+      }
+      return;
+    }
+    
+    // Si RENIEC está habilitada, validar DNI completo
     if (dniSoloNumeros && dniSoloNumeros.length === 8) {
       this.validarDNIExistente(dniSoloNumeros);
     }

@@ -1,7 +1,9 @@
 .configuracion-container {
   width: 100%;
   max-width: 100%;
-  padding-bottom: 40px;
+  padding-bottom: 20px; // Reducido de 40px a 20px
+  position: relative;
+  z-index: 1; /* Menor que el topbar (z-index: 200) para que el contenido pase por debajo */
 }
 
 /* ==================== PAGE HEADER ==================== */
@@ -9,8 +11,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 32px;
-  padding: 18px 24px;
+  margin-bottom: 16px; // Reducido de 32px a 16px
+  margin-top: 0; // Sin margen superior para acercarlo al topbar
+  padding: 16px 20px; // Reducido de 18px 24px a 16px 20px
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
   border-radius: 8px;
   border: 1px solid rgba(34, 197, 94, 0.15);
@@ -22,6 +25,7 @@
   overflow: hidden;
   gap: 20px;
   flex-wrap: wrap;
+  z-index: 1; /* Menor que el topbar (z-index: 200) */
   
   &::before {
     content: '';
@@ -149,7 +153,7 @@
   background: linear-gradient(135deg, rgba(245,158,11,.15) 0%, rgba(251,191,36,.15) 100%);
   border: 2px solid #f59e0b;
   border-radius: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 16px; // Reducido de 24px a 16px
   
   &__icon {
     font-size: 32px;
@@ -181,13 +185,14 @@
 
 /* ==================== TABS - SOLUCIÓN GRID PERFECTA ==================== */
 .tabs-container {
-  margin-bottom: 24px;
+  margin-bottom: 16px; // Reducido de 24px a 16px
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: visible;
   position: relative;
   box-shadow: 0 2px 12px rgba(0,0,0,.08);
+  z-index: 1; /* Menor que el topbar (z-index: 200) */
 }
 
 .tabs-scroll {
@@ -248,10 +253,14 @@
 /* ==================== TAB CONTENT ==================== */
 .tab-content {
   min-height: 500px;
+  position: relative;
+  z-index: 1; /* Menor que el topbar (z-index: 200) */
 }
 
 .tab-panel {
   animation: fadeIn 0.3s ease;
+  position: relative;
+  z-index: 1; /* Menor que el topbar (z-index: 200) */
 }
 
 @keyframes fadeIn {
@@ -279,8 +288,10 @@
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
+  padding: 20px; // Reducido de 24px a 20px
+  position: relative;
+  z-index: 1; /* Menor que el topbar (z-index: 200) */
+  margin-bottom: 16px; // Reducido de 24px a 16px
   
   &__title {
     font-size: 16px;

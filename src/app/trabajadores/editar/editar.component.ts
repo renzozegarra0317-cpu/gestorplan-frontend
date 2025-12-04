@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-editar',
@@ -21,7 +22,7 @@ export class EditarComponent implements OnInit {
   totalPasos: number = 5;
   trabajadorId: number = 0;
 
-  private apiUrl = 'http://localhost:5000/api/trabajadores';
+  private apiUrl = `${environment.apiUrl}/trabajadores`;
   
   mostrarModalCancelar: boolean = false;
 
@@ -68,7 +69,7 @@ export class EditarComponent implements OnInit {
   }
 
   cargarCargos(): void {
-    this.http.get<any>('http://localhost:5000/api/cargos').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/cargos`).subscribe({
       next: (response) => {
         console.log('[cargarCargos] Respuesta recibida:', response);
         // El backend puede devolver { success: true, data: [...] } o directamente [...]
@@ -101,7 +102,7 @@ export class EditarComponent implements OnInit {
 
   cargarAreas(): void {
     console.log('[cargarAreas] Cargando áreas desde el backend...');
-    this.http.get<any>('http://localhost:5000/api/areas').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/areas`).subscribe({
       next: (response) => {
         console.log('[cargarAreas] Respuesta:', response);
         const areasData = response.data || response;
@@ -169,7 +170,7 @@ export class EditarComponent implements OnInit {
   }
 
   cargarGerencias(): void {
-    this.http.get<any>('http://localhost:5000/api/gerencias').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/gerencias`).subscribe({
       next: (response) => {
         this.gerencias = Array.isArray(response.data) ? response.data : [];
         console.log('[cargarGerencias] Gerencias cargadas:', this.gerencias.length);
@@ -182,7 +183,7 @@ export class EditarComponent implements OnInit {
   }
 
   cargarSubgerencias(): void {
-    this.http.get<any>('http://localhost:5000/api/subgerencias').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/subgerencias`).subscribe({
       next: (response) => {
         this.subgerencias = response.data || response || [];
         console.log('[cargarSubgerencias] Subgerencias cargadas:', this.subgerencias.length);
@@ -193,7 +194,7 @@ export class EditarComponent implements OnInit {
 
   cargarUnidades(): void {
     console.log('[cargarUnidades] Cargando unidades desde el backend...');
-    this.http.get<any>('http://localhost:5000/api/unidades').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/unidades`).subscribe({
       next: (response) => {
         console.log('[cargarUnidades] Respuesta:', response);
         const unidadesData = response.data || response;
@@ -248,7 +249,7 @@ export class EditarComponent implements OnInit {
   }
 
   cargarRegimenesLaborales(): void {
-    this.http.get<any>('http://localhost:5000/api/regimenes-laborales').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/regimenes-laborales`).subscribe({
       next: (response) => {
         this.regimenesLaborales = Array.isArray(response.data) ? response.data : [];
         console.log('[cargarRegimenesLaborales] Regímenes cargados:', this.regimenesLaborales.length);
@@ -261,7 +262,7 @@ export class EditarComponent implements OnInit {
   }
 
   cargarTiposContrato(): void {
-    this.http.get<any>('http://localhost:5000/api/tipos-contrato').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/tipos-contrato`).subscribe({
       next: (response) => {
         this.tiposContrato = Array.isArray(response.data) ? response.data : [];
         console.log('[cargarTiposContrato] Tipos de contrato cargados:', this.tiposContrato.length);
@@ -274,7 +275,7 @@ export class EditarComponent implements OnInit {
   }
 
   cargarCondicionesLaborales(): void {
-    this.http.get<any>('http://localhost:5000/api/condiciones-laborales').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/condiciones-laborales`).subscribe({
       next: (response) => {
         this.condicionesLaborales = Array.isArray(response.data) ? response.data : [];
         console.log('[cargarCondicionesLaborales] Condiciones laborales cargadas:', this.condicionesLaborales.length);

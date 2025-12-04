@@ -145,13 +145,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 16px; // Reducido de 2rem (32px) a 16px
+  margin-top: 0; // Sin margen superior para acercarlo al topbar
   background: #FFFFFF; /* Fondo blanco - tema claro */
   border-top: 4px solid #22c55e; /* Línea verde gruesa arriba */
   border-left: 4px solid #22c55e; /* Línea verde gruesa a la izquierda */
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 1.5rem 2rem;
+  padding: 16px 20px; // Reducido de 1.5rem 2rem (24px 32px) a 16px 20px
   border-radius: 4px; /* Radio muy bajo - poco redondeado */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil */
 }
@@ -232,7 +233,7 @@
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   border-radius: 4px; /* Radio muy bajo - poco redondeado */
-  padding: 2rem;
+  padding: 20px; // Reducido de 2rem (32px) a 20px
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil */
 }
 
@@ -253,7 +254,7 @@
 // =====================================================
 
 .progress-bar {
-  margin-bottom: 2rem;
+  margin-bottom: 16px; // Reducido de 2rem (32px) a 16px
 }
 
 .progress-bar__steps {
@@ -365,7 +366,7 @@
 
 .step-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 16px; // Reducido de 2rem (32px) a 16px
 }
 
 .step-title {

@@ -447,10 +447,34 @@ export class BoletasComponent implements OnInit {
     return clases[estado] || '';
   }
 
-  formatearFecha(fecha: Date | undefined): string {
+  formatearFecha(fecha: Date | undefined | string): string {
     if (!fecha) return '-';
-    const date = new Date(fecha);
-    return date.toLocaleDateString('es-PE');
+    const date = typeof fecha === 'string' ? new Date(fecha) : new Date(fecha);
+    if (isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  obtenerNombreMes(mes: number | undefined): string {
+    if (!mes) return '-';
+    const meses = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 
+                   'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+    return meses[mes] || '-';
+  }
+
+  obtenerAfiliacion(boleta: BoletaPago): string {
+    if (boleta.sistemaPension === 'ONP') {
+      return 'ONP';
+    } else if (boleta.afp) {
+      return boleta.afp.toUpperCase();
+    } else if (boleta.sistemaPension) {
+      return boleta.sistemaPension.toUpperCase();
+    }
+    return 'INTEGRA FLUJO';
+  }
+
+  formatearMonto(monto: number | undefined): string {
+    if (monto === undefined || monto === null) return '0,00';
+    return monto.toFixed(2).replace('.', ',');
   }
 
   get nombreMesFiltro(): string {

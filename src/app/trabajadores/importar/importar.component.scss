@@ -1,7 +1,7 @@
 .importar-datos {
   width: 100%;
   max-width: 100%;
-  padding-bottom: 40px;
+  padding-bottom: 20px; // Reducido de 40px a 20px
 }
 
 /* ==================== PAGE HEADER ==================== */
@@ -9,14 +9,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 32px;
+  margin-bottom: 16px; // Reducido de 32px a 16px
+  margin-top: 0; // Sin margen superior para acercarlo al topbar
   gap: 20px;
   flex-wrap: wrap;
   background: #FFFFFF; /* Fondo blanco - tema claro */
   border-radius: 4px; /* Radio muy bajo - poco redondeado */
   border-top: 4px solid #22c55e; /* Línea verde gruesa arriba */
   border-left: 4px solid #22c55e; /* Línea verde gruesa a la izquierda */
-  padding: 20px 24px; /* Padding interno */
+  padding: 16px 20px; // Reducido de 20px 24px a 16px 20px
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil */
   
   /* ==================== TEMA OSCURO ==================== */
@@ -138,8 +139,8 @@
   border: 1px solid var(--border);
   border-top: 4px solid #22c55e; /* Línea verde arriba */
   border-radius: 4px; /* Radio de 4px */
-  padding: 24px;
-  margin-bottom: 32px;
+  padding: 16px 20px; // Reducido de 24px a 16px 20px
+  margin-bottom: 16px; // Reducido de 32px a 16px
   position: relative;
   
   /* Tema oscuro */
@@ -243,8 +244,8 @@
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 4px; /* Radio de 4px */
-  padding: 32px;
-  margin-bottom: 24px;
+  padding: 20px; // Reducido de 32px a 20px
+  margin-bottom: 16px; // Reducido de 24px a 16px
   min-height: 400px;
   
   /* Tema oscuro */

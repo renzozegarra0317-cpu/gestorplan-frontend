@@ -50,6 +50,9 @@
   
   .form-input {
     border-color: rgba(220, 38, 38, 0.2) !important;
+    background: rgba(30, 41, 59, 0.5) !important; // Fondo oscuro para que el texto blanco sea visible
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     color: #ffffff !important; // Texto blanco visible
     
     &::placeholder {
@@ -59,7 +62,19 @@
     &:focus {
       border-color: #dc2626 !important;
       box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+      background: rgba(30, 41, 59, 0.6) !important; // Fondo oscuro al enfocar
       color: #ffffff !important; // Texto blanco al enfocar
+    }
+    
+    // Asegurar que el autofill también tenga fondo oscuro
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+      -webkit-text-fill-color: #ffffff !important;
+      -webkit-box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.5) inset !important;
+      box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.5) inset !important;
+      transition: background-color 5000s ease-in-out 0s;
     }
   }
   
@@ -213,6 +228,17 @@
       background: rgba(30, 41, 59, 0.6) !important;
       color: #ffffff !important; // Texto blanco al enfocar
     }
+    
+    // Asegurar que el autofill también tenga fondo oscuro
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+      -webkit-text-fill-color: #ffffff !important;
+      -webkit-box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.5) inset !important;
+      box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.5) inset !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
   }
   
   .login-button {
@@ -324,6 +350,9 @@
   
   .form-input {
     border-color: rgba(139, 69, 255, 0.2) !important;
+    background: rgba(30, 41, 59, 0.5) !important; // Fondo oscuro para que el texto blanco sea visible
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     color: #ffffff !important; // Texto blanco visible
     
     &::placeholder {
@@ -333,7 +362,19 @@
     &:focus {
       border-color: #6366f1 !important;
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+      background: rgba(30, 41, 59, 0.6) !important; // Fondo oscuro al enfocar
       color: #ffffff !important; // Texto blanco al enfocar
+    }
+    
+    // Asegurar que el autofill también tenga fondo oscuro
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+      -webkit-text-fill-color: #ffffff !important;
+      -webkit-box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.5) inset !important;
+      box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.5) inset !important;
+      transition: background-color 5000s ease-in-out 0s;
     }
   }
   
@@ -496,6 +537,39 @@
     .brand-subtitle {
       font-size: 0.75rem;
       letter-spacing: 1px;
+    }
+  }
+}
+
+// Responsive para móviles pequeños
+@media (max-width: 480px) {
+  .brand-corner {
+    top: 10px;
+    left: 10px;
+    
+    .brand-title {
+      font-size: 1.2rem;
+      letter-spacing: -0.3px;
+    }
+    
+    .brand-subtitle {
+      font-size: 0.65rem;
+      letter-spacing: 0.5px;
+    }
+  }
+  
+  .theme-system {
+    top: 10px;
+    right: 10px;
+    
+    .theme-button {
+      width: 36px;
+      height: 36px;
+      
+      svg {
+        width: 16px;
+        height: 16px;
+      }
     }
   }
 }
@@ -777,7 +851,7 @@
   background: #000000;
   
   // Imagen de fondo de Huanchaco en alta calidad
-  background-image: url('/assets/Huanchaco.jpg');
+  background-image: url('../../../assets/Huanchaco.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -867,10 +941,10 @@
   );
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-radius: 24px;
-  padding: 40px;
+  border-radius: 20px;
+  padding: 25px;
   width: 100%;
-  max-width: 420px;
+  max-width: 380px;
   box-shadow: 
     0 25px 50px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.1) inset,
@@ -883,6 +957,20 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    padding: 30px 25px;
+    border-radius: 20px;
+    max-width: 100%;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 20px 15px;
+    border-radius: 16px;
+    margin: 10px;
+    max-width: calc(100% - 20px);
+  }
   
   // Efecto de brillo sutil en el borde
   &::before {
@@ -914,7 +1002,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    border-radius: 24px;
+    border-radius: 20px;
     background: radial-gradient(
       ellipse at top,
       rgba(255, 255, 255, 0.05) 0%,
@@ -941,21 +1029,30 @@
 
 .login-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    margin-bottom: 30px;
+  }
+  
+  @media (max-width: 480px) {
+    margin-bottom: 20px;
+  }
 }
 
 .logo-container {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .logo-icon {
   width: 200px;
   height: 200px;
-  margin: 0 auto 30px;
+  margin: 0 auto 12px;
   background: transparent !important;
   border-radius: 0;
   display: flex;
@@ -975,6 +1072,19 @@
     filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
     background: transparent;
   }
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+  }
+  
+  @media (max-width: 480px) {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 15px;
+  }
 }
 
 @keyframes subtlePulse {
@@ -990,24 +1100,44 @@
 
 
 .login-title {
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 600;
   color: #ffffff;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 1.3rem;
+    margin: 0 0 6px 0;
+  }
 }
 
 .login-subtitle {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #9ca3af;
   margin: 0;
+  line-height: 1.4;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    font-size: 0.85rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.75rem;
+  }
 }
 
 // =====================================================
@@ -1015,31 +1145,52 @@
 // =====================================================
 
 .login-form {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .form-group {
-  margin-bottom: 25px;
+  margin-bottom: 14px;
   position: relative;
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+  }
+  
+  @media (max-width: 480px) {
+    margin-bottom: 18px;
+  }
 }
 
 .form-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   color: #d1d5db;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   
   .input-icon {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     color: #6b7280;
+  }
+  
+  // Responsive para móviles
+  @media (max-width: 480px) {
+    font-size: 0.85rem;
+    gap: 6px;
+    margin-bottom: 6px;
+    
+    .input-icon {
+      width: 14px;
+      height: 14px;
+    }
   }
 }
 
@@ -1049,11 +1200,11 @@
 
 .form-input {
   width: 100%;
-  padding: 15px 20px;
+  padding: 11px 16px;
   border: 1.5px solid rgba(255, 255, 255, 0.2); // Borde transparente elegante
-  border-radius: 16px;
-  font-size: 1rem;
-  background: rgba(255, 255, 255, 0.1); // Fondo transparente
+  border-radius: 12px;
+  font-size: 0.95rem;
+  background: rgba(30, 41, 59, 0.5) !important; // Fondo oscuro para que el texto blanco sea siempre visible
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: #ffffff !important; // Color de texto blanco y visible
@@ -1061,7 +1212,21 @@
   outline: none;
   box-sizing: border-box;
   position: relative;
-  font-weight: 500; // Hacer el texto un poco más grueso para mejor visibilidad
+  font-weight: 400; // Texto más fino
+  line-height: 1.4;
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    border-radius: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
   
   // Asegurar que el texto sea visible en todos los estados
   &:-webkit-autofill,
@@ -1069,8 +1234,8 @@
   &:-webkit-autofill:focus,
   &:-webkit-autofill:active {
     -webkit-text-fill-color: #ffffff !important;
-    -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.1) inset !important;
-    box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.1) inset !important;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.5) inset !important; // Fondo oscuro para autofill
+    box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.5) inset !important; // Fondo oscuro para autofill
     transition: background-color 5000s ease-in-out 0s;
   }
   
@@ -1084,7 +1249,7 @@
       0 0 0 3px rgba(255, 255, 255, 0.1),
       0 4px 12px rgba(0, 0, 0, 0.2);
     transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.15); // Fondo más visible al enfocar
+    background: rgba(30, 41, 59, 0.6) !important; // Fondo oscuro al enfocar para mantener texto visible
     color: #ffffff !important; // Asegurar color blanco al enfocar
   }
   
@@ -1141,10 +1306,21 @@
     width: 20px;
     height: 20px;
   }
+  
+  // Responsive para móviles
+  @media (max-width: 480px) {
+    right: 12px;
+    padding: 4px;
+    
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
 }
 
 .error-message {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #f87171;
   margin-top: 5px;
   display: flex;
@@ -1158,9 +1334,20 @@
 
 .form-options {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 14px;
+  padding: 0 4px;
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+  }
+  
+  @media (max-width: 480px) {
+    margin-bottom: 18px;
+    padding: 0;
+  }
 }
 
 .checkbox-container {
@@ -1173,6 +1360,8 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .checkbox-input {
@@ -1186,6 +1375,7 @@
   position: relative;
   transition: all 0.2s ease;
   background: rgba(31, 41, 55, 0.5);
+  flex-shrink: 0;
 }
 
 .checkbox-input:checked + .checkbox-custom {
@@ -1206,12 +1396,15 @@
   color: var(--primary-color, #dc2626); // Texto dinámico
   text-decoration: none;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 400;
   transition: color 0.2s ease;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 2px 0;
   
   &:hover {
     color: var(--primary-light, #b91c1c); // Texto dinámico más intenso
@@ -1270,7 +1463,7 @@
 
 .login-button {
   width: 100%;
-  padding: 15px 20px;
+  padding: 10px 16px;
   background: linear-gradient(
     135deg,
     rgba(139, 92, 246, 0.9) 0%,
@@ -1281,17 +1474,32 @@
   -webkit-backdrop-filter: blur(10px);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   position: relative;
   overflow: hidden;
   box-shadow: 
     0 8px 25px rgba(139, 92, 246, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    padding: 14px 18px;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
   
   // Efecto de brillo al pasar el mouse
   &::before {
@@ -1388,21 +1596,21 @@
 
 .demo-button {
   width: 100%;
-  padding: 12px 20px;
+  padding: 10px 16px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: rgba(255, 255, 255, 0.9);
   border: 1.5px solid rgba(255, 255, 255, 0.3);
-  border-radius: 16px;
+  border-radius: 12px;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   
   &:hover:not(:disabled) {
@@ -1422,6 +1630,25 @@
     width: 16px;
     height: 16px;
   }
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    padding: 11px 18px;
+    font-size: 0.85rem;
+    border-radius: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    border-radius: 10px;
+    gap: 6px;
+    
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
 }
 
 // =====================================================
@@ -1430,13 +1657,41 @@
 
 .login-footer {
   text-align: center;
-  margin-top: 30px;
-  padding-top: 20px;
+  margin-top: 14px;
+  padding-top: 12px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  
+  p {
+    margin: 3px 0;
+    font-size: 0.75rem;
+  }
+  
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    margin-top: 20px;
+    padding-top: 15px;
+    
+    p {
+      font-size: 0.85rem;
+    }
+  }
+  
   border-top: 1px solid var(--border-color, rgba(220, 38, 38, 0.2)); // Borde dinámico
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  
+  @media (max-width: 480px) {
+    margin-top: 15px;
+    padding-top: 12px;
+    
+    p {
+      font-size: 0.75rem;
+      line-height: 1.4;
+    }
+  }
   
   p {
     margin: 5px 0;
@@ -1537,24 +1792,38 @@
 // RESPONSIVE
 // =====================================================
 
-@media (max-width: 480px) {
+// Media queries mejoradas para móviles
+@media (max-width: 768px) {
   .login-content {
-    padding: 30px 20px;
+    padding: 30px 25px;
     margin: 10px;
   }
-  
-  .logo-text {
-    font-size: 2rem;
-  }
-  
-  .login-title {
-    font-size: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .login-content {
+    padding: 20px 15px;
+    margin: 10px;
+    max-width: calc(100% - 20px);
   }
   
   .form-options {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     align-items: flex-start;
+  }
+  
+  .forgot-password {
+    font-size: 0.8rem;
+  }
+  
+  .checkbox-container {
+    font-size: 0.85rem;
+  }
+  
+  .alert {
+    padding: 10px 14px;
+    font-size: 0.85rem;
   }
 }
 

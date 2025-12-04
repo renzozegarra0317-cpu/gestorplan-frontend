@@ -313,62 +313,77 @@
     </div>
     <div class="graficos-grid">
     <!-- GRÁFICO: Evolución de planilla mensual -->
-    <div class="grafico-card">
+    <div class="grafico-card grafico-card--planilla">
       <div class="grafico-header">
-        <h3 class="grafico-titulo">📈 Evolución de Planilla Mensual</h3>
-        <button class="btn btn--sm btn--ghost">⚙️</button>
+        <div class="grafico-header-left">
+          <span class="grafico-icon">📈</span>
+          <h3 class="grafico-titulo">Evolución de Planilla Mensual</h3>
+        </div>
+        <div class="grafico-header-actions">
+          <button 
+            class="btn-icon btn-icon--export" 
+            (click)="exportarGrafico()"
+            title="Exportar gráfico"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+          <button 
+            class="btn-icon btn-icon--config" 
+            (click)="abrirModalConfigGrafico()"
+            title="Configurar gráfico"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3m15.364 6.364l-4.243-4.243m-4.242 0L5.636 17.364m12.728 0l-4.243-4.243m-4.242 0L5.636 6.636"></path>
+            </svg>
+          </button>
+        </div>
       </div>
       <div class="grafico-body">
-        <div class="chart-container">
-          <div class="chart-line">
-            <div class="chart-bars">
-              <div 
-                *ngFor="let valor of datosPlanillaMensual.valores; let i = index"
-                class="chart-bar"
-                [style.height]="(valor / 1300000 * 100) + '%'"
-                [attr.data-label]="datosPlanillaMensual.labels[i]"
-                [attr.data-value]="formatearMoneda(valor)"
-              >
-                <div class="bar-tooltip">
-                  {{ datosPlanillaMensual.labels[i] }}<br>
-                  <strong>{{ formatearMoneda(valor) }}</strong>
-                </div>
-              </div>
-            </div>
-            <div class="chart-labels">
-              <span *ngFor="let label of datosPlanillaMensual.labels">
-                {{ label }}
-              </span>
-            </div>
-          </div>
+        <div class="chart-container chart-container--planilla">
+          <canvas #planillaChartCanvas></canvas>
         </div>
       </div>
     </div>
 
-    <!-- GRÁFICO: Distribución por área -->
-    <div class="grafico-card">
+    <!-- GRÁFICO: Distribución por Régimen Laboral -->
+    <div class="grafico-card grafico-card--regimen">
       <div class="grafico-header">
-        <h3 class="grafico-titulo">👥 Distribución por Área</h3>
-        <button class="btn btn--sm btn--ghost">⚙️</button>
+        <div class="grafico-header-left">
+          <span class="grafico-icon">💼</span>
+          <h3 class="grafico-titulo">Distribución por Régimen Laboral</h3>
+        </div>
+        <div class="grafico-header-actions">
+          <button 
+            class="btn-icon btn-icon--export" 
+            (click)="exportarGraficoRegimen()"
+            title="Exportar gráfico"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+          <button 
+            class="btn-icon btn-icon--config" 
+            (click)="abrirModalConfigGraficoRegimen()"
+            title="Configurar gráfico"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3m15.364 6.364l-4.243-4.243m-4.242 0L5.636 17.364m12.728 0l-4.243-4.243m-4.242 0L5.636 6.636"></path>
+            </svg>
+          </button>
+        </div>
       </div>
       <div class="grafico-body">
-        <div class="chart-container">
-          <div class="chart-horizontal">
-            <div 
-              *ngFor="let valor of datosDistribucionArea.valores; let i = index"
-              class="chart-row"
-            >
-              <span class="row-label">{{ datosDistribucionArea.labels[i] }}</span>
-              <div class="row-bar-container">
-                <div 
-                  class="row-bar"
-                  [style.width]="(valor / 150 * 100) + '%'"
-                >
-                  <span class="row-value">{{ valor }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="chart-container chart-container--regimen">
+          <canvas #regimenChartCanvas></canvas>
         </div>
       </div>
     </div>
@@ -397,35 +412,8 @@
       </div>
     </div>
 
-    <!-- GRÁFICO: Asistencia semanal -->
-    <div class="grafico-card">
-      <div class="grafico-header">
-        <h3 class="grafico-titulo">📅 Asistencia Semanal</h3>
-        <button class="btn btn--sm btn--ghost">⚙️</button>
-      </div>
-      <div class="grafico-body">
-        <div class="chart-container">
-          <div class="chart-area">
-            <div class="area-bars">
-              <div 
-                *ngFor="let valor of datosAsistenciaSemanal.valores; let i = index"
-                class="area-bar"
-                [style.height]="valor + '%'"
-                [attr.data-label]="datosAsistenciaSemanal.labels[i]"
-              >
-                <span class="area-value">{{ valor }}%</span>
-              </div>
-            </div>
-            <div class="area-labels">
-              <span *ngFor="let label of datosAsistenciaSemanal.labels">
-                {{ label }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    </div>
+    <!-- GRÁFICO: Asistencia Semanal - ELIMINADO -->
+    <!-- La gráfica de asistencia ha sido eliminada para evitar cálculos innecesarios que causan freeze -->
   </div>
 
   <!-- LOADING OVERLAY -->
@@ -435,6 +423,41 @@
       <p>Cargando datos del dashboard...</p>
     </div>
   </div>
+</div>
+
+<!-- MODAL: Configuración del Gráfico de Régimen Laboral -->
+<div class="modal-overlay" *ngIf="mostrarModalConfigGraficoRegimen" (click)="cerrarModalConfigGraficoRegimen()" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;">
+  <div class="modal-content modal-config-grafico" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <span class="modal-icon">⚙️</span>
+        Configurar Gráfico de Régimen Laboral
+      </h3>
+      <button class="modal-close" (click)="cerrarModalConfigGraficoRegimen()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="config-section">
+        <p class="config-info" style="color: var(--text-2); line-height: 1.6; margin: 0;">
+          El gráfico de barras muestra la distribución de trabajadores por régimen laboral.
+          Los datos se actualizan automáticamente desde el sistema.
+        </p>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn--secondary" (click)="cerrarModalConfigGraficoRegimen()">
+        Cerrar
+      </button>
+      <button class="btn btn--primary" (click)="aplicarConfiguracionGraficoRegimen()">
+        Actualizar Gráfico
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Configuración del Gráfico de Asistencia Semanal - ELIMINADO -->
+<!-- El modal y toda la gráfica de asistencia han sido eliminados para evitar cálculos innecesarios -->
 
   <!-- MODAL DETALLE KPI -->
   <div class="modal-overlay" *ngIf="mostrarModalDetalleKPI" (click)="cerrarModalDetalleKPI()">
@@ -677,6 +700,196 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Configuración del Gráfico de Planilla -->
+<div class="modal-overlay" *ngIf="mostrarModalConfigGrafico" (click)="cerrarModalConfigGrafico()">
+  <div class="modal-content modal-config-grafico" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <span class="modal-icon">⚙️</span>
+        Configurar Gráfico de Planilla
+      </h3>
+      <button class="modal-close" (click)="cerrarModalConfigGrafico()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Tipo de Gráfico -->
+      <div class="config-section">
+        <label class="config-label">Tipo de Gráfico</label>
+        <div class="config-options">
+          <button 
+            class="config-option"
+            [class.active]="chartConfig.tipo === 'line'"
+            (click)="cambiarTipoGrafico('line')"
+          >
+            <span class="option-icon">📈</span>
+            <span class="option-text">Línea</span>
+          </button>
+          <button 
+            class="config-option"
+            [class.active]="chartConfig.tipo === 'bar'"
+            (click)="cambiarTipoGrafico('bar')"
+          >
+            <span class="option-icon">📊</span>
+            <span class="option-text">Barras</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Período -->
+      <div class="config-section">
+        <label class="config-label">Período</label>
+        <select 
+          class="config-select"
+          [(ngModel)]="chartConfig.periodo"
+        >
+          <option value="ultimos-6-meses">Últimos 6 meses</option>
+          <option value="ultimos-8-meses">Últimos 8 meses</option>
+          <option value="ultimos-12-meses">Últimos 12 meses</option>
+          <option value="año-actual">Año Actual</option>
+          <option value="año-anterior">Año Anterior</option>
+        </select>
+      </div>
+      
+      <!-- Color de Línea -->
+      <div class="config-section">
+        <label class="config-label">Color de Línea</label>
+        <div class="config-colors">
+          <button 
+            *ngFor="let color of coloresDisponibles"
+            class="color-option"
+            [class.active]="chartConfig.colorLinea === color.valor"
+            [style.background]="'linear-gradient(135deg, ' + color.gradiente.join(', ') + ')'"
+            (click)="cambiarColorLinea(color.valor)"
+            [title]="color.nombre"
+          >
+            <span class="color-check" *ngIf="chartConfig.colorLinea === color.valor">✓</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Estilo de Relleno -->
+      <div class="config-section">
+        <label class="config-label">Estilo de Relleno</label>
+        <div class="config-options">
+          <button 
+            class="config-option"
+            [class.active]="chartConfig.estiloRelleno === 'gradiente'"
+            (click)="chartConfig.estiloRelleno = 'gradiente'"
+          >
+            <span class="option-icon">🎨</span>
+            <span class="option-text">Gradiente</span>
+          </button>
+          <button 
+            class="config-option"
+            [class.active]="chartConfig.estiloRelleno === 'solido'"
+            (click)="chartConfig.estiloRelleno = 'solido'"
+          >
+            <span class="option-icon">🟦</span>
+            <span class="option-text">Sólido</span>
+          </button>
+          <button 
+            class="config-option"
+            [class.active]="chartConfig.estiloRelleno === 'transparente'"
+            (click)="chartConfig.estiloRelleno = 'transparente'"
+          >
+            <span class="option-icon">👁️</span>
+            <span class="option-text">Sin relleno</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Opciones Adicionales -->
+      <div class="config-section">
+        <label class="config-label">Opciones</label>
+        <div class="config-checkboxes">
+          <label class="config-checkbox">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="chartConfig.mostrarGrid"
+            >
+            <span>Mostrar cuadrícula</span>
+          </label>
+          <label class="config-checkbox">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="chartConfig.mostrarLeyenda"
+            >
+            <span>Mostrar leyenda</span>
+          </label>
+          <label class="config-checkbox">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="chartConfig.colorRelleno"
+            >
+            <span>Relleno de color</span>
+          </label>
+          <label class="config-checkbox">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="chartConfig.mostrarPuntos"
+            >
+            <span>Mostrar puntos</span>
+          </label>
+          <label class="config-checkbox">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="chartConfig.animacion"
+            >
+            <span>Animaciones</span>
+          </label>
+          <label class="config-checkbox">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="chartConfig.mostrarPromedio"
+            >
+            <span>Mostrar promedio en tooltip</span>
+          </label>
+          <label class="config-checkbox">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="chartConfig.mostrarTendencia"
+            >
+            <span>Mostrar tendencia</span>
+          </label>
+          <label class="config-checkbox">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="chartConfig.suavizado"
+            >
+            <span>Línea suavizada</span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Grosor de Línea -->
+      <div class="config-section">
+        <label class="config-label">Grosor de Línea: {{ chartConfig.grosorLinea }}px</label>
+        <input 
+          type="range" 
+          class="config-range"
+          min="1" 
+          max="6" 
+          step="1"
+          [(ngModel)]="chartConfig.grosorLinea"
+        >
+        <div class="range-labels">
+          <span>Delgado</span>
+          <span>Grueso</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn--secondary" (click)="cerrarModalConfigGrafico()">
+        Cancelar
+      </button>
+      <button class="btn btn--primary" (click)="aplicarConfiguracionGrafico()">
+        Aplicar Cambios
+      </button>
     </div>
   </div>
 </div>

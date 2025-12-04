@@ -2,7 +2,7 @@
 .nuevo-trabajador {
   width: 100%;
   max-width: 100%;
-  padding-bottom: 40px;
+  padding-bottom: 20px; // Reducido de 40px a 20px
   
   // Regla global para preservar colores de emojis
   span[class*="icon"],
@@ -70,10 +70,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px; /* Reducido para ser más compacto */
+  margin-bottom: 16px; // Reducido de 20px a 16px
+  margin-top: 0; // Sin margen superior para acercarlo al topbar
   gap: 20px;
   position: relative;
-  padding: 20px 28px; /* Reducido para ser más compacto como Lista */
+  padding: 16px 20px; // Reducido de 20px 28px a 16px 20px
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.02) 100%);
   border: 1px solid rgba(34, 197, 94, 0.15);
   border-radius: 8px; /* Igual que lista de trabajadores */
@@ -358,8 +359,8 @@
   background: linear-gradient(135deg, var(--panel) 0%, var(--panel-2) 100%);
   border: 1px solid var(--border);
   border-radius: 8px; /* Igual que lista de trabajadores */
-  padding: 32px;
-  margin-bottom: 32px;
+  padding: 20px; // Reducido de 32px a 20px
+  margin-bottom: 16px; // Reducido de 32px a 16px
   position: relative;
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.12),
@@ -573,8 +574,8 @@
   background: linear-gradient(135deg, var(--panel) 0%, var(--panel-2) 100%);
   border: 1px solid var(--border);
   border-radius: 8px; /* Igual que lista de trabajadores */
-  padding: 40px;
-  margin-bottom: 24px;
+  padding: 20px; // Reducido de 40px a 20px
+  margin-bottom: 16px; // Reducido de 24px a 16px
   box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.12),
     0 0 0 1px rgba(255, 255, 255, 0.05) inset;
@@ -608,7 +609,7 @@
 
 /* ==================== FORM SECTIONS ==================== */
 .form-section {
-  margin-bottom: 40px;
+  margin-bottom: 24px; // Reducido de 40px a 24px
   
   &:last-child {
     margin-bottom: 0;
@@ -663,7 +664,7 @@
 }
 
 .step-header {
-  margin-bottom: 40px;
+  margin-bottom: 16px; // Reducido de 40px a 16px
   padding-bottom: 24px;
   border-bottom: 2px solid var(--line-soft);
   position: relative;

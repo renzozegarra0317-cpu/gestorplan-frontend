@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { PrestamosService, Prestamo, EntidadFinanciera, Cuota } from './prestamos.service';
 
 @Component({
@@ -183,7 +184,7 @@ export class PrestamosComponent implements OnInit {
   }
 
   cargarTrabajadores() {
-    this.http.get<any>('http://localhost:5000/api/trabajadores').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/trabajadores`).subscribe({
       next: (response) => {
         const data = response.data || response || [];
         // Formatear los trabajadores para asegurar que tengan NombreCompleto
@@ -589,7 +590,7 @@ export class PrestamosComponent implements OnInit {
     const formData = new FormData();
     formData.append('archivo', this.archivoImportar);
 
-    this.http.post<any>('http://localhost:5000/api/prestamos/importar-cronograma', formData).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/prestamos/importar-cronograma`, formData).subscribe({
       next: (response) => {
         if (response.success && response.data && response.data.cuotas) {
           this.cuotasManuales = response.data.cuotas;

@@ -4,6 +4,7 @@ import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../auth/auth.service';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface ExpandedSections {
   trabajadores: boolean;
@@ -106,7 +107,7 @@ export class SidebarComponent implements OnInit {
     }
     
     console.log('🔍 Obteniendo datos del usuario ID:', this.currentUser.id);
-    this.http.get(`http://localhost:5000/api/usuarios/${this.currentUser.id}`).subscribe({
+    this.http.get(`${environment.apiUrl}/usuarios/${this.currentUser.id}`).subscribe({
       next: (response: any) => {
         console.log('🔍 Respuesta del servidor:', response);
         if (response.success && response.data) {

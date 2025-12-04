@@ -857,7 +857,7 @@ export class ConfiguracionComponent implements OnInit {
       
       promesasGuardado.push(
         firstValueFrom(
-          this.http.post('http://localhost:5000/api/configuracion/guardar', {
+          this.http.post(`${environment.apiUrl}/configuracion/guardar`, {
             modulo: 'PLANILLAS',
             configuraciones: configPlanillas
           }, { headers })
@@ -876,7 +876,7 @@ export class ConfiguracionComponent implements OnInit {
       
       promesasGuardado.push(
         firstValueFrom(
-          this.http.post('http://localhost:5000/api/configuracion/guardar', {
+          this.http.post(`${environment.apiUrl}/configuracion/guardar`, {
             modulo: 'BENEFICIOS',
             configuraciones: configBeneficios
           }, { headers })
@@ -897,7 +897,7 @@ export class ConfiguracionComponent implements OnInit {
       
       promesasGuardado.push(
         firstValueFrom(
-          this.http.post('http://localhost:5000/api/configuracion/guardar', {
+          this.http.post(`${environment.apiUrl}/configuracion/guardar`, {
             modulo: 'RRHH',
             configuraciones: configRRHH
           }, { headers })
@@ -922,7 +922,7 @@ export class ConfiguracionComponent implements OnInit {
       
       promesasGuardado.push(
         firstValueFrom(
-          this.http.post('http://localhost:5000/api/configuracion/guardar', {
+          this.http.post(`${environment.apiUrl}/configuracion/guardar`, {
             modulo: 'INTEGRACIONES',
             configuraciones: configIntegraciones
           }, { headers })
@@ -1466,7 +1466,7 @@ export class ConfiguracionComponent implements OnInit {
   }
   
   cargarCargosParaTasas(): void {
-    this.http.get<any>('http://localhost:5000/api/cargos').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/cargos`).subscribe({
       next: (response) => {
         // El API puede devolver un objeto o un array directamente
         if (Array.isArray(response)) {
@@ -1759,7 +1759,7 @@ export class ConfiguracionComponent implements OnInit {
     // Limpiar selección cuando se recargan los cargos
     this.cargosSeleccionados = [];
     this.todosCargosSeleccionados = false;
-    this.http.get('http://localhost:5000/api/cargos').subscribe({
+    this.http.get(`${environment.apiUrl}/cargos`).subscribe({
       next: (response: any) => {
         console.log('📋 Respuesta de cargos:', response);
         this.cargos = response.data || [];
@@ -1774,7 +1774,7 @@ export class ConfiguracionComponent implements OnInit {
   }
   
   cargarGerenciasParaDatosMaestros(): void {
-    this.http.get('http://localhost:5000/api/gerencias').subscribe({
+    this.http.get(`${environment.apiUrl}/gerencias`).subscribe({
       next: (response: any) => {
         this.gerencias = response.data || [];
         this.actualizarCount('gerencias', this.gerencias.length);
@@ -1787,7 +1787,7 @@ export class ConfiguracionComponent implements OnInit {
   }
   
   cargarSubgerenciasParaDatosMaestros(): void {
-    this.http.get('http://localhost:5000/api/subgerencias').subscribe({
+    this.http.get(`${environment.apiUrl}/subgerencias`).subscribe({
       next: (response: any) => {
         this.subgerencias = response.data || [];
         this.actualizarCount('subgerencias', this.subgerencias.length);
@@ -1800,7 +1800,7 @@ export class ConfiguracionComponent implements OnInit {
   }
   
   cargarUnidadesParaDatosMaestros(): void {
-    this.http.get('http://localhost:5000/api/unidades').subscribe({
+    this.http.get(`${environment.apiUrl}/unidades`).subscribe({
       next: (response: any) => {
         this.unidades = response.data || [];
         this.actualizarCount('unidades', this.unidades.length);
@@ -1813,7 +1813,7 @@ export class ConfiguracionComponent implements OnInit {
   }
   
   cargarTiposContratoParaDatosMaestros(): void {
-    this.http.get('http://localhost:5000/api/tipos-contrato').subscribe({
+    this.http.get(`${environment.apiUrl}/tipos-contrato`).subscribe({
       next: (response: any) => {
         this.tiposContrato = response.data || [];
         this.actualizarCount('tipos-contrato', this.tiposContrato.length);
@@ -1826,7 +1826,7 @@ export class ConfiguracionComponent implements OnInit {
   }
   
   cargarRegimenesLaboralesParaDatosMaestros(): void {
-    this.http.get('http://localhost:5000/api/regimenes-laborales').subscribe({
+    this.http.get(`${environment.apiUrl}/regimenes-laborales`).subscribe({
       next: (response: any) => {
         this.regimenesLaborales = response.data || [];
         this.actualizarCount('regimenes-laborales', this.regimenesLaborales.length);
@@ -1839,7 +1839,7 @@ export class ConfiguracionComponent implements OnInit {
   }
 
   cargarCondicionesLaboralesParaDatosMaestros(): void {
-    this.http.get('http://localhost:5000/api/condiciones-laborales').subscribe({
+    this.http.get(`${environment.apiUrl}/condiciones-laborales`).subscribe({
       next: (response: any) => {
         this.condicionesLaborales = response.data || [];
         this.actualizarCount('condiciones-laborales', this.condicionesLaborales.length);
@@ -1918,7 +1918,7 @@ export class ConfiguracionComponent implements OnInit {
 
     if (this.cargoEditando) {
       // Editar cargo existente
-      this.http.put(`http://localhost:5000/api/cargos/${this.cargoEditando.CargoID}`, datos).subscribe({
+      this.http.put(`${environment.apiUrl}/cargos/${this.cargoEditando.CargoID}`, datos).subscribe({
         next: () => {
           this.guardandoCargo = false;
           this.cerrarModalCargo();
@@ -1939,7 +1939,7 @@ export class ConfiguracionComponent implements OnInit {
       });
     } else {
       // Crear nuevo cargo
-      this.http.post('http://localhost:5000/api/cargos', datos).subscribe({
+      this.http.post(`${environment.apiUrl}/cargos`, datos).subscribe({
         next: () => {
           this.guardandoCargo = false;
           this.cerrarModalCargo();
@@ -2018,7 +2018,7 @@ export class ConfiguracionComponent implements OnInit {
       const nombreCargo = cargo ? cargo.Nombre : `ID ${cargoId}`;
 
       try {
-        await firstValueFrom(this.http.delete(`http://localhost:5000/api/cargos/${cargoId}`));
+        await firstValueFrom(this.http.delete(`${environment.apiUrl}/cargos/${cargoId}`));
         cargosEliminados.push(cargoId);
         // Remover de la lista de seleccionados
         const index = this.cargosSeleccionados.indexOf(cargoId);
@@ -2088,7 +2088,7 @@ export class ConfiguracionComponent implements OnInit {
 
   eliminarCargo(cargo: any): void {
     if (confirm(`¿Está seguro de eliminar el cargo "${cargo.Nombre}"?`)) {
-      this.http.delete(`http://localhost:5000/api/cargos/${cargo.CargoID}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/cargos/${cargo.CargoID}`).subscribe({
         next: () => {
           alert('✅ Cargo eliminado exitosamente');
           this.cargarCargosParaDatosMaestros();
@@ -2129,7 +2129,7 @@ export class ConfiguracionComponent implements OnInit {
         return;
       }
       
-      this.http.post('http://localhost:5000/api/gerencias', {
+      this.http.post(`${environment.apiUrl}/gerencias`, {
         nombre: nombreUpper,
         descripcion: '',
         activo: true
@@ -2153,7 +2153,7 @@ export class ConfiguracionComponent implements OnInit {
   editarGerencia(gerencia: any): void {
     const nuevoNombre = prompt('Ingrese el nuevo nombre de la gerencia:', gerencia.Nombre);
     if (nuevoNombre && nuevoNombre.trim()) {
-      this.http.put(`http://localhost:5000/api/gerencias/${gerencia.GerenciaID}`, {
+      this.http.put(`${environment.apiUrl}/gerencias/${gerencia.GerenciaID}`, {
         nombre: nuevoNombre.trim().toUpperCase(),
         descripcion: gerencia.Descripcion || '',
         activo: gerencia.Activo
@@ -2172,7 +2172,7 @@ export class ConfiguracionComponent implements OnInit {
   
   eliminarGerencia(gerencia: any): void {
     if (confirm(`¿Está seguro de eliminar la gerencia "${gerencia.Nombre}"?`)) {
-      this.http.delete(`http://localhost:5000/api/gerencias/${gerencia.GerenciaID}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/gerencias/${gerencia.GerenciaID}`).subscribe({
         next: () => {
           alert('✅ Gerencia eliminada exitosamente');
           this.cargarGerenciasParaDatosMaestros();
@@ -2198,7 +2198,7 @@ export class ConfiguracionComponent implements OnInit {
         return;
       }
       
-      this.http.post('http://localhost:5000/api/subgerencias', {
+      this.http.post(`${environment.apiUrl}/subgerencias`, {
         nombre: nombreUpper,
         gerenciaID: 1, // Por defecto
         activo: true
@@ -2222,7 +2222,7 @@ export class ConfiguracionComponent implements OnInit {
   editarSubgerencia(subgerencia: any): void {
     const nuevoNombre = prompt('Ingrese el nuevo nombre de la subgerencia:', subgerencia.Nombre);
     if (nuevoNombre && nuevoNombre.trim()) {
-      this.http.put(`http://localhost:5000/api/subgerencias/${subgerencia.SubgerenciaID}`, {
+      this.http.put(`${environment.apiUrl}/subgerencias/${subgerencia.SubgerenciaID}`, {
         nombre: nuevoNombre.trim().toUpperCase(),
         gerenciaID: subgerencia.GerenciaID || 1,
         activo: subgerencia.Activo
@@ -2241,7 +2241,7 @@ export class ConfiguracionComponent implements OnInit {
   
   eliminarSubgerencia(subgerencia: any): void {
     if (confirm(`¿Está seguro de eliminar la subgerencia "${subgerencia.Nombre}"?`)) {
-      this.http.delete(`http://localhost:5000/api/subgerencias/${subgerencia.SubgerenciaID}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/subgerencias/${subgerencia.SubgerenciaID}`).subscribe({
         next: () => {
           alert('✅ Subgerencia eliminada exitosamente');
           this.cargarSubgerenciasParaDatosMaestros();
@@ -2267,7 +2267,7 @@ export class ConfiguracionComponent implements OnInit {
         return;
       }
       
-      this.http.post('http://localhost:5000/api/unidades', {
+      this.http.post(`${environment.apiUrl}/unidades`, {
         nombre: nombreUpper,
         subgerenciaID: 1, // Por defecto
         activo: true
@@ -2291,7 +2291,7 @@ export class ConfiguracionComponent implements OnInit {
   editarUnidad(unidad: any): void {
     const nuevoNombre = prompt('Ingrese el nuevo nombre de la unidad:', unidad.Nombre);
     if (nuevoNombre && nuevoNombre.trim()) {
-      this.http.put(`http://localhost:5000/api/unidades/${unidad.UnidadID}`, {
+      this.http.put(`${environment.apiUrl}/unidades/${unidad.UnidadID}`, {
         nombre: nuevoNombre.trim().toUpperCase(),
         subgerenciaID: unidad.SubgerenciaID || 1,
         activo: unidad.Activo
@@ -2310,7 +2310,7 @@ export class ConfiguracionComponent implements OnInit {
   
   eliminarUnidad(unidad: any): void {
     if (confirm(`¿Está seguro de eliminar la unidad "${unidad.Nombre}"?`)) {
-      this.http.delete(`http://localhost:5000/api/unidades/${unidad.UnidadID}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/unidades/${unidad.UnidadID}`).subscribe({
         next: () => {
           alert('✅ Unidad eliminada exitosamente');
           this.cargarUnidadesParaDatosMaestros();
@@ -2407,7 +2407,7 @@ export class ConfiguracionComponent implements OnInit {
 
     if (this.tipoContratoEditando) {
       // Editar tipo de contrato existente
-      this.http.put(`http://localhost:5000/api/tipos-contrato/${this.tipoContratoEditando.TipoContratoID}`, datos).subscribe({
+      this.http.put(`${environment.apiUrl}/tipos-contrato/${this.tipoContratoEditando.TipoContratoID}`, datos).subscribe({
         next: () => {
           this.guardandoTipoContrato = false;
           this.cerrarModalTipoContrato();
@@ -2428,7 +2428,7 @@ export class ConfiguracionComponent implements OnInit {
       });
     } else {
       // Crear nuevo tipo de contrato
-      this.http.post('http://localhost:5000/api/tipos-contrato', datos).subscribe({
+      this.http.post(`${environment.apiUrl}/tipos-contrato`, datos).subscribe({
         next: () => {
           this.guardandoTipoContrato = false;
           this.cerrarModalTipoContrato();
@@ -2460,7 +2460,7 @@ export class ConfiguracionComponent implements OnInit {
   
   eliminarTipoContrato(tipo: any): void {
     if (confirm(`¿Está seguro de eliminar el tipo de contrato "${tipo.Nombre}"?\n\nSi hay trabajadores usando este tipo de contrato, se realizará una desactivación en lugar de eliminación.`)) {
-      this.http.delete(`http://localhost:5000/api/tipos-contrato/${tipo.TipoContratoID}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/tipos-contrato/${tipo.TipoContratoID}`).subscribe({
         next: (response: any) => {
           let mensaje = '✅ Tipo de contrato eliminado exitosamente';
           
@@ -2581,7 +2581,7 @@ export class ConfiguracionComponent implements OnInit {
 
     if (this.regimenLaboralEditando) {
       // Editar régimen existente
-      this.http.put(`http://localhost:5000/api/regimenes-laborales/${this.regimenLaboralEditando.RegimenID}`, datos).subscribe({
+      this.http.put(`${environment.apiUrl}/regimenes-laborales/${this.regimenLaboralEditando.RegimenID}`, datos).subscribe({
         next: () => {
           this.guardandoRegimenLaboral = false;
           this.cerrarModalRegimenLaboral();
@@ -2602,7 +2602,7 @@ export class ConfiguracionComponent implements OnInit {
       });
     } else {
       // Crear nuevo régimen
-      this.http.post('http://localhost:5000/api/regimenes-laborales', datos).subscribe({
+      this.http.post(`${environment.apiUrl}/regimenes-laborales`, datos).subscribe({
         next: () => {
           this.guardandoRegimenLaboral = false;
           this.cerrarModalRegimenLaboral();
@@ -2626,7 +2626,7 @@ export class ConfiguracionComponent implements OnInit {
   
   eliminarRegimenLaboral(regimen: any): void {
     if (confirm(`¿Está seguro de eliminar completamente el régimen laboral "${regimen.Nombre}"?\n\n⚠️ ADVERTENCIA: Esta acción no se puede deshacer.`)) {
-      this.http.delete(`http://localhost:5000/api/regimenes-laborales/${regimen.RegimenID}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/regimenes-laborales/${regimen.RegimenID}`).subscribe({
         next: () => {
           alert('✅ Régimen laboral eliminado exitosamente');
           this.cargarRegimenesLaboralesParaDatosMaestros();
@@ -2697,7 +2697,7 @@ export class ConfiguracionComponent implements OnInit {
     };
 
     if (this.condicionLaboralEditando) {
-      this.http.put(`http://localhost:5000/api/condiciones-laborales/${this.condicionLaboralEditando.CondicionID}`, datos).subscribe({
+      this.http.put(`${environment.apiUrl}/condiciones-laborales/${this.condicionLaboralEditando.CondicionID}`, datos).subscribe({
         next: () => {
           this.guardandoCondicionLaboral = false;
           this.cerrarModalCondicionLaboral();
@@ -2711,7 +2711,7 @@ export class ConfiguracionComponent implements OnInit {
         }
       });
     } else {
-      this.http.post('http://localhost:5000/api/condiciones-laborales', datos).subscribe({
+      this.http.post(`${environment.apiUrl}/condiciones-laborales`, datos).subscribe({
         next: () => {
           this.guardandoCondicionLaboral = false;
           this.cerrarModalCondicionLaboral();
@@ -2734,7 +2734,7 @@ export class ConfiguracionComponent implements OnInit {
     );
 
     if (confirmacion) {
-      this.http.delete(`http://localhost:5000/api/condiciones-laborales/${condicion.CondicionID}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/condiciones-laborales/${condicion.CondicionID}`).subscribe({
         next: (response: any) => {
           if (response.trabajadoresUsando > 0) {
             alert(`✅ Condición laboral desactivada. Hay ${response.trabajadoresUsando} trabajador(es) que aún la están usando.`);
@@ -2756,7 +2756,7 @@ export class ConfiguracionComponent implements OnInit {
   // Cargar roles
   cargarRoles(): void {
     this.rolesCargando = true;
-    this.http.get('http://localhost:5000/api/roles').subscribe({
+    this.http.get(`${environment.apiUrl}/roles`).subscribe({
       next: (response: any) => {
         this.roles = (response.data || response).map((rol: any) => {
           // Parsear permisos si vienen como string JSON
@@ -2830,7 +2830,7 @@ export class ConfiguracionComponent implements OnInit {
   // Cargar usuarios
   cargarUsuarios(): void {
     this.usuariosCargando = true;
-    this.http.get('http://localhost:5000/api/usuarios').subscribe({
+    this.http.get(`${environment.apiUrl}/usuarios`).subscribe({
       next: (response: any) => {
         this.usuarios = (response.data || response).map((usuario: any) => ({
           ...usuario,
@@ -3119,7 +3119,7 @@ export class ConfiguracionComponent implements OnInit {
 
     if (this.rolEditando) {
       // Actualizar rol existente
-      this.http.put(`http://localhost:5000/api/roles/${this.rolEditando.id}`, datos).subscribe({
+      this.http.put(`${environment.apiUrl}/roles/${this.rolEditando.id}`, datos).subscribe({
         next: () => {
           this.guardandoRol = false;
           this.cerrarModalRol();
@@ -3154,7 +3154,7 @@ export class ConfiguracionComponent implements OnInit {
       });
     } else {
       // Crear nuevo rol
-      this.http.post('http://localhost:5000/api/roles', datos).subscribe({
+      this.http.post(`${environment.apiUrl}/roles`, datos).subscribe({
         next: () => {
           this.guardandoRol = false;
           this.cerrarModalRol();
@@ -3215,7 +3215,7 @@ export class ConfiguracionComponent implements OnInit {
     this.eliminandoRol = true;
     this.mostrarModalEliminarRol = false;
 
-    this.http.delete(`http://localhost:5000/api/roles/${this.rolAEliminar.id}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/roles/${this.rolAEliminar.id}`).subscribe({
       next: (response: any) => {
         if (response.success) {
           // Mostrar modal de éxito con animación
@@ -3317,7 +3317,7 @@ export class ConfiguracionComponent implements OnInit {
       passwordNuevo: this.passwordForm.passwordNuevo
     };
 
-    this.http.put(`http://localhost:5000/api/usuarios/${this.passwordForm.usuarioId}/password`, datos).subscribe({
+    this.http.put(`${environment.apiUrl}/usuarios/${this.passwordForm.usuarioId}/password`, datos).subscribe({
       next: () => {
         this.guardandoPassword = false;
         this.cerrarModalPassword();
@@ -3584,7 +3584,7 @@ export class ConfiguracionComponent implements OnInit {
     // Petición al backend (eliminación permanente)
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    this.http.delete(`http://localhost:5000/api/usuarios/${id}`, { headers }).subscribe({
+    this.http.delete(`${environment.apiUrl}/usuarios/${id}`, { headers }).subscribe({
       next: (response: any) => {
         if (response.success) {
           // Mostrar spinner de carga
@@ -3749,9 +3749,9 @@ export class ConfiguracionComponent implements OnInit {
     };
 
     console.log('📤 Enviando datos:', datosActualizacion);
-    console.log('📤 URL:', `http://localhost:5000/api/usuarios/${this.usuarioEditando.UsuarioID}`);
+    console.log('📤 URL:', `${environment.apiUrl}/usuarios/${this.usuarioEditando.UsuarioID}`);
 
-    this.http.put(`http://localhost:5000/api/usuarios/${this.usuarioEditando.UsuarioID}`, datosActualizacion).subscribe({
+    this.http.put(`${environment.apiUrl}/usuarios/${this.usuarioEditando.UsuarioID}`, datosActualizacion).subscribe({
       next: (response: any) => {
         if (response.success) {
           alert('✅ Usuario actualizado exitosamente');
@@ -3816,7 +3816,7 @@ export class ConfiguracionComponent implements OnInit {
 
     this.reseteandoPassword = true;
 
-    this.http.put(`http://localhost:5000/api/usuarios/${this.usuarioReseteando.UsuarioID}/reset-password`, {
+    this.http.put(`${environment.apiUrl}/usuarios/${this.usuarioReseteando.UsuarioID}/reset-password`, {
       passwordNuevo: this.nuevaPassword
     }).subscribe({
       next: (response: any) => {
@@ -3916,7 +3916,7 @@ export class ConfiguracionComponent implements OnInit {
     }
 
     // Obtener permisos del rol desde la base de datos
-    this.http.get(`http://localhost:5000/api/roles/nombre/${encodeURIComponent(this.currentUser.rol)}`).subscribe({
+    this.http.get(`${environment.apiUrl}/roles/nombre/${encodeURIComponent(this.currentUser.rol)}`).subscribe({
       next: (response: any) => {
         if (response.success && response.data) {
           let permisos = response.data.permisos;
@@ -4186,7 +4186,7 @@ export class ConfiguracionComponent implements OnInit {
     this.usuarioCreadoCompletado = false;
     this.creandoUsuario = true;
 
-    this.http.post('http://localhost:5000/api/usuarios', datosUsuario).subscribe({
+    this.http.post(`${environment.apiUrl}/usuarios`, datosUsuario).subscribe({
       next: (response: any) => {
         if (response.success) {
           // Mostrar spinner de carga

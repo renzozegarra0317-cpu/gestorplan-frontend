@@ -256,6 +256,17 @@ export class LoginComponent implements OnInit {
     // Guardar datos de autenticación usando el servicio
     this.authService.saveAuthData(response.token, response.user, false);
 
+    // Guardar información de tiempo demo si está disponible
+    if (response.user && (response.user.rol === 'DEMO' || response.user.rol === 'demo')) {
+      const demoTimeInfo = {
+        horasAsignadas: response.user.HorasRestantes || response.HorasRestantes || 1,
+        minutosAsignados: response.user.MinutosRestantes || response.MinutosRestantes || 0,
+        fechaInicio: new Date().toISOString(),
+        fechaFin: response.user.FechaFinDemo || response.FechaFinDemo || null
+      };
+      localStorage.setItem('demoTimeInfo', JSON.stringify(demoTimeInfo));
+    }
+
     this.successMessage = '¡Acceso DEMO exitoso!';
     
     // Redirigir después de un breve delay

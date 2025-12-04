@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { FiltrosGratificaciones } from './gratificaciones.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GratificacionesService {
-  private apiUrl = 'http://localhost:5000/api/beneficios/gratificaciones';
+  private apiUrl = `${environment.apiUrl}/beneficios/gratificaciones`;
 
   constructor(private http: HttpClient) {}
 

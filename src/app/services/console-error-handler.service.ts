@@ -45,11 +45,14 @@ export class ConsoleErrorHandlerService {
     
     this.isInitialized = true;
 
-    // Solo en desarrollo, interceptar errores de consola
+    // Interceptar errores de consola (solo en desarrollo para evitar spam)
     if (!environment.production) {
       this.interceptConsoleErrors();
-      this.handleServiceWorkerErrors();
     }
+    
+    // SIEMPRE eliminar service workers (tanto en desarrollo como producción)
+    // Esto es crítico para evitar problemas de cacheo de APIs y congelamiento
+    this.handleServiceWorkerErrors();
   }
 
   /**
@@ -88,6 +91,7 @@ export class ConsoleErrorHandlerService {
 
   /**
    * Maneja errores de service workers de forma segura
+   * ELIMINA TODOS LOS SERVICE WORKERS (incluyendo PWA/ngsw)
    */
   private handleServiceWorkerErrors(): void {
     if (!('serviceWorker' in navigator)) return;
@@ -101,21 +105,36 @@ export class ConsoleErrorHandlerService {
   }
 
   /**
-   * Limpia service workers problemáticos de forma segura
+   * Limpia TODOS los service workers de forma segura
+   * Esto incluye service workers de PWA, ngsw, y cualquier otro
    */
   private async cleanupServiceWorkers(): Promise<void> {
     try {
       const registrations = await navigator.serviceWorker.getRegistrations();
       
+      // ELIMINAR TODOS LOS SERVICE WORKERS (no solo externos)
       for (const registration of registrations) {
-        // Solo limpiar service workers externos o de extensiones
-        if (this.isExternalServiceWorker(registration.scope)) {
-          try {
-            await registration.unregister();
-            // No loguear para evitar spam en consola
-          } catch (error) {
-            // Ignorar errores al desregistrar
+        try {
+          await registration.unregister();
+          console.log('✅ Service Worker eliminado:', registration.scope);
+        } catch (error) {
+          // Ignorar errores al desregistrar
+        }
+      }
+
+      // También limpiar caches relacionados con ngsw
+      if ('caches' in window) {
+        try {
+          const cacheNames = await caches.keys();
+          for (const cacheName of cacheNames) {
+            // Eliminar todos los caches que empiecen con 'ngsw:' o sean de service workers
+            if (cacheName.startsWith('ngsw:') || cacheName.includes('service-worker')) {
+              await caches.delete(cacheName);
+              console.log('✅ Cache eliminado:', cacheName);
+            }
           }
+        } catch (error) {
+          // Ignorar errores al limpiar caches
         }
       }
     } catch (error) {
@@ -132,18 +151,6 @@ export class ConsoleErrorHandlerService {
     );
   }
 
-  /**
-   * Verifica si un service worker es externo
-   */
-  private isExternalServiceWorker(scope: string): boolean {
-    const currentOrigin = window.location.origin;
-    
-    // Es externo si:
-    // 1. Es de una extensión de Chrome
-    // 2. No pertenece al dominio actual
-    return scope.includes('chrome-extension://') || 
-           !scope.startsWith(currentOrigin);
-  }
 
   /**
    * Método público para agregar errores a ignorar (escalable)

@@ -537,7 +537,7 @@ export class ListaComponent implements OnInit {
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     
     // Recargar los datos frescos del trabajador desde el backend
-    this.http.get<any>(`http://localhost:5000/api/trabajadores/${trabajador.id}`, { headers }).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/trabajadores/${trabajador.id}`, { headers }).subscribe({
       next: (response) => {
         if (response.success) {
           console.log('📦 Datos recibidos del backend para trabajador:', response.data);

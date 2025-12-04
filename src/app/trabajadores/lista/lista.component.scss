@@ -6,21 +6,22 @@
 
 // Header de página - DISEÑO MEJORADO (igual que dashboard)
 .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 16px; // Reducido de 32px a 16px
+  margin-top: 0; // Sin margen superior para acercarlo al topbar
 }
 
 .header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 16px; // Reducido de 24px a 16px
   gap: 20px;
   flex-wrap: wrap;
   background: #FFFFFF; /* Fondo blanco - tema claro */
   border-radius: 4px; /* Radio muy bajo - poco redondeado */
   border-top: 4px solid #22c55e; /* Línea verde gruesa arriba */
   border-left: 4px solid #22c55e; /* Línea verde gruesa a la izquierda */
-  padding: 20px 24px; /* Padding interno */
+  padding: 16px 20px; /* Padding reducido: de 20px 24px a 16px 20px */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil */
 }
 
@@ -348,8 +349,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 28px;
-  padding: 22px 28px;
+  margin-bottom: 16px; // Reducido de 28px a 16px
+  padding: 16px 20px; // Reducido de 22px 28px a 16px 20px
   background: #FFFFFF; /* Fondo blanco - tema claro */
   border-radius: 4px; /* Radio muy bajo - igual que dashboard */
   border: 1px solid var(--border);

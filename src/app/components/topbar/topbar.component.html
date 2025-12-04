@@ -26,6 +26,23 @@
 
   <!-- DERECHA: Acciones centradas -->
   <div class="topbar__right">
+    <!-- Temporizador Demo -->
+    <div 
+      class="topbar__demo-timer" 
+      *ngIf="isDemoSession"
+      [class.warning]="demoTimeRemainingSeconds <= 300 && demoTimeRemainingSeconds > 60"
+      [class.critical]="demoTimeRemainingSeconds <= 60 && demoTimeRemainingSeconds > 0"
+      [title]="'Tiempo restante de sesión DEMO'"
+    >
+      <span class="demo-timer-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </span>
+      <span class="demo-timer-text">Demo: {{ demoTimeRemaining }}</span>
+    </div>
+
     <!-- Notificaciones -->
     <div class="topbar__notifications" [class.active]="showNotifications">
       <button 

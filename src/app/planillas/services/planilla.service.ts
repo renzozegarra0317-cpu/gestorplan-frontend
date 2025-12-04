@@ -2,6 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface GenerarPlanillaDTO {
   año: number;
@@ -57,7 +58,7 @@ export interface DetallePlanilla {
   providedIn: 'root'
 })
 export class PlanillaService {
-  private apiUrl = 'http://localhost:5000/api/planillas';
+  private apiUrl = `${environment.apiUrl}/planillas`;
 
   constructor(private http: HttpClient) {}
 

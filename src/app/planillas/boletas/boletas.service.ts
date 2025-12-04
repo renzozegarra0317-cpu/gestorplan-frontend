@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { BoletaPago, FiltrosBoletas, ResumenBoletas } from './boletas.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BoletasService {
-  private apiUrl = 'http://localhost:5000/api/boletas';
+  private apiUrl = `${environment.apiUrl}/boletas`;
 
   constructor(private http: HttpClient) {}
 

@@ -407,7 +407,12 @@
               (input)="onDNIChange($event)"
               (keypress)="soloNumeros($event)"
             />
-            <button type="button" class="btn btn--sm btn--accent" (click)="buscarDNI()">
+            <button 
+              type="button" 
+              class="btn btn--sm btn--accent" 
+              (click)="buscarDNI()"
+              [title]="reniecHabilitado ? 'Buscar datos en RENIEC' : 'RENIEC desactivada - Ingrese datos manualmente'"
+            >
               🔍 Buscar RENIEC
             </button>
           </div>

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { 
   ResumenMensualTrabajador, 
   ResumenGeneralMensual, 
@@ -24,7 +25,7 @@ Chart.register(...registerables);
 })
 export class ResumenComponent implements OnInit, OnDestroy, AfterViewInit {
   // API URLs
-  private apiAsistencias = 'http://localhost:5000/api/asistencias';
+  private apiAsistencias = `${environment.apiUrl}/asistencias`;
   
   // Datos del backend
   resumenMensual: any = null;

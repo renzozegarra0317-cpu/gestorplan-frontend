@@ -73,6 +73,7 @@ export class AuthService {
     localStorage.removeItem('user');
     localStorage.removeItem('rememberMe');
     localStorage.removeItem('permisos');
+    localStorage.removeItem('demoTimeInfo'); // Limpiar información de tiempo demo
     this.currentUserSubject.next(null);
     this.permisosSubject.next(null);
   }

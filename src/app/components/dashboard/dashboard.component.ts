@@ -1,10 +1,13 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { DashboardService } from './dashboard.service';
+import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 interface Filtros {
   fechaInicio: string;
@@ -65,7 +68,7 @@ interface Alerta {
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   // Filtros
   filtros: Filtros = {
     fechaInicio: this.obtenerPrimerDiaMes(),
@@ -95,15 +98,56 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { titulo: 'Nuevos Ingresos', valor: 12, icono: '✨', tendencia: 'up', porcentaje: 20, color: '#06b6d4' },
   ];
 
+  // Referencia al canvas del gráfico
+  @ViewChild('planillaChartCanvas', { static: false }) planillaChartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('regimenChartCanvas', { static: false }) regimenChartCanvas!: ElementRef<HTMLCanvasElement>;
+  
+  // Gráficos
+  planillaChart: Chart | null = null;
+  regimenChart: Chart | null = null;
+  
+  // Configuración del gráfico
+  chartConfig = {
+    tipo: 'line' as ChartType, // 'line' | 'bar'
+    periodo: 'ultimos-8-meses', // 'ultimos-6-meses' | 'ultimos-8-meses' | 'ultimos-12-meses' | 'año-actual' | 'año-anterior'
+    mostrarGrid: true,
+    mostrarLeyenda: true,
+    colorLinea: '#10b981', // Verde por defecto
+    colorRelleno: true,
+    grosorLinea: 3,
+    mostrarPuntos: true,
+    animacion: true,
+    estiloRelleno: 'gradiente', // 'solido' | 'gradiente' | 'transparente'
+    mostrarPromedio: false,
+    mostrarTendencia: true,
+    suavizado: true
+  };
+  
+  // Colores disponibles para el gráfico
+  coloresDisponibles = [
+    { nombre: 'Verde', valor: '#10b981', gradiente: ['#10b981', '#059669', '#047857'] },
+    { nombre: 'Azul', valor: '#3b82f6', gradiente: ['#3b82f6', '#2563eb', '#1d4ed8'] },
+    { nombre: 'Morado', valor: '#8b5cf6', gradiente: ['#8b5cf6', '#7c3aed', '#6d28d9'] },
+    { nombre: 'Naranja', valor: '#f59e0b', gradiente: ['#f59e0b', '#d97706', '#b45309'] },
+    { nombre: 'Rojo', valor: '#ef4444', gradiente: ['#ef4444', '#dc2626', '#b91c1c'] },
+    { nombre: 'Cyan', valor: '#06b6d4', gradiente: ['#06b6d4', '#0891b2', '#0e7490'] },
+    { nombre: 'Rosa', valor: '#ec4899', gradiente: ['#ec4899', '#db2777', '#be185d'] },
+    { nombre: 'Amarillo', valor: '#eab308', gradiente: ['#eab308', '#ca8a04', '#a16207'] }
+  ];
+  
+  // Modal de configuración
+  mostrarModalConfigGrafico: boolean = false;
+  mostrarModalConfigGraficoRegimen: boolean = false;
+  
   // Datos para gráficos
   datosPlanillaMensual = {
     labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago'],
     valores: [1200000, 1180000, 1250000, 1230000, 1280000, 1260000, 1290000, 1250000]
   };
 
-  datosDistribucionArea = {
-    labels: ['GM', 'RRHH', 'Admin', 'Finanzas', 'Obras', 'Servicios'],
-    valores: [50, 30, 80, 45, 150, 145]
+  datosDistribucionRegimen = {
+    labels: ['Nombrado', 'CAS', 'Locador', 'Practicante', 'Obrero'],
+    valores: [250, 150, 80, 20, 45]
   };
 
   datosContratos = {
@@ -111,10 +155,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     valores: [250, 150, 80, 20]
   };
 
-  datosAsistenciaSemanal = {
-    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'],
-    valores: [98, 95, 97, 94, 96]
-  };
 
   // Movimientos recientes
   movimientos: MovimientoPlanilla[] = [
@@ -192,6 +232,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   cargando: boolean = false;
   mesActual: string = 'Octubre 2025';
   
+  // Flag para evitar registro múltiple de listeners
+  private listenersRegistrados: boolean = false;
+  
   // Modal de detalle KPI
   mostrarModalDetalleKPI: boolean = false;
   detalleKPISeleccionado: any = null;
@@ -200,11 +243,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // Modal de calendario completo
   mostrarCalendarioCompleto: boolean = false;
+  diasCalendarioCache: any[] = [];
+  mesCalendarioCache: Date | null = null;
+  configCache: any = null;
   mesCalendario: Date = new Date();
 
   // Suscripción a eventos del router
   private routerSubscription?: Subscription;
   private configCheckInterval?: any;
+  private themeObserver?: MutationObserver;
+  
+  // Referencias a los listeners de eventos para poder eliminarlos
+  private asistenciaActualizadaHandler?: () => void;
+  private trabajadorEliminadoHandler?: () => void;
+  private trabajadorCreadoHandler?: () => void;
 
   constructor(
     private router: Router,
@@ -213,70 +265,660 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Cargar datos iniciales
     this.cargarDatos();
     
-    // Escuchar eventos de actualización de asistencia
-    window.addEventListener('asistencia-actualizada', () => {
-      console.log('📢 Evento de asistencia actualizada recibido, recargando dashboard...');
-      this.cargarDatos();
-    });
+    // Registrar listeners SOLO UNA VEZ usando flag
+    if (!this.listenersRegistrados) {
+      this.registrarListeners();
+      this.listenersRegistrados = true;
+    }
     
-    // Escuchar eventos cuando se elimina un trabajador
-    window.addEventListener('trabajador-eliminado', () => {
-      console.log('📢 Evento de trabajador eliminado recibido, recargando dashboard...');
-      // Forzar recarga completa sin caché
-      setTimeout(() => {
-        this.cargarDatos();
-      }, 100);
-    });
-    
-    // Escuchar eventos cuando se crea un trabajador
-    window.addEventListener('trabajador-creado', () => {
-      console.log('📢 Evento de trabajador creado recibido, recargando dashboard...');
-      // Forzar recarga completa sin caché
-      setTimeout(() => {
-        this.cargarDatos();
-      }, 100);
-    });
-    
-    // Escuchar mensajes desde iframes o ventanas hijas
-    window.addEventListener('message', (event) => {
-      if (event.data && event.data.type === 'asistencia-actualizada') {
-        console.log('📢 Mensaje de asistencia actualizada recibido, recargando dashboard...');
-        this.cargarDatos();
-      }
-      if (event.data && event.data.type === 'trabajador-eliminado') {
-        console.log('📢 Mensaje de trabajador eliminado recibido, recargando dashboard...');
-        this.cargarDatos();
-      }
-    });
-    
-    // Escuchar cambios de ruta para recargar cuando se vuelve al dashboard
-    this.routerSubscription = this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: any) => {
-        if (event.url === '/dashboard' || event.urlAfterRedirects === '/dashboard') {
-          console.log('🔄 Navegación al dashboard detectada, recargando configuración...');
-          this.cargarConfiguracionYEventos();
-        }
-      });
+    // Cargar configuración y eventos (solo una vez al inicializar)
+    this.cargarConfiguracionYEventos();
     
     // Verificar cambios en la configuración cada 2 segundos
     this.configCheckInterval = setInterval(() => {
       this.verificarCambiosConfiguracion();
     }, 2000);
+    
+    // Escuchar cambios de tema para actualizar TODOS los gráficos
+    const observer = new MutationObserver(() => {
+      // Actualizar todos los gráficos cuando cambia el tema
+      setTimeout(() => {
+        if (this.planillaChart) {
+          this.inicializarGraficoPlanilla();
+        }
+        if (this.regimenChart) {
+          this.inicializarGraficoRegimen();
+        }
+      }, 300);
+    });
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+    
+    // Guardar el observer para limpiarlo en ngOnDestroy
+    this.themeObserver = observer;
+  }
+
+  ngAfterViewInit(): void {
+    // Inicializar gráficos después de que la vista esté lista
+    setTimeout(() => {
+      this.inicializarGraficoPlanilla();
+      this.inicializarGraficoRegimen();
+      // Gráfica de asistencia eliminada para evitar cálculos innecesarios
+    }, 500);
+  }
+
+  /**
+   * Registra todos los listeners de eventos UNA SOLA VEZ
+   * Este método asegura que los listeners no se dupliquen
+   */
+  private registrarListeners(): void {
+    // PRIMERO: Eliminar cualquier listener anterior (por si acaso)
+    this.removerListeners();
+    
+    // Crear handlers con referencias guardadas para poder eliminarlos después
+    // IMPORTANTE: Usar arrow functions para mantener el contexto de 'this'
+    this.asistenciaActualizadaHandler = () => {
+      console.log('📢 Evento de asistencia actualizada recibido, recargando dashboard...');
+      // Usar un flag para evitar múltiples llamadas simultáneas
+      if (!this.cargando) {
+        this.cargarDatos();
+      }
+    };
+    
+    this.trabajadorEliminadoHandler = () => {
+      console.log('📢 Evento de trabajador eliminado recibido, recargando dashboard...');
+      if (!this.cargando) {
+        setTimeout(() => {
+          this.cargarDatos();
+        }, 100);
+      }
+    };
+    
+    this.trabajadorCreadoHandler = () => {
+      console.log('📢 Evento de trabajador creado recibido, recargando dashboard...');
+      if (!this.cargando) {
+        setTimeout(() => {
+          this.cargarDatos();
+        }, 100);
+      }
+    };
+    
+    // Registrar listeners UNA SOLA VEZ
+    window.addEventListener('asistencia-actualizada', this.asistenciaActualizadaHandler);
+    window.addEventListener('trabajador-eliminado', this.trabajadorEliminadoHandler);
+    window.addEventListener('trabajador-creado', this.trabajadorCreadoHandler);
+    
+    console.log('✅ Listeners registrados correctamente (una sola vez)');
+  }
+
+  /**
+   * Remueve todos los listeners de eventos para evitar duplicados
+   */
+  private removerListeners(): void {
+    if (this.asistenciaActualizadaHandler) {
+      window.removeEventListener('asistencia-actualizada', this.asistenciaActualizadaHandler);
+      this.asistenciaActualizadaHandler = undefined;
+    }
+    if (this.trabajadorEliminadoHandler) {
+      window.removeEventListener('trabajador-eliminado', this.trabajadorEliminadoHandler);
+      this.trabajadorEliminadoHandler = undefined;
+    }
+    if (this.trabajadorCreadoHandler) {
+      window.removeEventListener('trabajador-creado', this.trabajadorCreadoHandler);
+      this.trabajadorCreadoHandler = undefined;
+    }
   }
 
   ngOnDestroy(): void {
+    // Limpiar TODOS los listeners de eventos
+    this.removerListeners();
+    
+    // Limpiar subscription del router
     if (this.routerSubscription) {
       this.routerSubscription.unsubscribe();
+      this.routerSubscription = undefined;
     }
+    
+    // Limpiar intervalo de verificación
     if (this.configCheckInterval) {
       clearInterval(this.configCheckInterval);
+      this.configCheckInterval = undefined;
     }
+    
+    // Limpiar observer de tema
+    if (this.themeObserver) {
+      this.themeObserver.disconnect();
+      this.themeObserver = undefined;
+    }
+    
+    // Resetear flag para permitir registro en próxima inicialización
+    this.listenersRegistrados = false;
+    if (this.planillaChart) {
+      this.planillaChart.destroy();
+    }
+    if (this.regimenChart) {
+      this.regimenChart.destroy();
+    }
+  }
+  
+  // ==================== GRÁFICO DE PLANILLA MENSUAL ====================
+  inicializarGraficoPlanilla(): void {
+    if (!this.planillaChartCanvas) {
+      console.warn('⚠️ Canvas del gráfico no disponible aún');
+      return;
+    }
+    
+    const canvas = this.planillaChartCanvas.nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.error('❌ No se pudo obtener el contexto del canvas');
+      return;
+    }
+    
+    // Destruir gráfico anterior si existe
+    if (this.planillaChart) {
+      this.planillaChart.destroy();
+    }
+    
+    // Obtener tema actual
+    const tema = document.documentElement.getAttribute('data-theme') || 'dark';
+    const esModoClaro = tema === 'light';
+    
+    // Obtener color seleccionado con gradiente
+    const colorSeleccionado = this.coloresDisponibles.find(c => c.valor === this.chartConfig.colorLinea) 
+      || this.coloresDisponibles[0];
+    const colorLinea = colorSeleccionado.valor;
+    const gradienteColores = colorSeleccionado.gradiente;
+    
+    // Crear gradiente para el relleno
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    if (this.chartConfig.estiloRelleno === 'gradiente') {
+      gradient.addColorStop(0, esModoClaro 
+        ? `rgba(${this.hexToRgb(gradienteColores[0])}, 0.25)` 
+        : `rgba(${this.hexToRgb(gradienteColores[0])}, 0.3)`);
+      gradient.addColorStop(0.5, esModoClaro 
+        ? `rgba(${this.hexToRgb(gradienteColores[1])}, 0.15)` 
+        : `rgba(${this.hexToRgb(gradienteColores[1])}, 0.2)`);
+      gradient.addColorStop(1, esModoClaro 
+        ? `rgba(${this.hexToRgb(gradienteColores[2])}, 0.05)` 
+        : `rgba(${this.hexToRgb(gradienteColores[2])}, 0.1)`);
+    } else if (this.chartConfig.estiloRelleno === 'solido') {
+      gradient.addColorStop(0, esModoClaro 
+        ? `rgba(${this.hexToRgb(colorLinea)}, 0.2)` 
+        : `rgba(${this.hexToRgb(colorLinea)}, 0.25)`);
+      gradient.addColorStop(1, esModoClaro 
+        ? `rgba(${this.hexToRgb(colorLinea)}, 0.05)` 
+        : `rgba(${this.hexToRgb(colorLinea)}, 0.1)`);
+    }
+    
+    const colorFondo = this.chartConfig.estiloRelleno === 'transparente' 
+      ? 'transparent' 
+      : gradient;
+    
+    // Colores según el tema
+    const colorTexto = esModoClaro ? '#1f2937' : '#e5e7eb';
+    const colorTextoSuave = esModoClaro ? '#6b7280' : '#9ca3af';
+    const colorGrid = esModoClaro ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)';
+    const colorBorde = esModoClaro ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.15)';
+    const colorFondoCard = esModoClaro ? '#ffffff' : 'rgba(30, 41, 59, 0.3)';
+    
+    // Preparar datos según el período
+    const datos = this.obtenerDatosPorPeriodo();
+    
+    const config: ChartConfiguration = {
+      type: this.chartConfig.tipo,
+      data: {
+        labels: datos.labels,
+        datasets: [{
+          label: 'Planilla Mensual (S/)',
+          data: datos.valores,
+          borderColor: colorLinea,
+          backgroundColor: this.chartConfig.colorRelleno ? colorFondo : 'transparent',
+          borderWidth: this.chartConfig.grosorLinea,
+          fill: this.chartConfig.tipo === 'line' && this.chartConfig.colorRelleno,
+          tension: this.chartConfig.suavizado ? 0.5 : 0,
+          pointRadius: this.chartConfig.mostrarPuntos ? 6 : 0,
+          pointHoverRadius: 9,
+          pointBackgroundColor: colorLinea,
+          pointBorderColor: esModoClaro ? '#ffffff' : '#1f2937',
+          pointBorderWidth: 3,
+          pointHoverBackgroundColor: esModoClaro ? '#ffffff' : '#1f2937',
+          pointHoverBorderColor: colorLinea,
+          pointHoverBorderWidth: 4,
+          // Efectos de sombra para barras
+          ...(this.chartConfig.tipo === 'bar' && {
+            borderRadius: 8,
+            borderSkipped: false,
+            shadowOffsetX: 0,
+            shadowOffsetY: 4,
+            shadowBlur: 8,
+            shadowColor: esModoClaro 
+              ? `rgba(${this.hexToRgb(colorLinea)}, 0.3)` 
+              : `rgba(${this.hexToRgb(colorLinea)}, 0.4)`
+          })
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: this.chartConfig.mostrarLeyenda,
+            position: 'top',
+            labels: {
+              color: colorTexto,
+              font: {
+                size: 12,
+                weight: 600 as const
+              },
+              padding: 15,
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            enabled: true,
+            backgroundColor: esModoClaro 
+              ? 'rgba(31, 41, 55, 0.98)' 
+              : 'rgba(15, 23, 42, 0.98)',
+            titleColor: '#ffffff',
+            bodyColor: '#e5e7eb',
+            borderColor: colorLinea,
+            borderWidth: 2,
+            padding: 14,
+            cornerRadius: 12,
+            displayColors: true,
+            boxPadding: 6,
+            titleFont: {
+              size: 13,
+              weight: 700 as const
+            },
+            bodyFont: {
+              size: 12,
+              weight: 600 as const
+            },
+            callbacks: {
+              title: (context) => {
+                return `📅 ${context[0].label}`;
+              },
+              label: (context) => {
+                const valor = context.parsed.y;
+                const promedio = datos.valores.reduce((a, b) => a + b, 0) / datos.valores.length;
+                const diferencia = valor - promedio;
+                const porcentaje = ((diferencia / promedio) * 100).toFixed(1);
+                let tendencia = '';
+                if (diferencia > 0) {
+                  tendencia = ` ↗️ +${porcentaje}% vs promedio`;
+                } else if (diferencia < 0) {
+                  tendencia = ` ↘️ ${porcentaje}% vs promedio`;
+                } else {
+                  tendencia = ' ➡️ Igual al promedio';
+                }
+                return [
+                  `💰 Planilla: ${this.formatearMoneda(valor)}`,
+                  this.chartConfig.mostrarPromedio ? `📊 Promedio: ${this.formatearMoneda(promedio)}` : null,
+                  this.chartConfig.mostrarTendencia ? tendencia : null
+                ].filter(Boolean);
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            grid: {
+              display: this.chartConfig.mostrarGrid,
+              color: colorGrid,
+              lineWidth: 1
+            },
+            ticks: {
+              color: colorTexto,
+              font: {
+                size: 12,
+                weight: 600 as const,
+                family: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+              },
+              callback: (value) => {
+                const num = Number(value);
+                if (num >= 1000000) {
+                  return `S/ ${(num / 1000000).toFixed(1)}M`;
+                } else if (num >= 1000) {
+                  return `S/ ${(num / 1000).toFixed(0)}K`;
+                }
+                return `S/ ${num.toLocaleString()}`;
+              },
+              padding: 12,
+              stepSize: undefined
+            },
+            border: {
+              display: true,
+              color: colorBorde
+            }
+          },
+          x: {
+            grid: {
+              display: this.chartConfig.mostrarGrid,
+              color: colorGrid,
+              lineWidth: 1
+            },
+            ticks: {
+              color: colorTexto,
+              font: {
+                size: 11,
+                weight: 500 as const
+              },
+              padding: 10
+            },
+            border: {
+              display: true,
+              color: colorBorde
+            }
+          }
+        },
+        animation: this.chartConfig.animacion ? {
+          duration: 1200,
+          easing: 'easeInOutQuart',
+          delay: (context) => {
+            return context.dataIndex * 50;
+          }
+        } : false,
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        }
+      }
+    };
+    
+    this.planillaChart = new Chart(ctx, config);
+  }
+  
+  // ==================== GRÁFICO DE DISTRIBUCIÓN POR RÉGIMEN LABORAL ====================
+  inicializarGraficoRegimen(): void {
+    if (!this.regimenChartCanvas) {
+      console.warn('⚠️ Canvas del gráfico de régimen no disponible aún');
+      return;
+    }
+    
+    const canvas = this.regimenChartCanvas.nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.error('❌ No se pudo obtener el contexto del canvas');
+      return;
+    }
+    
+    // Destruir gráfico anterior si existe
+    if (this.regimenChart) {
+      this.regimenChart.destroy();
+    }
+    
+    // Obtener tema actual
+    const tema = document.documentElement.getAttribute('data-theme') || 'dark';
+    const esModoClaro = tema === 'light';
+    
+    // Colores para cada régimen
+    const coloresRegimen = [
+      { fondo: esModoClaro ? 'rgba(16, 185, 129, 0.8)' : 'rgba(16, 185, 129, 0.9)', borde: '#10b981' }, // Nombrado - Verde
+      { fondo: esModoClaro ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.9)', borde: '#3b82f6' }, // CAS - Azul
+      { fondo: esModoClaro ? 'rgba(139, 92, 246, 0.8)' : 'rgba(139, 92, 246, 0.9)', borde: '#8b5cf6' }, // Locador - Morado
+      { fondo: esModoClaro ? 'rgba(245, 158, 11, 0.8)' : 'rgba(245, 158, 11, 0.9)', borde: '#f59e0b' }, // Practicante - Naranja
+      { fondo: esModoClaro ? 'rgba(6, 182, 212, 0.8)' : 'rgba(6, 182, 212, 0.9)', borde: '#06b6d4' }  // Obrero - Cyan
+    ];
+    
+    const colorTexto = esModoClaro ? '#1f2937' : '#f1f5f9'; // Más brillante en modo oscuro
+    const colorGrid = esModoClaro ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.15)'; // Más visible en oscuro
+    const colorBorde = esModoClaro ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.3)'; // Más visible en oscuro
+    
+    const config: ChartConfiguration = {
+      type: 'bar',
+      data: {
+        labels: this.datosDistribucionRegimen.labels,
+        datasets: [{
+          label: 'Trabajadores',
+          data: this.datosDistribucionRegimen.valores,
+          backgroundColor: this.datosDistribucionRegimen.labels.map((_, i) => coloresRegimen[i]?.fondo || 'rgba(16, 185, 129, 0.8)'),
+          borderColor: this.datosDistribucionRegimen.labels.map((_, i) => coloresRegimen[i]?.borde || '#10b981'),
+          borderWidth: 0,
+          borderRadius: 0,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true, // Mostrar leyenda
+            position: 'top',
+            labels: {
+              color: colorTexto, // Color visible en modo oscuro
+              font: {
+                size: 12,
+                weight: 600 as const
+              },
+              padding: 15,
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            enabled: true,
+            backgroundColor: esModoClaro 
+              ? 'rgba(31, 41, 55, 0.98)' 
+              : 'rgba(15, 23, 42, 0.98)',
+            titleColor: '#ffffff',
+            bodyColor: '#e5e7eb',
+            borderWidth: 2,
+            padding: 14,
+            cornerRadius: 12,
+            displayColors: true,
+            boxPadding: 6,
+            titleFont: {
+              size: 13,
+              weight: 700 as const
+            },
+            bodyFont: {
+              size: 12,
+              weight: 600 as const
+            },
+            callbacks: {
+              title: (context) => {
+                return `💼 ${context[0].label}`;
+              },
+              label: (context) => {
+                const valor = context.parsed.y;
+                const total = this.datosDistribucionRegimen.valores.reduce((a, b) => a + b, 0);
+                const porcentaje = ((valor / total) * 100).toFixed(1);
+                return [
+                  `👥 Trabajadores: ${valor}`,
+                  `📊 Porcentaje: ${porcentaje}%`
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              display: true,
+              color: colorGrid,
+              lineWidth: 1
+            },
+            ticks: {
+              color: colorTexto, // Color visible en modo oscuro
+              font: {
+                size: 13, // Tamaño ligeramente mayor para mejor visibilidad
+                weight: 600 as const
+              },
+              stepSize: 50,
+              padding: 10,
+              backdropColor: 'transparent'
+            },
+            border: {
+              display: true,
+              color: colorBorde
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: colorTexto, // Color visible en modo oscuro
+              font: {
+                size: 12, // Tamaño ligeramente mayor para mejor visibilidad
+                weight: 600 as const
+              },
+              padding: 12,
+              backdropColor: 'transparent'
+            },
+            border: {
+              display: true,
+              color: colorBorde
+            }
+          }
+        },
+        animation: {
+          duration: 1200,
+          easing: 'easeInOutQuart',
+          delay: (context) => {
+            return context.dataIndex * 100;
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        }
+      }
+    };
+    
+    this.regimenChart = new Chart(ctx, config);
+  }
+
+  // ==================== GRÁFICO DE ASISTENCIA SEMANAL - ELIMINADO ====================
+  // La gráfica de asistencia ha sido completamente eliminada para evitar cálculos innecesarios
+  // que causan freeze en el módulo de asistencias
+  
+  exportarGraficoRegimen(): void {
+    if (!this.regimenChart) return;
+    
+    const url = this.regimenChart.toBase64Image('image/png', 1);
+    const link = document.createElement('a');
+    link.download = `distribucion-regimen-${new Date().toISOString().split('T')[0]}.png`;
+    link.href = url;
+    link.click();
+  }
+  
+  obtenerDatosPorPeriodo(): { labels: string[], valores: number[] } {
+    const ahora = new Date();
+    let labels: string[] = [];
+    let valores: number[] = [];
+    
+    switch (this.chartConfig.periodo) {
+      case 'ultimos-6-meses':
+        labels = this.obtenerMeses(6);
+        valores = this.datosPlanillaMensual.valores.slice(-6);
+        break;
+      case 'ultimos-8-meses':
+        labels = this.datosPlanillaMensual.labels;
+        valores = this.datosPlanillaMensual.valores;
+        break;
+      case 'ultimos-12-meses':
+        labels = this.obtenerMeses(12);
+        valores = Array.from({ length: 12 }, (_, i) => 
+          1200000 + Math.random() * 100000 - 50000
+        );
+        break;
+      case 'año-actual':
+        labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        valores = Array.from({ length: 12 }, (_, i) => 
+          1200000 + Math.random() * 100000 - 50000
+        );
+        break;
+      case 'año-anterior':
+        labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        valores = Array.from({ length: 12 }, (_, i) => 
+          1100000 + Math.random() * 100000 - 50000
+        );
+        break;
+      default:
+        labels = this.datosPlanillaMensual.labels;
+        valores = this.datosPlanillaMensual.valores;
+    }
+    
+    return { labels, valores };
+  }
+  
+  obtenerMeses(cantidad: number): string[] {
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const ahora = new Date();
+    const resultado: string[] = [];
+    
+    for (let i = cantidad - 1; i >= 0; i--) {
+      const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+      resultado.push(meses[fecha.getMonth()]);
+    }
+    
+    return resultado;
+  }
+  
+  // ==================== MODAL DE CONFIGURACIÓN ====================
+  abrirModalConfigGrafico(): void {
+    this.mostrarModalConfigGrafico = true;
+  }
+  
+  cerrarModalConfigGrafico(): void {
+    this.mostrarModalConfigGrafico = false;
+  }
+  
+  aplicarConfiguracionGrafico(): void {
+    this.inicializarGraficoPlanilla();
+    this.cerrarModalConfigGrafico();
+  }
+  
+  cambiarTipoGrafico(tipo: ChartType): void {
+    this.chartConfig.tipo = tipo;
+  }
+  
+  cambiarPeriodo(periodo: string): void {
+    this.chartConfig.periodo = periodo;
+  }
+  
+  cambiarColorLinea(color: string): void {
+    this.chartConfig.colorLinea = color;
+  }
+  
+  // Utilidad para convertir hex a RGB
+  private hexToRgb(hex: string): string {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result 
+      ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+      : '16, 185, 129';
+  }
+  
+  
+  exportarGrafico(): void {
+    if (!this.planillaChart) return;
+    
+    const url = this.planillaChart.toBase64Image('image/png', 1);
+    const link = document.createElement('a');
+    link.download = `evolucion-planilla-${new Date().toISOString().split('T')[0]}.png`;
+    link.href = url;
+    link.click();
   }
 
   verificarCambiosConfiguracion(): void {
+    // Evitar verificar si ya se está cargando (para evitar loops)
+    if (this.cargando) {
+      return;
+    }
+    
     const ultimaActualizacion = localStorage.getItem('configuracionUltimaActualizacion');
     const ultimaVerificacion = localStorage.getItem('dashboardUltimaVerificacion');
     
@@ -287,6 +929,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       
       if (fechaActualizacion > fechaVerificacion) {
         console.log('🔄 Cambios en configuración detectados, recargando eventos...');
+        // Solo recargar configuración (NO cargar datos completos para evitar loops)
         this.cargarConfiguracionYEventos();
         localStorage.setItem('dashboardUltimaVerificacion', new Date().toISOString());
         
@@ -303,6 +946,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // ==================== MÉTODOS DE CARGA ====================
   cargarDatos(): void {
+    // Evitar múltiples llamadas simultáneas
+    if (this.cargando) {
+      console.log('⚠️ Ya se está cargando el dashboard, ignorando llamada duplicada');
+      return;
+    }
+    
     this.cargando = true;
     console.log('🔄 Cargando datos del dashboard...', this.filtros);
     
@@ -327,8 +976,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     });
     
-    // Recargar también la configuración y eventos cuando se actualiza manualmente
-    this.cargarConfiguracionYEventos();
+    // NOTA: NO llamar a cargarConfiguracionYEventos() aquí para evitar loops
+    // Solo se debe llamar cuando sea necesario (navegación, cambios de configuración)
   }
 
   private actualizarDatos(data: any): void {
@@ -419,19 +1068,31 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // Actualizar gráficos
     if (data.evolucionPlanilla) {
       this.datosPlanillaMensual = data.evolucionPlanilla;
+      setTimeout(() => {
+        this.inicializarGraficoPlanilla();
+      }, 100);
+    } else {
+      // Si no vienen datos, cargar desde el servicio específico
+      this.cargarEvolucionPlanilla();
     }
     
-    if (data.distribucionArea) {
-      this.datosDistribucionArea = data.distribucionArea;
+    if (data.distribucionRegimen) {
+      this.datosDistribucionRegimen = data.distribucionRegimen;
+      // Reinicializar gráfico con nuevos datos
+      setTimeout(() => {
+        this.inicializarGraficoRegimen();
+      }, 100);
+    } else {
+      // Si no vienen datos, cargar desde el servicio específico
+      this.cargarDistribucionRegimen();
     }
     
     if (data.distribucionContratos) {
       this.datosContratos = data.distribucionContratos;
     }
     
-    if (data.asistenciaSemanal) {
-      this.datosAsistenciaSemanal = data.asistenciaSemanal;
-    }
+    // Gráfica de asistencia semanal eliminada - no procesar datos
+    // if (data.asistenciaSemanal) { ... } - ELIMINADO para evitar cálculos innecesarios
 
     // Actualizar movimientos
     if (data.movimientos) {
@@ -490,6 +1151,63 @@ export class DashboardComponent implements OnInit, OnDestroy {
       currency: 'PEN'
     }).format(valor);
   }
+  
+  // ==================== CARGAR DATOS REALES ====================
+  cargarDistribucionRegimen(): void {
+    this.dashboardService.obtenerDistribucionRegimen().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.datosDistribucionRegimen = {
+            labels: response.data.labels || [],
+            valores: response.data.valores || []
+          };
+          setTimeout(() => {
+            this.inicializarGraficoRegimen();
+          }, 100);
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar distribución por régimen:', error);
+      }
+    });
+  }
+  
+  cargarEvolucionPlanilla(): void {
+    this.dashboardService.obtenerEvolucionPlanilla().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.datosPlanillaMensual = {
+            labels: response.data.labels || [],
+            valores: response.data.valores || []
+          };
+          setTimeout(() => {
+            this.inicializarGraficoPlanilla();
+          }, 100);
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar evolución de planilla:', error);
+      }
+    });
+  }
+  
+  // ==================== MODAL DE CONFIGURACIÓN RÉGIMEN ====================
+  abrirModalConfigGraficoRegimen(): void {
+    this.mostrarModalConfigGraficoRegimen = true;
+  }
+  
+  cerrarModalConfigGraficoRegimen(): void {
+    this.mostrarModalConfigGraficoRegimen = false;
+  }
+  
+  aplicarConfiguracionGraficoRegimen(): void {
+    this.inicializarGraficoRegimen();
+    this.cerrarModalConfigGraficoRegimen();
+  }
+
+  // ==================== MÉTODOS DE GRÁFICA DE ASISTENCIA ELIMINADOS ====================
+  // Todos los métodos relacionados con la gráfica de asistencia han sido eliminados
+  // para evitar cálculos innecesarios que causan freeze en el módulo de asistencias
 
   formatearFecha(fecha: Date): string {
     return new Intl.DateTimeFormat('es-PE', {
@@ -995,24 +1713,52 @@ export class DashboardComponent implements OnInit, OnDestroy {
   abrirCalendarioCompleto(): void {
     this.mostrarCalendarioCompleto = true;
     this.mesCalendario = new Date();
+    // Limpiar caché al abrir para recalcular
+    this.diasCalendarioCache = [];
+    this.mesCalendarioCache = null;
+    // Cargar configuración una sola vez
+    this.cargarConfigCache();
+    // Calcular días del calendario una sola vez
+    this.diasCalendarioCache = this.calcularDiasCalendario();
+  }
+  
+  cargarConfigCache(): void {
+    const configLocal = localStorage.getItem('configuracionSistema');
+    if (configLocal) {
+      try {
+        this.configCache = JSON.parse(configLocal);
+      } catch (e) {
+        console.error('Error al parsear configuración local:', e);
+        this.configCache = null;
+      }
+    } else {
+      this.configCache = null;
+    }
   }
 
   cerrarCalendarioCompleto(): void {
     this.mostrarCalendarioCompleto = false;
+    // Limpiar caché al cerrar para liberar memoria
+    this.diasCalendarioCache = [];
+    this.mesCalendarioCache = null;
   }
 
   mesAnterior(): void {
     this.mesCalendario = new Date(this.mesCalendario.getFullYear(), this.mesCalendario.getMonth() - 1, 1);
-    this.cdr.detectChanges(); // Forzar actualización del calendario
+    this.diasCalendarioCache = []; // Limpiar caché
+    this.diasCalendarioCache = this.calcularDiasCalendario(); // Recalcular
   }
 
   mesSiguiente(): void {
     this.mesCalendario = new Date(this.mesCalendario.getFullYear(), this.mesCalendario.getMonth() + 1, 1);
-    this.cdr.detectChanges(); // Forzar actualización del calendario
+    this.diasCalendarioCache = []; // Limpiar caché
+    this.diasCalendarioCache = this.calcularDiasCalendario(); // Recalcular
   }
 
   irAHoy(): void {
     this.mesCalendario = new Date();
+    this.diasCalendarioCache = []; // Limpiar caché
+    this.diasCalendarioCache = this.calcularDiasCalendario(); // Recalcular
   }
 
   obtenerNombreMesCompleto(fecha: Date): string {
@@ -1024,6 +1770,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   obtenerDiasCalendario(): any[] {
+    // Usar caché si está disponible y el mes no ha cambiado
+    if (this.diasCalendarioCache.length > 0 && 
+        this.mesCalendarioCache && 
+        this.mesCalendarioCache.getTime() === this.mesCalendario.getTime()) {
+      return this.diasCalendarioCache;
+    }
+    
+    // Calcular y cachear
+    this.diasCalendarioCache = this.calcularDiasCalendario();
+    this.mesCalendarioCache = new Date(this.mesCalendario);
+    return this.diasCalendarioCache;
+  }
+  
+  calcularDiasCalendario(): any[] {
     const año = this.mesCalendario.getFullYear();
     const mes = this.mesCalendario.getMonth();
     
@@ -1168,65 +1928,33 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   obtenerDiaCierrePlanilla(): number {
-    // Intentar obtener de localStorage primero (configuración guardada)
-    const configLocal = localStorage.getItem('configuracionSistema');
-    if (configLocal) {
-      try {
-        const config = JSON.parse(configLocal);
-        if (config.planillas?.diaCierrePlanilla) {
-          return config.planillas.diaCierrePlanilla;
-        }
-      } catch (e) {
-        console.error('Error al parsear configuración local:', e);
-      }
+    // Usar caché si está disponible
+    if (this.configCache?.planillas?.diaCierrePlanilla) {
+      return this.configCache.planillas.diaCierrePlanilla;
     }
     return 25; // Valor por defecto
   }
 
   obtenerDiaPagoPlanilla(): number {
-    // Intentar obtener de localStorage primero (configuración guardada)
-    const configLocal = localStorage.getItem('configuracionSistema');
-    if (configLocal) {
-      try {
-        const config = JSON.parse(configLocal);
-        if (config.planillas?.diaPagoPlanilla) {
-          return config.planillas.diaPagoPlanilla;
-        }
-      } catch (e) {
-        console.error('Error al parsear configuración local:', e);
-      }
+    // Usar caché si está disponible
+    if (this.configCache?.planillas?.diaPagoPlanilla) {
+      return this.configCache.planillas.diaPagoPlanilla;
     }
     return 30; // Valor por defecto
   }
 
   obtenerDiaCTSMayo(): number {
-    // Intentar obtener de localStorage primero (configuración guardada)
-    const configLocal = localStorage.getItem('configuracionSistema');
-    if (configLocal) {
-      try {
-        const config = JSON.parse(configLocal);
-        if (config.beneficios?.cts?.fechaDepositoMayo) {
-          return config.beneficios.cts.fechaDepositoMayo;
-        }
-      } catch (e) {
-        console.error('Error al parsear configuración local:', e);
-      }
+    // Usar caché si está disponible
+    if (this.configCache?.beneficios?.cts?.fechaDepositoMayo) {
+      return this.configCache.beneficios.cts.fechaDepositoMayo;
     }
     return 15; // Valor por defecto
   }
 
   obtenerDiaCTSNoviembre(): number {
-    // Intentar obtener de localStorage primero (configuración guardada)
-    const configLocal = localStorage.getItem('configuracionSistema');
-    if (configLocal) {
-      try {
-        const config = JSON.parse(configLocal);
-        if (config.beneficios?.cts?.fechaDepositoNoviembre) {
-          return config.beneficios.cts.fechaDepositoNoviembre;
-        }
-      } catch (e) {
-        console.error('Error al parsear configuración local:', e);
-      }
+    // Usar caché si está disponible
+    if (this.configCache?.beneficios?.cts?.fechaDepositoNoviembre) {
+      return this.configCache.beneficios.cts.fechaDepositoNoviembre;
     }
     return 15; // Valor por defecto
   }

@@ -46,6 +46,14 @@ export interface BoletaPago {
   numeroCuenta: string;
   cci?: string;
   
+  // Datos adicionales del trabajador para la boleta
+  codigoEssalud?: string;
+  sistemaPension?: string;
+  afp?: string;
+  cuspp?: string;
+  condicion?: string;
+  fechaIngreso?: Date;
+  
   // Estado
   estado: EstadoBoleta;
   enviada: boolean;

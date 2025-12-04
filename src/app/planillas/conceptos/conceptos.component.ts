@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 interface Concepto {
   conceptoID: number;
@@ -49,9 +50,9 @@ interface EstadisticasConceptos {
 })
 export class ConceptosComponent implements OnInit {
   // APIs
-  private apiConceptos = 'http://localhost:5000/api/conceptos';
-  private apiCatalogoConceptos = 'http://localhost:5000/api/catalogo-conceptos';
-  private apiTasas = 'http://localhost:5000/api/configuracion-tasas';
+  private apiConceptos = `${environment.apiUrl}/conceptos`;
+  private apiCatalogoConceptos = `${environment.apiUrl}/catalogo-conceptos`;
+  private apiTasas = `${environment.apiUrl}/configuracion-tasas`;
   
   // Datos
   conceptos: Concepto[] = [];

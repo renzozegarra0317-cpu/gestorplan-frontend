@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { RegistroCTS, FiltrosCTS, ResumenCTS } from './cts.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CtsService {
-  private apiUrl = 'http://localhost:5000/api/beneficios/cts';
+  private apiUrl = `${environment.apiUrl}/beneficios/cts`;
 
   constructor(private http: HttpClient) {}
 

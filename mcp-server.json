@@ -1,0 +1,512 @@
+{
+  "mcpVersion": "2024-11-05",
+  "name": "frontend-code-improvement-server",
+  "version": "1.0.0",
+  "description": "Servidor MCP para análisis y mejoras del código frontend Angular",
+  "author": "Sistema de Planillas",
+  "tools": [
+    {
+      "name": "analyze_code_quality",
+      "description": "Analiza la calidad del código TypeScript/Angular y detecta problemas comunes",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filePath": {
+            "type": "string",
+            "description": "Ruta del archivo a analizar (relativa a src/)"
+          },
+          "checkType": {
+            "type": "string",
+            "enum": ["all", "performance", "security", "best-practices", "accessibility"],
+            "description": "Tipo de análisis a realizar"
+          }
+        },
+        "required": ["filePath"]
+      }
+    },
+    {
+      "name": "suggest_refactoring",
+      "description": "Sugiere refactorizaciones para mejorar la mantenibilidad del código",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "componentPath": {
+            "type": "string",
+            "description": "Ruta del componente a analizar"
+          },
+          "focus": {
+            "type": "string",
+            "enum": ["all", "performance", "readability", "reusability", "testing"],
+            "description": "Área de enfoque para las sugerencias"
+          }
+        },
+        "required": ["componentPath"]
+      }
+    },
+    {
+      "name": "check_angular_best_practices",
+      "description": "Verifica si el código sigue las mejores prácticas de Angular",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "componentPath": {
+            "type": "string",
+            "description": "Ruta del componente a verificar"
+          }
+        },
+        "required": ["componentPath"]
+      }
+    },
+    {
+      "name": "analyze_bundle_size",
+      "description": "Analiza el tamaño del bundle y sugiere optimizaciones",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "includeChunks": {
+            "type": "boolean",
+            "description": "Incluir análisis de chunks individuales",
+            "default": true
+          }
+        }
+      }
+    },
+    {
+      "name": "detect_unused_imports",
+      "description": "Detecta imports no utilizados en componentes y servicios",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filePath": {
+            "type": "string",
+            "description": "Ruta del archivo a analizar"
+          }
+        },
+        "required": ["filePath"]
+      }
+    },
+    {
+      "name": "suggest_component_optimization",
+      "description": "Sugiere optimizaciones específicas para componentes Angular",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "componentPath": {
+            "type": "string",
+            "description": "Ruta del componente"
+          },
+          "optimizationType": {
+            "type": "string",
+            "enum": ["change-detection", "lazy-loading", "on-push", "track-by", "all"],
+            "description": "Tipo de optimización a sugerir"
+          }
+        },
+        "required": ["componentPath"]
+      }
+    },
+    {
+      "name": "check_security_issues",
+      "description": "Detecta problemas de seguridad comunes en el código",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filePath": {
+            "type": "string",
+            "description": "Ruta del archivo a analizar"
+          },
+          "checkLevel": {
+            "type": "string",
+            "enum": ["basic", "intermediate", "advanced"],
+            "description": "Nivel de verificación de seguridad",
+            "default": "intermediate"
+          }
+        },
+        "required": ["filePath"]
+      }
+    },
+    {
+      "name": "analyze_dependencies",
+      "description": "Analiza las dependencias del proyecto y detecta problemas",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "checkType": {
+            "type": "string",
+            "enum": ["outdated", "vulnerabilities", "duplicates", "unused", "all"],
+            "description": "Tipo de verificación de dependencias",
+            "default": "all"
+          }
+        }
+      }
+    },
+    {
+      "name": "suggest_accessibility_improvements",
+      "description": "Sugiere mejoras de accesibilidad para componentes",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "componentPath": {
+            "type": "string",
+            "description": "Ruta del componente HTML"
+          },
+          "checkLevel": {
+            "type": "string",
+            "enum": ["wcag2aa", "wcag2aaa", "basic"],
+            "description": "Nivel de verificación WCAG",
+            "default": "wcag2aa"
+          }
+        },
+        "required": ["componentPath"]
+      }
+    },
+    {
+      "name": "optimize_scss",
+      "description": "Analiza y sugiere optimizaciones para archivos SCSS",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filePath": {
+            "type": "string",
+            "description": "Ruta del archivo SCSS"
+          },
+          "focus": {
+            "type": "string",
+            "enum": ["all", "performance", "maintainability", "duplication"],
+            "description": "Área de enfoque",
+            "default": "all"
+          }
+        },
+        "required": ["filePath"]
+      }
+    },
+    {
+      "name": "check_rxjs_patterns",
+      "description": "Verifica el uso correcto de RxJS y sugiere mejoras",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filePath": {
+            "type": "string",
+            "description": "Ruta del archivo que usa RxJS"
+          }
+        },
+        "required": ["filePath"]
+      }
+    },
+    {
+      "name": "suggest_service_improvements",
+      "description": "Analiza servicios Angular y sugiere mejoras",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "servicePath": {
+            "type": "string",
+            "description": "Ruta del servicio"
+          },
+          "focus": {
+            "type": "string",
+            "enum": ["all", "error-handling", "caching", "observable-patterns", "dependency-injection"],
+            "description": "Área de enfoque",
+            "default": "all"
+          }
+        },
+        "required": ["servicePath"]
+      }
+    },
+    {
+      "name": "check_form_validation",
+      "description": "Verifica la validación de formularios y sugiere mejoras",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "componentPath": {
+            "type": "string",
+            "description": "Ruta del componente con formulario"
+          }
+        },
+        "required": ["componentPath"]
+      }
+    },
+    {
+      "name": "analyze_interceptor_usage",
+      "description": "Analiza el uso de interceptores HTTP y sugiere mejoras",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "interceptorPath": {
+            "type": "string",
+            "description": "Ruta del interceptor"
+          }
+        },
+        "required": ["interceptorPath"]
+      }
+    },
+    {
+      "name": "suggest_routing_optimization",
+      "description": "Analiza las rutas y sugiere optimizaciones de lazy loading",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "routesFile": {
+            "type": "string",
+            "description": "Ruta del archivo de rutas (app.routes.ts)",
+            "default": "src/app/app.routes.ts"
+          }
+        }
+      }
+    },
+    {
+      "name": "check_environment_config",
+      "description": "Verifica la configuración de entornos y detecta problemas",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "checkType": {
+            "type": "string",
+            "enum": ["all", "security", "consistency", "missing-vars"],
+            "description": "Tipo de verificación",
+            "default": "all"
+          }
+        }
+      }
+    },
+    {
+      "name": "detect_memory_leaks",
+      "description": "Detecta posibles memory leaks en componentes y servicios",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "componentPath": {
+            "type": "string",
+            "description": "Ruta del componente a analizar"
+          }
+        },
+        "required": ["componentPath"]
+      }
+    },
+    {
+      "name": "suggest_testing_improvements",
+      "description": "Sugiere mejoras para la cobertura de pruebas",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "componentPath": {
+            "type": "string",
+            "description": "Ruta del componente"
+          },
+          "testType": {
+            "type": "string",
+            "enum": ["unit", "integration", "e2e", "all"],
+            "description": "Tipo de pruebas",
+            "default": "all"
+          }
+        },
+        "required": ["componentPath"]
+      }
+    },
+    {
+      "name": "analyze_performance_metrics",
+      "description": "Analiza métricas de rendimiento del código",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "componentPath": {
+            "type": "string",
+            "description": "Ruta del componente"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["render-time", "change-detection", "bundle-size", "api-calls", "all"]
+            },
+            "description": "Métricas a analizar",
+            "default": ["all"]
+          }
+        },
+        "required": ["componentPath"]
+      }
+    },
+    {
+      "name": "check_typescript_strictness",
+      "description": "Verifica el uso de TypeScript strict y sugiere mejoras de tipado",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filePath": {
+            "type": "string",
+            "description": "Ruta del archivo TypeScript"
+          },
+          "strictLevel": {
+            "type": "string",
+            "enum": ["basic", "intermediate", "strict"],
+            "description": "Nivel de strictness a verificar",
+            "default": "intermediate"
+          }
+        },
+        "required": ["filePath"]
+      }
+    },
+    {
+      "name": "suggest_code_splitting",
+      "description": "Sugiere estrategias de code splitting para mejorar el rendimiento",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "modulePath": {
+            "type": "string",
+            "description": "Ruta del módulo o componente principal"
+          }
+        },
+        "required": ["modulePath"]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "frontend://code-quality-guidelines",
+      "name": "Guía de Calidad de Código",
+      "description": "Guía completa de mejores prácticas para el frontend Angular",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "frontend://angular-best-practices",
+      "name": "Mejores Prácticas Angular",
+      "description": "Documentación de mejores prácticas específicas de Angular",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "frontend://performance-checklist",
+      "name": "Checklist de Rendimiento",
+      "description": "Lista de verificación para optimización de rendimiento",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "frontend://security-guidelines",
+      "name": "Guía de Seguridad",
+      "description": "Directrices de seguridad para aplicaciones Angular",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "frontend://accessibility-standards",
+      "name": "Estándares de Accesibilidad",
+      "description": "Estándares WCAG para accesibilidad web",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "frontend://refactoring-patterns",
+      "name": "Patrones de Refactorización",
+      "description": "Patrones comunes de refactorización para Angular",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "frontend://rxjs-best-practices",
+      "name": "Mejores Prácticas RxJS",
+      "description": "Guía de uso correcto de RxJS en Angular",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "frontend://testing-strategies",
+      "name": "Estrategias de Testing",
+      "description": "Estrategias y mejores prácticas para testing en Angular",
+      "mimeType": "application/json"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "improve_component",
+      "description": "Mejora un componente Angular específico",
+      "arguments": [
+        {
+          "name": "componentPath",
+          "description": "Ruta del componente a mejorar",
+          "required": true
+        },
+        {
+          "name": "focus",
+          "description": "Área de enfoque (performance, accessibility, maintainability)",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "optimize_service",
+      "description": "Optimiza un servicio Angular",
+      "arguments": [
+        {
+          "name": "servicePath",
+          "description": "Ruta del servicio a optimizar",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "refactor_large_component",
+      "description": "Refactoriza un componente grande en componentes más pequeños",
+      "arguments": [
+        {
+          "name": "componentPath",
+          "description": "Ruta del componente grande",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "improve_performance",
+      "description": "Mejora el rendimiento general de la aplicación",
+      "arguments": []
+    },
+    {
+      "name": "enhance_security",
+      "description": "Mejora la seguridad de la aplicación",
+      "arguments": []
+    }
+  ],
+  "configuration": {
+    "projectRoot": "frontend",
+    "sourceRoot": "frontend/src",
+    "angularVersion": "^20.3.0",
+    "typescriptVersion": "~5.9.2",
+    "analysisRules": {
+      "maxComponentLines": 500,
+      "maxServiceLines": 300,
+      "maxFunctionLines": 50,
+      "maxCyclomaticComplexity": 10,
+      "preferOnPush": true,
+      "preferStandalone": true,
+      "requireErrorHandling": true,
+      "requireTypeSafety": true
+    },
+    "performanceThresholds": {
+      "maxInitialBundleSize": "500KB",
+      "maxLazyChunkSize": "200KB",
+      "maxComponentRenderTime": "16ms",
+      "maxApiResponseTime": "1000ms"
+    },
+    "securityRules": {
+      "requireInputSanitization": true,
+      "requireXssProtection": true,
+      "requireCsrfProtection": true,
+      "forbidEval": true,
+      "forbidInnerHTML": false
+    }
+  },
+  "metadata": {
+    "created": "2025-12-01",
+    "lastUpdated": "2025-12-01",
+    "maintainer": "Sistema de Planillas Team",
+    "tags": [
+      "angular",
+      "typescript",
+      "frontend",
+      "code-quality",
+      "performance",
+      "security",
+      "accessibility"
+    ]
+  }
+}
+
+
+
+

@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -79,6 +79,9 @@ export class RegistroComponent implements OnInit {
   // Estado
   cargando: boolean = false;
   vistaActual: 'lista' | 'tarjetas' | 'calendario' = 'lista';
+  
+  // Control anti-freeze: debounce y bloqueo anti-spam
+  private ultimaCarga: number = 0;
   mostrarModalRegistro: boolean = false;
   mostrarModalJustificacion: boolean = false;
   mostrarModalEdicion: boolean = false;
@@ -209,7 +212,8 @@ export class RegistroComponent implements OnInit {
   constructor(
     private router: Router, 
     private http: HttpClient,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -304,11 +308,38 @@ export class RegistroComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  private cargandoAsistencias = false; // Flag para evitar llamadas simultáneas
+  private timeoutCargarAsistencias: any = null; // Timeout para debounce
+  
   cargarAsistencias(): void {
+    // ==================== PROTECCIÓN ANTI-FREEZE ====================
+    // 1. Debounce: evitar cargas muy rápidas (menos de 1500ms entre llamadas)
+    const ahora = Date.now();
+    if (ahora - this.ultimaCarga < 1500) {
+      console.warn('⏳ Ignorado: carga muy rápida (protección anti-freeze)');
+      return;
+    }
+    this.ultimaCarga = ahora;
+    
+    // 2. Bloqueo anti-spam: evitar llamadas simultáneas
+    if (this.cargandoAsistencias) {
+      console.warn('⏳ Ignorado: ya hay una carga en proceso');
+      return;
+    }
+    
+    // Limpiar timeout anterior si existe (debounce adicional)
+    if (this.timeoutCargarAsistencias) {
+      clearTimeout(this.timeoutCargarAsistencias);
+    }
+    
     // Limpiar cache cuando se cargan asistencias (puede haber cambiado la fecha)
     this._esDiaNoHabilCache = null;
     
+    this.cargandoAsistencias = true;
     this.cargando = true;
+    
+    // Forzar detección de cambios para mostrar el estado de carga
+    this.cdr.detectChanges();
     
     console.log('📋 Cargando asistencias para:', this.fechaSeleccionada);
     console.log('🌐 URL del backend:', `${this.apiAsistencias}/fecha/${this.fechaSeleccionada}`);
@@ -317,8 +348,10 @@ export class RegistroComponent implements OnInit {
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     
-    // Cargar asistencias del backend
-    this.http.get(`${this.apiAsistencias}/fecha/${this.fechaSeleccionada}`, {
+    // Cargar asistencias del backend usando requestAnimationFrame para no bloquear
+    requestAnimationFrame(() => {
+      // Cargar asistencias del backend
+      this.http.get(`${this.apiAsistencias}/fecha/${this.fechaSeleccionada}`, {
       headers,
       params: {
         estado: this.filtros.estado || '',
@@ -409,145 +442,152 @@ export class RegistroComponent implements OnInit {
               });
             }
 
-            // Conjuntos de IDs activos y presentes
-            const activosIds = new Set(
-              this.trabajadoresActivos.map((t: any) => t.TrabajadorID || t.trabajadorId || t.id)
-            );
-            // Filtrar registros del backend: conservar SOLO los que pertenecen a activos
-            this.registros = (this.registros || []).filter(r => activosIds.has(r.trabajadorId));
-            
-            // Actualizar los registros existentes con los horarios asignados de los trabajadores
-            // SIEMPRE actualizar los horarios asignados desde el trabajador (para reflejar cambios masivos)
-            this.registros = this.registros.map(registro => {
-              const trabajador = this.trabajadoresActivos.find((t: any) => {
+            // Usar setTimeout para dividir el procesamiento pesado y no bloquear el hilo principal
+            setTimeout(() => {
+              // Conjuntos de IDs activos y presentes
+              const activosIds = new Set(
+                this.trabajadoresActivos.map((t: any) => t.TrabajadorID || t.trabajadorId || t.id)
+              );
+              // Filtrar registros del backend: conservar SOLO los que pertenecen a activos
+              this.registros = (this.registros || []).filter(r => activosIds.has(r.trabajadorId));
+              
+              // Crear un mapa de trabajadores para búsqueda O(1) en lugar de O(n) con find
+              const trabajadoresMap = new Map();
+              this.trabajadoresActivos.forEach((t: any) => {
                 const trabajadorId = t.TrabajadorID || t.trabajadorId || t.id;
-                return trabajadorId === registro.trabajadorId;
+                trabajadoresMap.set(trabajadorId, t);
               });
               
-              if (trabajador) {
-                // SIEMPRE actualizar los horarios asignados desde el trabajador (sobrescribir)
-                // Verificar todas las posibles variaciones de nombres de campos
-                const horarioAsignadoEntradaManana = trabajador.HorarioHabitualEntradaManana || 
-                                                      trabajador.horarioHabitualEntradaManana || 
-                                                      trabajador.HorarioHabitualEntradaManana || 
+              // Actualizar los registros existentes con los horarios asignados de los trabajadores
+              // SIEMPRE actualizar los horarios asignados desde el trabajador (para reflejar cambios masivos)
+              this.registros = this.registros.map(registro => {
+                const trabajador = trabajadoresMap.get(registro.trabajadorId);
+                
+                if (trabajador) {
+                  // SIEMPRE actualizar los horarios asignados desde el trabajador (sobrescribir)
+                  // Verificar todas las posibles variaciones de nombres de campos
+                  const horarioAsignadoEntradaManana = trabajador.HorarioHabitualEntradaManana || 
+                                                        trabajador.horarioHabitualEntradaManana || 
+                                                        null;
+                  const horarioAsignadoSalidaManana = trabajador.HorarioHabitualSalidaManana || 
+                                                       trabajador.horarioHabitualSalidaManana || 
+                                                       null;
+                  const horarioAsignadoEntradaTarde = trabajador.HorarioHabitualEntradaTarde || 
+                                                       trabajador.horarioHabitualEntradaTarde || 
+                                                       null;
+                  const horarioAsignadoSalidaTarde = trabajador.HorarioHabitualSalidaTarde || 
+                                                      trabajador.horarioHabitualSalidaTarde || 
                                                       null;
-                const horarioAsignadoSalidaManana = trabajador.HorarioHabitualSalidaManana || 
-                                                     trabajador.horarioHabitualSalidaManana || 
-                                                     trabajador.HorarioHabitualSalidaManana || 
-                                                     null;
-                const horarioAsignadoEntradaTarde = trabajador.HorarioHabitualEntradaTarde || 
-                                                     trabajador.horarioHabitualEntradaTarde || 
-                                                     trabajador.HorarioHabitualEntradaTarde || 
-                                                     null;
-                const horarioAsignadoSalidaTarde = trabajador.HorarioHabitualSalidaTarde || 
-                                                    trabajador.horarioHabitualSalidaTarde || 
-                                                    trabajador.HorarioHabitualSalidaTarde || 
-                                                    null;
-                
-                // SIEMPRE actualizar los horarios asignados (no solo si no existen)
-                // Esto asegura que los horarios masivos se reflejen inmediatamente
-                registro.horarioAsignadoEntradaManana = horarioAsignadoEntradaManana;
-                registro.horarioAsignadoSalidaManana = horarioAsignadoSalidaManana;
-                registro.horarioAsignadoEntradaTarde = horarioAsignadoEntradaTarde;
-                registro.horarioAsignadoSalidaTarde = horarioAsignadoSalidaTarde;
-                
-                // Debug solo para los primeros 3 registros
-                if (this.registros.indexOf(registro) < 3) {
-                  console.log(`🕐 Horarios actualizados para ${registro.trabajadorNombre}:`, {
-                    entradaManana: horarioAsignadoEntradaManana,
-                    salidaManana: horarioAsignadoSalidaManana,
-                    entradaTarde: horarioAsignadoEntradaTarde,
-                    salidaTarde: horarioAsignadoSalidaTarde
-                  });
+                  
+                  // SIEMPRE actualizar los horarios asignados (no solo si no existen)
+                  // Esto asegura que los horarios masivos se reflejen inmediatamente
+                  registro.horarioAsignadoEntradaManana = horarioAsignadoEntradaManana;
+                  registro.horarioAsignadoSalidaManana = horarioAsignadoSalidaManana;
+                  registro.horarioAsignadoEntradaTarde = horarioAsignadoEntradaTarde;
+                  registro.horarioAsignadoSalidaTarde = horarioAsignadoSalidaTarde;
+                  
+                  // Debug solo para los primeros 3 registros
+                  if (this.registros.indexOf(registro) < 3) {
+                    console.log(`🕐 Horarios actualizados para ${registro.trabajadorNombre}:`, {
+                      entradaManana: horarioAsignadoEntradaManana,
+                      salidaManana: horarioAsignadoSalidaManana,
+                      entradaTarde: horarioAsignadoEntradaTarde,
+                      salidaTarde: horarioAsignadoSalidaTarde
+                    });
+                  }
+                } else {
+                  // Si no se encuentra el trabajador, log de advertencia
+                  console.warn(`⚠️ No se encontró trabajador activo para registro ID: ${registro.trabajadorId}`);
                 }
-              } else {
-                // Si no se encuentra el trabajador, log de advertencia
-                console.warn(`⚠️ No se encontró trabajador activo para registro ID: ${registro.trabajadorId}`);
-              }
+                
+                return registro;
+              });
               
-              return registro;
-            });
-            
-            const presentes = new Set(this.registros.map(r => r.trabajadorId));
+              const presentes = new Set(this.registros.map(r => r.trabajadorId));
 
-            // Añadir faltantes con estado "Falta" y horas en '---'
-            const registrosCompletos = [...this.registros];
-            for (const t of this.trabajadoresActivos) {
-              const trabajadorId = t.TrabajadorID || t.trabajadorId || t.id;
-              if (!presentes.has(trabajadorId)) {
-                const nombre = `${(t.ApellidoPaterno || t.apellidoPaterno || '').trim()} ${(t.ApellidoMaterno || t.apellidoMaterno || '').trim()}, ${(t.Nombres || t.nombres || '').trim()}`.replace(/\s+/g, ' ').trim();
+              // Añadir faltantes con estado "Falta" y horas en '---'
+              // Procesar en chunks para no bloquear el hilo principal
+              const registrosCompletos = [...this.registros];
+              const CHUNK_SIZE = 10; // Reducido a 10 trabajadores a la vez para evitar bloqueos
+              
+              const procesarChunk = (startIndex: number) => {
+                const endIndex = Math.min(startIndex + CHUNK_SIZE, this.trabajadoresActivos.length);
                 
-                // Obtener horarios asignados del trabajador (si existen en el objeto t)
-                // IMPORTANTE: Verificar todas las posibles variaciones de nombres de campos
-                const horarioAsignadoEntradaManana = t.HorarioHabitualEntradaManana || t.horarioHabitualEntradaManana || null;
-                const horarioAsignadoSalidaManana = t.HorarioHabitualSalidaManana || t.horarioHabitualSalidaManana || null;
-                const horarioAsignadoEntradaTarde = t.HorarioHabitualEntradaTarde || t.horarioHabitualEntradaTarde || null;
-                const horarioAsignadoSalidaTarde = t.HorarioHabitualSalidaTarde || t.horarioHabitualSalidaTarde || null;
-                
-                // Debug para los primeros trabajadores faltantes
-                if (registrosCompletos.length < 3) {
-                  console.log(`🕐 Creando registro para trabajador faltante ${nombre}:`, {
-                    entradaManana: horarioAsignadoEntradaManana,
-                    salidaManana: horarioAsignadoSalidaManana,
-                    entradaTarde: horarioAsignadoEntradaTarde,
-                    salidaTarde: horarioAsignadoSalidaTarde,
-                    trabajadorData: {
-                      HorarioHabitualEntradaManana: t.HorarioHabitualEntradaManana,
-                      horarioHabitualEntradaManana: t.horarioHabitualEntradaManana,
-                      todasLasPropiedades: Object.keys(t).filter(k => k.toLowerCase().includes('horario'))
-                    }
-                  });
+                for (let i = startIndex; i < endIndex; i++) {
+                  const t = this.trabajadoresActivos[i];
+                  const trabajadorId = t.TrabajadorID || t.trabajadorId || t.id;
+                  if (!presentes.has(trabajadorId)) {
+                    const nombre = `${(t.ApellidoPaterno || t.apellidoPaterno || '').trim()} ${(t.ApellidoMaterno || t.apellidoMaterno || '').trim()}, ${(t.Nombres || t.nombres || '').trim()}`.replace(/\s+/g, ' ').trim();
+                    
+                    // Obtener horarios asignados del trabajador (si existen en el objeto t)
+                    const horarioAsignadoEntradaManana = t.HorarioHabitualEntradaManana || t.horarioHabitualEntradaManana || null;
+                    const horarioAsignadoSalidaManana = t.HorarioHabitualSalidaManana || t.horarioHabitualSalidaManana || null;
+                    const horarioAsignadoEntradaTarde = t.HorarioHabitualEntradaTarde || t.horarioHabitualEntradaTarde || null;
+                    const horarioAsignadoSalidaTarde = t.HorarioHabitualSalidaTarde || t.horarioHabitualSalidaTarde || null;
+                    
+                    registrosCompletos.push({
+                      id: 0,
+                      fecha: this.fechaSeleccionada,
+                      trabajadorId,
+                      trabajadorDni: t.NumeroDocumento || t.dni || '',
+                      trabajadorNombre: nombre,
+                      trabajadorArea: t.AreaNombre || t.areaNombre || t.area || '',
+                      trabajadorCargo: (t.CargoNombre || t.cargoNombre || t.cargo || '').toUpperCase(),
+                      trabajadorRegimenLaboral: t.RegimenLaboralNombre || t.regimenLaboralNombre || null,
+                      // Horas registradas (null porque es falta)
+                      horaEntradaManana: null,
+                      horaSalidaManana: null,
+                      horaEntradaTarde: null,
+                      horaSalidaTarde: null,
+                      // Horarios asignados del trabajador
+                      horarioAsignadoEntradaManana: horarioAsignadoEntradaManana,
+                      horarioAsignadoSalidaManana: horarioAsignadoSalidaManana,
+                      horarioAsignadoEntradaTarde: horarioAsignadoEntradaTarde,
+                      horarioAsignadoSalidaTarde: horarioAsignadoSalidaTarde,
+                      estado: 'Falta',
+                      tipoMarcacion: 'Sistema',
+                      minutosRetraso: 0,
+                      horasTrabajadas: 0,
+                      horasExtras: 0,
+                      tieneJustificacion: false,
+                      motivoJustificacion: '',
+                      documentoJustificacion: '',
+                      observaciones: '',
+                      registradoPor: 'sistema',
+                      fechaRegistro: new Date()
+                    });
+                  }
                 }
                 
-                registrosCompletos.push({
-                  id: 0,
-                  fecha: this.fechaSeleccionada,
-                  trabajadorId,
-                  trabajadorDni: t.NumeroDocumento || t.dni || '',
-                  trabajadorNombre: nombre,
-                  trabajadorArea: t.AreaNombre || t.areaNombre || t.area || '',
-                  trabajadorCargo: (t.CargoNombre || t.cargoNombre || t.cargo || '').toUpperCase(),
-                  trabajadorRegimenLaboral: t.RegimenLaboralNombre || t.regimenLaboralNombre || null,
-                  // Horas registradas (null porque es falta)
-                  horaEntradaManana: null,
-                  horaSalidaManana: null,
-                  horaEntradaTarde: null,
-                  horaSalidaTarde: null,
-                  // Horarios asignados del trabajador
-                  horarioAsignadoEntradaManana: horarioAsignadoEntradaManana,
-                  horarioAsignadoSalidaManana: horarioAsignadoSalidaManana,
-                  horarioAsignadoEntradaTarde: horarioAsignadoEntradaTarde,
-                  horarioAsignadoSalidaTarde: horarioAsignadoSalidaTarde,
-                  estado: 'Falta',
-                  tipoMarcacion: 'Sistema',
-                  minutosRetraso: 0,
-                  horasTrabajadas: 0,
-                  horasExtras: 0,
-                  tieneJustificacion: false,
-                  motivoJustificacion: '',
-                  documentoJustificacion: '',
-                  observaciones: '',
-                  registradoPor: 'sistema',
-                  fechaRegistro: new Date()
-                });
-              }
-            }
-
-            // Asignar lista completa y refrescar vistas/resumen
-            this.registros = registrosCompletos;
-            this.registrosFiltrados = [...this.registros];
-            this.cargando = false;
-            
-            console.log('📋 Registros finales antes de calcular resumen:', this.registros.length);
-            console.log('📋 Primer registro final:', this.registros[0]);
-            
-            // Llamar a actualizarResumenDesdeRegistros directamente (ya no llamar cargarResumenDiario que usa backend)
-            this.actualizarResumenDesdeRegistros();
+                // Si hay más trabajadores, procesar el siguiente chunk con delay mayor
+                if (endIndex < this.trabajadoresActivos.length) {
+                  setTimeout(() => procesarChunk(endIndex), 50); // Aumentado a 50ms entre chunks
+                } else {
+                  // Procesamiento completo, actualizar registros
+                  this.registros = registrosCompletos;
+                  this.registrosFiltrados = [...this.registros];
+                  this.cargando = false;
+                  this.cargandoAsistencias = false;
+                  
+                  console.log('📋 Registros finales antes de calcular resumen:', this.registros.length);
+                  
+                  // Llamar a actualizarResumenDesdeRegistros directamente
+                  this.actualizarResumenDesdeRegistros();
+                  
+                  // Forzar detección de cambios después de actualizar
+                  this.cdr.detectChanges();
+                }
+              };
+              
+              // Iniciar procesamiento por chunks
+              procesarChunk(0);
+            }, 0);
           },
           error: (e) => {
             console.warn('⚠️ No se pudo cargar trabajadores activos, usando solo registros del día:', e);
             this.registrosFiltrados = [...this.registros];
             this.cargando = false;
+            this.cargandoAsistencias = false;
             this.cargarResumenDiario();
           }
         });
@@ -555,6 +595,7 @@ export class RegistroComponent implements OnInit {
       error: (error) => {
         console.error('❌ Error al cargar asistencias:', error);
         console.error('🔍 Detalles del error:', error);
+        this.cargandoAsistencias = false;
         // Si falla, intentar al menos listar todos los trabajadores activos para que el total coincida
         this.http.get(`${this.apiTrabajadores}`, { headers }).subscribe({
           next: (respTrab: any) => {
@@ -592,16 +633,19 @@ export class RegistroComponent implements OnInit {
             }));
             this.registrosFiltrados = [...this.registros];
             this.cargando = false;
+            this.cargandoAsistencias = false;
             this.cargarResumenDiario();
           },
           error: () => {
             this.cargando = false;
+            this.cargandoAsistencias = false;
             console.log('⚠️ Cargando datos de ejemplo debido al error');
             this.cargarDatosEjemplo();
           }
         });
       }
     });
+    }); // Cerrar requestAnimationFrame
   }
 
   cargarResumenDiario(): void {
@@ -628,119 +672,125 @@ export class RegistroComponent implements OnInit {
     });
   }
 
-  actualizarResumenDesdeRegistros(): void {
-    // Filtrar registros SOLO del día seleccionado (por si acaso)
-    const registrosDia = this.registros.filter(r => {
-      // Normalizar fecha para comparar (fecha siempre es string en la interfaz)
-      let fechaRegistro = r.fecha;
-      if (typeof fechaRegistro === 'string') {
-        // Si viene como "2025-10-30T00:00:00.000Z", tomar solo la parte de fecha
-        if (fechaRegistro.includes('T')) {
-          fechaRegistro = fechaRegistro.split('T')[0];
+  // ========================================
+  // ACTUALIZAR REGISTRO LOCAL (SIN RECARGAR TODO)
+  // ========================================
+  actualizarRegistroLocal(trabajadorId: number, cambios: Partial<RegistroAsistencia>): void {
+    // EJECUTAR DE FORMA ASÍNCRONA PARA NO BLOQUEAR
+    requestAnimationFrame(() => {
+      // Buscar y actualizar el registro en el array local
+      const indice = this.registros.findIndex(r => r.trabajadorId === trabajadorId);
+      if (indice !== -1) {
+        // Actualizar el registro
+        this.registros[indice] = {
+          ...this.registros[indice],
+          ...cambios
+        };
+        
+        // Actualizar también en registrosFiltrados
+        const indiceFiltrado = this.registrosFiltrados.findIndex(r => r.trabajadorId === trabajadorId);
+        if (indiceFiltrado !== -1) {
+          this.registrosFiltrados[indiceFiltrado] = {
+            ...this.registrosFiltrados[indiceFiltrado],
+            ...cambios
+          };
         }
+        
+        // Forzar detección de cambios de forma asíncrona
+        requestAnimationFrame(() => {
+          this.cdr.detectChanges();
+        });
       }
-      return fechaRegistro === this.fechaSeleccionada;
     });
-    
-    console.log('🔍 Fecha seleccionada:', this.fechaSeleccionada);
-    console.log('🔍 Registros totales:', this.registros.length);
-    console.log('🔍 Registros del día filtrados:', registrosDia.length);
-    
-    if (registrosDia.length > 0) {
-      console.log('🔍 Primer registro del día:', registrosDia[0]);
-      console.log('🔍 Primer registro - estado:', registrosDia[0].estado);
-      console.log('🔍 Primer registro - tipoMarcacion:', registrosDia[0].tipoMarcacion);
-      console.log('🔍 Primer registro - horas:', {
-        entradaManana: registrosDia[0].horaEntradaManana,
-        entradaTarde: registrosDia[0].horaEntradaTarde
-      });
-    }
-    
-    const total = this.trabajadoresActivos?.length || registrosDia.length;
-    
-    // IMPORTANTE: El backend devuelve:
-    // - estado: 'Validado', 'Pendiente', etc. (estado del registro)
-    // - tipoMarcacion: 'Presente', 'Tardanza', 'Falta', etc. (tipo de asistencia)
-    // Contar por tipoMarcacion PRIMERO, si no existe usar estado como fallback
-    
-    const presentes = registrosDia.filter(r => {
-      // Considerar presente si:
-      // 1. tipoMarcacion es 'Presente' O
-      // 2. estado es 'Validado' y tiene horas registradas (no es falta)
-      const tipoMarc = r.tipoMarcacion;
-      const tieneHoras = (r.horaEntradaManana && r.horaEntradaManana !== '---') || 
-                        (r.horaEntradaTarde && r.horaEntradaTarde !== '---');
-      
-      // Si tiene tipoMarcacion, usar eso
-      if (tipoMarc === 'Presente') {
-        return true;
-      }
-      
-      // Si no tiene tipoMarcacion pero está 'Validado' y tiene horas, es presente
-      if (r.estado === 'Validado' && tieneHoras) {
-        return true;
-      }
-      
-      // Si el estado directamente es 'Presente' (por compatibilidad)
-      if (r.estado === 'Presente') {
-        return true;
-      }
-      
-      return false;
-    }).length;
-    
-    const tardanzas = registrosDia.filter(r => {
-      return r.tipoMarcacion === 'Tardanza' || r.estado === 'Tardanza';
-    }).length;
-    
-    const faltas = registrosDia.filter(r => {
-      const tieneHoras = (r.horaEntradaManana && r.horaEntradaManana !== '---') || 
-                        (r.horaEntradaTarde && r.horaEntradaTarde !== '---');
-      // Es falta si tipoMarcacion es 'Falta' O estado es 'Falta' O no tiene horas
-      return r.tipoMarcacion === 'Falta' || r.estado === 'Falta' || !tieneHoras;
-    }).length;
-    
-    const permisos = registrosDia.filter(r => {
-      return r.tipoMarcacion === 'Permiso' || r.estado === 'Permiso';
-    }).length;
-    
-    const licencias = registrosDia.filter(r => {
-      return r.tipoMarcacion === 'Licencia' || r.estado === 'Licencia';
-    }).length;
-    
-    const vacaciones = registrosDia.filter(r => {
-      return r.tipoMarcacion === 'Vacaciones' || r.estado === 'Vacaciones';
-    }).length;
-    
-    const comisiones = registrosDia.filter(r => {
-      return r.tipoMarcacion === 'Comision' || r.estado === 'Comision';
-    }).length;
-    
-    // Calcular porcentaje de asistencia (presentes + tardanzas + comisiones = efectivos)
-    const efectivos = presentes + tardanzas + comisiones;
-    const porcentaje = total > 0 ? Math.round((efectivos / total) * 100 * 100) / 100 : 0;
-    
-    this.resumenDiario = {
-      fecha: this.fechaSeleccionada,
-      totalTrabajadores: total,
-      presentes,
-      tardanzas,
-      faltas,
-      permisos,
-      licencias,
-      vacaciones,
-      comisiones,
-      porcentajeAsistencia: porcentaje
-    };
-    
-    console.log(`📊 Resumen calculado para ${this.fechaSeleccionada}:`, this.resumenDiario);
-    console.log('🔍 Debug - Primer registro:', registrosDia[0]);
-    console.log('🔍 Debug - Registros con tipoMarcacion Presente:', registrosDia.filter(r => r.tipoMarcacion === 'Presente').length);
-    console.log('🔍 Debug - Registros con estado Validado y horas:', registrosDia.filter(r => {
-      const tieneHoras = (r.horaEntradaManana && r.horaEntradaManana !== '---') || 
-                         (r.horaEntradaTarde && r.horaEntradaTarde !== '---');
-      return r.estado === 'Validado' && tieneHoras;
-    }).length);
+  }
+
+  actualizarResumenDesdeRegistros(): void {
+    // EJECUTAR DE FORMA ASÍNCRONA PARA NO BLOQUEAR EL HILO PRINCIPAL
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        // Filtrar registros SOLO del día seleccionado (por si acaso)
+        const registrosDia = this.registros.filter(r => {
+          // Normalizar fecha para comparar (fecha siempre es string en la interfaz)
+          let fechaRegistro = r.fecha;
+          if (typeof fechaRegistro === 'string') {
+            // Si viene como "2025-10-30T00:00:00.000Z", tomar solo la parte de fecha
+            if (fechaRegistro.includes('T')) {
+              fechaRegistro = fechaRegistro.split('T')[0];
+            }
+          }
+          return fechaRegistro === this.fechaSeleccionada;
+        });
+        
+        const total = this.trabajadoresActivos?.length || registrosDia.length;
+        
+        // OPTIMIZACIÓN: Hacer un solo recorrido del array en lugar de múltiples filtros
+        let presentes = 0;
+        let tardanzas = 0;
+        let faltas = 0;
+        let permisos = 0;
+        let licencias = 0;
+        let vacaciones = 0;
+        let comisiones = 0;
+        
+        for (const r of registrosDia) {
+          const tipoMarc = r.tipoMarcacion;
+          const estado = r.estado;
+          const tieneHoras = (r.horaEntradaManana && r.horaEntradaManana !== '---') || 
+                            (r.horaEntradaTarde && r.horaEntradaTarde !== '---');
+          
+          // Contar presentes
+          if (tipoMarc === 'Presente' || estado === 'Presente' || (estado === 'Validado' && tieneHoras)) {
+            presentes++;
+          }
+          // Contar tardanzas
+          else if (tipoMarc === 'Tardanza' || estado === 'Tardanza') {
+            tardanzas++;
+          }
+          // Contar faltas
+          else if (tipoMarc === 'Falta' || estado === 'Falta' || !tieneHoras) {
+            faltas++;
+          }
+          // Contar permisos
+          else if (tipoMarc === 'Permiso' || estado === 'Permiso') {
+            permisos++;
+          }
+          // Contar licencias
+          else if (tipoMarc === 'Licencia' || estado === 'Licencia') {
+            licencias++;
+          }
+          // Contar vacaciones
+          else if (tipoMarc === 'Vacaciones' || estado === 'Vacaciones') {
+            vacaciones++;
+          }
+          // Contar comisiones
+          else if (tipoMarc === 'Comision' || estado === 'Comision') {
+            comisiones++;
+          }
+        }
+        
+        // Calcular porcentaje de asistencia (presentes + tardanzas + comisiones = efectivos)
+        const efectivos = presentes + tardanzas + comisiones;
+        const porcentaje = total > 0 ? Math.round((efectivos / total) * 100 * 100) / 100 : 0;
+        
+        this.resumenDiario = {
+          fecha: this.fechaSeleccionada,
+          totalTrabajadores: total,
+          presentes,
+          tardanzas,
+          faltas,
+          permisos,
+          licencias,
+          vacaciones,
+          comisiones,
+          porcentajeAsistencia: porcentaje
+        };
+        
+        // Forzar detección de cambios de forma asíncrona
+        requestAnimationFrame(() => {
+          this.cdr.detectChanges();
+        });
+      }, 0);
+    });
   }
 
   cargarTrabajadoresActivos(): void {
@@ -798,14 +848,8 @@ export class RegistroComponent implements OnInit {
   }
 
   aplicarFiltros(): void {
-    // Si se cambia el filtro de régimen laboral, recargar desde el backend
-    // porque este filtro afecta qué trabajadores se obtienen
-    if (this.filtros.regimenLaboral) {
-      this.cargarAsistencias();
-      return;
-    }
-    
-    // Para otros filtros (estado, búsqueda), aplicar localmente
+    // Aplicar todos los filtros localmente (sin recargar desde el backend)
+    // Esto evita múltiples llamadas a cargarAsistencias()
     let resultado = [...this.registros];
     
     // Filtro por búsqueda
@@ -926,7 +970,12 @@ export class RegistroComponent implements OnInit {
         this.mostrarModalRegistro = false;
         this.restaurarTopbarSidebar();
         this.limpiarFormulario();
-        this.cargarAsistencias(); // Recargar datos
+        
+        // Notificar al dashboard UNA SOLA VEZ (en lugar de recargar todo)
+        this.notificarActualizacionAsistencia();
+        
+        // NO recargar asistencias - solo actualizar localmente
+        // El nuevo registro se agregará en la próxima carga natural
       },
       error: (error) => {
         console.error('❌ Error al registrar asistencia:', error);
@@ -1098,11 +1147,28 @@ export class RegistroComponent implements OnInit {
     
     this.http.post(`${this.apiAsistencias}/marcar-tardanza`, datos, { headers }).subscribe({
       next: (response: any) => {
+        // ACTUALIZAR SOLO EL REGISTRO ESPECÍFICO EN LUGAR DE RECARGAR TODO
+        this.actualizarRegistroLocal(this.registroSeleccionado.trabajadorId, {
+          estado: 'Tardanza',
+          tipoMarcacion: 'Tardanza',
+          horaEntradaManana: datos.horaEntradaManana,
+          horaSalidaManana: datos.horaSalidaManana,
+          horaEntradaTarde: datos.horaEntradaTarde,
+          horaSalidaTarde: datos.horaSalidaTarde,
+          minutosRetraso: datos.minutosTardanza || 0
+        });
+        
         this.finalizarProcesamiento();
         this.cerrarNotificacion();
         this.mostrarNotificacion('success', '✅ Éxito', `${this.registroSeleccionado?.trabajadorNombre} marcado con TARDANZA`, 3000);
         this.mostrarModalTardanza = false;
-        this.cargarAsistencias();
+        
+        // Actualizar resumen sin recargar todo
+        this.actualizarResumenDesdeRegistros();
+        this.cdr.detectChanges();
+        
+        // Notificar al dashboard UNA SOLA VEZ
+        this.notificarActualizacionAsistencia();
       },
       error: (error) => {
         console.error('❌ Error al marcar tardanza:', error);
@@ -1168,11 +1234,27 @@ export class RegistroComponent implements OnInit {
     
     this.http.post(`${this.apiAsistencias}/marcar-permiso`, datos, { headers }).subscribe({
       next: (response: any) => {
+        // ACTUALIZAR SOLO EL REGISTRO ESPECÍFICO EN LUGAR DE RECARGAR TODO
+        this.actualizarRegistroLocal(this.registroSeleccionado.trabajadorId, {
+          estado: 'Permiso',
+          tipoMarcacion: 'Permiso',
+          horaEntradaManana: datos.horaEntradaManana,
+          horaSalidaManana: datos.horaSalidaManana,
+          horaEntradaTarde: datos.horaEntradaTarde,
+          horaSalidaTarde: datos.horaSalidaTarde
+        });
+        
         this.finalizarProcesamiento();
         this.cerrarNotificacion();
         this.mostrarNotificacion('success', '✅ Éxito', `${this.registroSeleccionado?.trabajadorNombre} marcado con PERMISO`, 3000);
         this.mostrarModalPermiso = false;
-        this.cargarAsistencias();
+        
+        // Actualizar resumen sin recargar todo
+        this.actualizarResumenDesdeRegistros();
+        this.cdr.detectChanges();
+        
+        // Notificar al dashboard UNA SOLA VEZ
+        this.notificarActualizacionAsistencia();
       },
       error: (error) => {
         console.error('❌ Error al marcar permiso:', error);
@@ -1226,11 +1308,27 @@ export class RegistroComponent implements OnInit {
     
     this.http.post(`${this.apiAsistencias}/marcar-licencia`, datos, { headers }).subscribe({
       next: (response: any) => {
+        // ACTUALIZAR SOLO EL REGISTRO ESPECÍFICO EN LUGAR DE RECARGAR TODO
+        this.actualizarRegistroLocal(this.registroSeleccionado.trabajadorId, {
+          estado: 'Licencia',
+          tipoMarcacion: 'Licencia',
+          horaEntradaManana: null,
+          horaSalidaManana: null,
+          horaEntradaTarde: null,
+          horaSalidaTarde: null
+        });
+        
         this.finalizarProcesamiento();
         this.cerrarNotificacion();
         this.mostrarNotificacion('success', '✅ Éxito', `${this.registroSeleccionado?.trabajadorNombre} marcado con LICENCIA`, 3000);
         this.mostrarModalLicencia = false;
-        this.cargarAsistencias();
+        
+        // Actualizar resumen sin recargar todo
+        this.actualizarResumenDesdeRegistros();
+        this.cdr.detectChanges();
+        
+        // Notificar al dashboard UNA SOLA VEZ
+        this.notificarActualizacionAsistencia();
       },
       error: (error) => {
         console.error('❌ Error al marcar licencia:', error);
@@ -1322,6 +1420,45 @@ export class RegistroComponent implements OnInit {
   }
 
   // ========================================
+  // NOTIFICACIÓN DE ACTUALIZACIÓN DE ASISTENCIA
+  // ========================================
+  
+  /**
+   * Notifica al dashboard que se actualizó una asistencia
+   * Emite el evento UNA SOLA VEZ para evitar loops infinitos
+   * Usa debounce para agrupar múltiples actualizaciones rápidas
+   */
+  private notificarActualizacionAsistencia(): void {
+    // Si ya hay una notificación pendiente, ignorar esta
+    if (this._notificacionPendiente) {
+      return;
+    }
+    
+    // Marcar como pendiente
+    this._notificacionPendiente = true;
+    
+    // Emitir el evento UNA SOLA VEZ después de un pequeño delay
+    // Esto agrupa múltiples actualizaciones rápidas en una sola notificación
+    setTimeout(() => {
+      try {
+        // Emitir SOLO CustomEvent (NO postMessage para evitar duplicados)
+        window.dispatchEvent(new CustomEvent('asistencia-actualizada', {
+          bubbles: false, // No propagar para evitar loops
+          cancelable: false
+        }));
+        console.log('📢 Evento de asistencia actualizada emitido (una sola vez)');
+      } catch (error) {
+        console.error('❌ Error al emitir evento de asistencia:', error);
+      } finally {
+        // Resetear flag después de emitir
+        this._notificacionPendiente = false;
+      }
+    }, 150); // Delay aumentado para mejor agrupación
+  }
+  
+  private _notificacionPendiente: boolean = false;
+
+  // ========================================
   // MARCAR / DESMARCAR ASISTENCIA
   // ========================================
 
@@ -1362,34 +1499,46 @@ export class RegistroComponent implements OnInit {
           observaciones: 'Marcado manualmente como presente'
         };
 
-        console.log('✅ Marcando presente:', datos);
-        this.iniciarProcesamiento('marcar-presente', this.obtenerIdRegistro(registro));
-        this.mostrarNotificacion('loading', 'Procesando...', `Marcando a ${registro.trabajadorNombre} como presente`, 0);
+        // Ejecutar de forma asíncrona para no bloquear
+        requestAnimationFrame(() => {
+          this.iniciarProcesamiento('marcar-presente', this.obtenerIdRegistro(registro));
+          this.mostrarNotificacion('loading', 'Procesando...', `Marcando a ${registro.trabajadorNombre} como presente`, 0);
 
-        // Obtener el token del localStorage
-        const token = localStorage.getItem('token');
-        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-        
-        this.http.post(`${this.apiAsistencias}/marcar-presente`, datos, { headers }).subscribe({
-          next: (response: any) => {
-            console.log('✅ Marcado como presente:', response);
-            // Notificar al dashboard para que se actualice (si está abierto)
-            if (window.parent) {
-              window.parent.postMessage({ type: 'asistencia-actualizada' }, '*');
+          // Obtener el token del localStorage
+          const token = localStorage.getItem('token');
+          const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+          
+          this.http.post(`${this.apiAsistencias}/marcar-presente`, datos, { headers }).subscribe({
+            next: (response: any) => {
+              // EJECUTAR TODAS LAS ACTUALIZACIONES DE FORMA ASÍNCRONA
+              requestAnimationFrame(() => {
+                // ACTUALIZAR SOLO EL REGISTRO ESPECÍFICO EN LUGAR DE RECARGAR TODO
+                this.actualizarRegistroLocal(registro.trabajadorId, {
+                  estado: 'Presente',
+                  tipoMarcacion: 'Presente',
+                  horaEntradaManana: datos.horaEntradaManana,
+                  horaSalidaManana: datos.horaSalidaManana,
+                  horaEntradaTarde: datos.horaEntradaTarde,
+                  horaSalidaTarde: datos.horaSalidaTarde
+                });
+                
+                // Notificar al dashboard UNA SOLA VEZ (evitar duplicados)
+                this.notificarActualizacionAsistencia();
+                
+                this.finalizarProcesamiento();
+                this.cerrarNotificacion();
+                this.mostrarNotificacion('success', '✅ Éxito', `${registro.trabajadorNombre} marcado como PRESENTE`, 3000);
+                
+                // Actualizar resumen sin recargar todo (ya es asíncrono)
+                this.actualizarResumenDesdeRegistros();
+              });
+            },
+            error: (error) => {
+              this.finalizarProcesamiento();
+              this.cerrarNotificacion();
+              this.mostrarNotificacion('error', '❌ Error', 'Error al marcar presente: ' + (error.error?.message || error.message), 4000);
             }
-            // También emitir evento local para actualizar si el dashboard está en la misma ventana
-            window.dispatchEvent(new CustomEvent('asistencia-actualizada'));
-            this.finalizarProcesamiento();
-            this.cerrarNotificacion();
-            this.mostrarNotificacion('success', '✅ Éxito', `${registro.trabajadorNombre} marcado como PRESENTE`, 3000);
-            this.cargarAsistencias(); // Recargar datos
-          },
-          error: (error) => {
-            console.error('❌ Error al marcar presente:', error);
-            this.finalizarProcesamiento();
-            this.cerrarNotificacion();
-            this.mostrarNotificacion('error', '❌ Error', 'Error al marcar presente: ' + (error.error?.message || error.message), 4000);
-          }
+          });
         });
       }
     );
@@ -1481,10 +1630,12 @@ export class RegistroComponent implements OnInit {
             this.finalizarProcesamiento();
             this.cerrarNotificacion();
             this.mostrarNotificacion('success', '✅ Éxito', `${total} trabajador(es) marcado(s) como PRESENTE`, 4000);
-            // Recargar asistencias después de un breve delay
-            setTimeout(() => {
-              this.cargarAsistencias();
-            }, 500);
+            
+            // Notificar al dashboard UNA SOLA VEZ (en lugar de recargar todo)
+            this.notificarActualizacionAsistencia();
+            
+            // Actualizar resumen local sin recargar todo
+            this.actualizarResumenDesdeRegistros();
           })
           .catch((error) => {
             console.error('❌ Error al marcar todos como presentes:', error);
@@ -1558,10 +1709,12 @@ export class RegistroComponent implements OnInit {
             this.finalizarProcesamiento();
             this.cerrarNotificacion();
             this.mostrarNotificacion('success', '✅ Éxito', `${total} trabajador(es) marcado(s) como FALTA`, 4000);
-            // Recargar asistencias después de un breve delay
-            setTimeout(() => {
-              this.cargarAsistencias();
-            }, 500);
+            
+            // Notificar al dashboard UNA SOLA VEZ (en lugar de recargar todo)
+            this.notificarActualizacionAsistencia();
+            
+            // Actualizar resumen local sin recargar todo
+            this.actualizarResumenDesdeRegistros();
           })
           .catch((error) => {
             console.error('❌ Error al marcar todos como falta:', error);
@@ -1613,11 +1766,28 @@ export class RegistroComponent implements OnInit {
         
         this.http.post(`${this.apiAsistencias}/marcar-falta`, datos, { headers }).subscribe({
           next: (response: any) => {
-            console.log('❌ Marcado como falta:', response);
-            this.finalizarProcesamiento();
-            this.cerrarNotificacion();
-            this.mostrarNotificacion('success', '✅ Éxito', `${registro.trabajadorNombre} marcado como FALTA`, 3000);
-            this.cargarAsistencias(); // Recargar datos
+            // EJECUTAR TODAS LAS ACTUALIZACIONES DE FORMA ASÍNCRONA PARA NO BLOQUEAR
+            requestAnimationFrame(() => {
+              // ACTUALIZAR SOLO EL REGISTRO ESPECÍFICO EN LUGAR DE RECARGAR TODO
+              this.actualizarRegistroLocal(registro.trabajadorId, {
+                estado: 'Falta',
+                tipoMarcacion: 'Falta',
+                horaEntradaManana: null,
+                horaSalidaManana: null,
+                horaEntradaTarde: null,
+                horaSalidaTarde: null
+              });
+              
+              this.finalizarProcesamiento();
+              this.cerrarNotificacion();
+              this.mostrarNotificacion('success', '✅ Éxito', `${registro.trabajadorNombre} marcado como FALTA`, 3000);
+              
+              // Actualizar resumen sin recargar todo (ya es asíncrono)
+              this.actualizarResumenDesdeRegistros();
+              
+              // Notificar al dashboard UNA SOLA VEZ
+              this.notificarActualizacionAsistencia();
+            });
           },
           error: (error) => {
             console.error('❌ Error al marcar falta:', error);
@@ -1745,7 +1915,12 @@ export class RegistroComponent implements OnInit {
               this.mostrarNotificacion('success', '✅ Éxito', 'Horarios guardados permanentemente', 3000);
               this.mostrarModalEdicion = false;
               this.registroSeleccionado = null;
-              this.cargarAsistencias(); // Recargar datos
+              
+              // Notificar al dashboard UNA SOLA VEZ (en lugar de recargar todo)
+              this.notificarActualizacionAsistencia();
+              
+              // Actualizar resumen local sin recargar todo
+              this.actualizarResumenDesdeRegistros();
             },
             error: (errorTrab) => {
               console.error('⚠️ Error al actualizar horario habitual (pero asistencia guardada):', errorTrab);
@@ -1755,17 +1930,26 @@ export class RegistroComponent implements OnInit {
               this.mostrarNotificacion('success', '✅ Éxito', 'Asistencia actualizada (horario habitual no se pudo actualizar)', 3000);
               this.mostrarModalEdicion = false;
               this.registroSeleccionado = null;
-              this.cargarAsistencias(); // Recargar datos
+              // Notificar al dashboard UNA SOLA VEZ (en lugar de recargar todo)
+              this.notificarActualizacionAsistencia();
+              
+              // Actualizar resumen local sin recargar todo
+              this.actualizarResumenDesdeRegistros();
             }
           });
         } else {
           // No hay horarios válidos, solo cerrar
-          this.finalizarProcesamiento();
-          this.cerrarNotificacion();
-          this.mostrarNotificacion('success', '✅ Éxito', 'Asistencia actualizada exitosamente', 3000);
-          this.mostrarModalEdicion = false;
-          this.registroSeleccionado = null;
-          this.cargarAsistencias(); // Recargar datos
+              this.finalizarProcesamiento();
+              this.cerrarNotificacion();
+              this.mostrarNotificacion('success', '✅ Éxito', 'Asistencia actualizada exitosamente', 3000);
+              this.mostrarModalEdicion = false;
+              this.registroSeleccionado = null;
+              
+              // Notificar al dashboard UNA SOLA VEZ (en lugar de recargar todo)
+              this.notificarActualizacionAsistencia();
+              
+              // Actualizar resumen local sin recargar todo
+              this.actualizarResumenDesdeRegistros();
         }
       },
       error: (error) => {
@@ -1792,8 +1976,13 @@ export class RegistroComponent implements OnInit {
   }
 
   guardarHorariosMasivos(): void {
-    if (!this.formHorariosMasivos.horaEntradaManana || !this.formHorariosMasivos.horaSalidaManana) {
+    if (!this.formHorariosMasivos || !this.formHorariosMasivos.horaEntradaManana || !this.formHorariosMasivos.horaSalidaManana) {
       this.mostrarNotificacion('error', '❌ Error', 'Debe completar al menos los horarios de mañana', 3000);
+      return;
+    }
+
+    if (!this.formHorariosMasivos) {
+      this.mostrarNotificacion('error', '❌ Error', 'Error al cargar el formulario', 3000);
       return;
     }
 
@@ -1802,13 +1991,13 @@ export class RegistroComponent implements OnInit {
       return;
     }
 
-    const mensaje = this.formHorariosMasivos.tipoAsignacion === 'todos'
+    const mensajeConfirmacion = this.formHorariosMasivos.tipoAsignacion === 'todos'
       ? `¿Deseas asignar este horario a <strong>TODOS</strong> los trabajadores activos?`
       : `¿Deseas asignar este horario a todos los trabajadores del régimen laboral seleccionado?`;
 
     this.mostrarConfirmacion(
       'Asignar Horarios Masivamente',
-      mensaje,
+      mensajeConfirmacion,
       'warning',
       () => {
         const datos = {
@@ -1837,12 +2026,12 @@ export class RegistroComponent implements OnInit {
             this.mostrarModalHorariosMasivos = false;
             // Limpiar la lista de trabajadores activos para forzar recarga completa
             this.trabajadoresActivos = [];
-            // Esperar un momento para asegurar que el backend haya guardado los cambios
-            setTimeout(() => {
-              console.log('🔄 Recargando asistencias después de asignación masiva...');
-              // Recargar asistencias para que se actualicen los horarios asignados
-              this.cargarAsistencias();
-            }, 500);
+            
+            // Notificar al dashboard UNA SOLA VEZ (en lugar de recargar todo)
+            this.notificarActualizacionAsistencia();
+            
+            // NO recargar asistencias - los horarios se actualizarán en la próxima carga natural
+            // o cuando el usuario cambie de fecha
           },
           error: (error) => {
             console.error('❌ Error al asignar horarios masivamente:', error);

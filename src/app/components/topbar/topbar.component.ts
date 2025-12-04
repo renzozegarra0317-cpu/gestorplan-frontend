@@ -39,6 +39,12 @@ export class TopbarComponent implements OnInit, OnDestroy {
   private notificationSubscription?: Subscription;
   private timeUpdateInterval?: any;
   
+  // Temporizador Demo
+  isDemoSession: boolean = false;
+  demoTimeRemaining: string = '';
+  demoTimeRemainingSeconds: number = 0;
+  private demoTimerInterval?: any;
+  
   // Menú usuario
   showUserMenu: boolean = false;
   
@@ -57,6 +63,7 @@ export class TopbarComponent implements OnInit, OnDestroy {
     this.loadTheme();
     this.setupNotifications();
     this.checkSidebarState();
+    this.checkDemoSession();
     this.cdr.detectChanges();
   }
   
@@ -100,6 +107,9 @@ export class TopbarComponent implements OnInit, OnDestroy {
     if (this.timeUpdateInterval) {
       clearInterval(this.timeUpdateInterval);
     }
+    if (this.demoTimerInterval) {
+      clearInterval(this.demoTimerInterval);
+    }
   }
 
   private setupNotifications(): void {
@@ -137,6 +147,95 @@ export class TopbarComponent implements OnInit, OnDestroy {
       }
       this.initials = this.getInitialsFromName();
     }
+  }
+
+  // ==================== TEMPORIZADOR DEMO ====================
+  private checkDemoSession(): void {
+    const user = this.authService.getCurrentUser();
+    this.isDemoSession = user ? this.authService.isDemo() : false;
+    
+    if (this.isDemoSession) {
+      this.startDemoTimer();
+    }
+  }
+
+  private startDemoTimer(): void {
+    // Actualizar inmediatamente
+    this.updateDemoTimer();
+    
+    // Actualizar cada segundo
+    this.demoTimerInterval = setInterval(() => {
+      this.updateDemoTimer();
+    }, 1000);
+  }
+
+  private updateDemoTimer(): void {
+    const demoTimeInfoStr = localStorage.getItem('demoTimeInfo');
+    if (!demoTimeInfoStr) {
+      this.isDemoSession = false;
+      if (this.demoTimerInterval) {
+        clearInterval(this.demoTimerInterval);
+      }
+      return;
+    }
+
+    try {
+      const demoTimeInfo = JSON.parse(demoTimeInfoStr);
+      const fechaInicio = new Date(demoTimeInfo.fechaInicio);
+      const ahora = new Date();
+      
+      // Calcular tiempo total asignado en milisegundos
+      const horasEnMs = (demoTimeInfo.horasAsignadas || 1) * 60 * 60 * 1000;
+      const minutosEnMs = (demoTimeInfo.minutosAsignados || 0) * 60 * 1000;
+      const tiempoTotalMs = horasEnMs + minutosEnMs;
+      
+      // Calcular tiempo transcurrido
+      const tiempoTranscurridoMs = ahora.getTime() - fechaInicio.getTime();
+      
+      // Calcular tiempo restante
+      const tiempoRestanteMs = tiempoTotalMs - tiempoTranscurridoMs;
+      this.demoTimeRemainingSeconds = Math.max(0, Math.floor(tiempoRestanteMs / 1000));
+      
+      if (tiempoRestanteMs <= 0) {
+        // Tiempo agotado
+        this.demoTimeRemaining = '00:00:00';
+        this.isDemoSession = false;
+        if (this.demoTimerInterval) {
+          clearInterval(this.demoTimerInterval);
+        }
+        // Mostrar alerta y cerrar sesión
+        alert('⏰ Tu sesión DEMO ha expirado. Serás redirigido al login.');
+        this.authService.logout();
+        return;
+      }
+      
+      // Formatear tiempo restante como HH:MM:SS
+      const horas = Math.floor(this.demoTimeRemainingSeconds / 3600);
+      const minutos = Math.floor((this.demoTimeRemainingSeconds % 3600) / 60);
+      const segundos = this.demoTimeRemainingSeconds % 60;
+      
+      this.demoTimeRemaining = `${this.padZero(horas)}:${this.padZero(minutos)}:${this.padZero(segundos)}`;
+      
+      // Mostrar advertencia cuando queden menos de 5 minutos
+      if (this.demoTimeRemainingSeconds <= 300 && this.demoTimeRemainingSeconds > 0) {
+        // Solo mostrar una vez cuando llegue a 5 minutos
+        if (this.demoTimeRemainingSeconds === 300) {
+          alert('⚠️ Atención: Tu sesión DEMO expirará en 5 minutos.');
+        }
+      }
+      
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error al calcular tiempo demo:', error);
+      this.isDemoSession = false;
+      if (this.demoTimerInterval) {
+        clearInterval(this.demoTimerInterval);
+      }
+    }
+  }
+
+  private padZero(num: number): string {
+    return num.toString().padStart(2, '0');
   }
 
   // ==================== TEMA ====================

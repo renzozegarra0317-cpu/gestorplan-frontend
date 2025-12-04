@@ -3,6 +3,7 @@ import { provideRouter, withPreloading, PreloadAllModules } from '@angular/route
 import { provideHttpClient, HTTP_INTERCEPTORS, withInterceptorsFromDi } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
+import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { routes } from './app.routes';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { ResourceErrorInterceptor } from './interceptors/resource-error.interceptor';
@@ -14,6 +15,8 @@ export const appConfig: ApplicationConfig = {
       routes,
       withPreloading(PreloadAllModules)  // ← PRECARGA TODOS LOS MÓDULOS
     ),
+    // Usar HashLocationStrategy para GitHub Pages (rutas con #)
+    { provide: LocationStrategy, useClass: HashLocationStrategy },
     // Habilitar HttpClient y que use interceptores registrados vía DI (HTTP_INTERCEPTORS)
     provideHttpClient(withInterceptorsFromDi()),
     // Animaciones para Angular Material y otros componentes

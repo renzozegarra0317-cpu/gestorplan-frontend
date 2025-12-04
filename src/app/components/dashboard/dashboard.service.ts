@@ -18,7 +18,7 @@ export interface DashboardData {
     labels: string[];
     valores: number[];
   };
-  distribucionArea: {
+  distribucionRegimen: {
     labels: string[];
     valores: number[];
   };
@@ -105,6 +105,17 @@ export class DashboardService {
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     
     return this.http.get<any>(`${this.apiUrl}/distribucion-area`, { headers });
+  }
+
+  /**
+   * Obtener distribución por régimen laboral
+   */
+  obtenerDistribucionRegimen(): Observable<any> {
+    // Obtener el token del localStorage
+    const token = localStorage.getItem('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    
+    return this.http.get<any>(`${this.apiUrl}/distribucion-regimen`, { headers });
   }
 
   /**
